@@ -1,0 +1,5 @@
+{
+  "sandboxes": ["create-react-app-typescript"],
+  "buildCommand": "prepublishOnly",
+  "node": "16"
+}

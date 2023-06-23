@@ -1,0 +1,77 @@
+{
+  "name": "@iiif/thumbnail-panel",
+  "version": "0.0.13",
+  "repository": "git@github.com:IIIF-Commons/thumbnail-panel.git",
+  "license": "MIT",
+  "main": "dist/bundle/cjs/index.js",
+  "module": "dist/bundle/esm/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/bundle/esm/index.mjs",
+      "require": "./dist/bundle/cjs/index.js"
+    },
+    "./dist/style.css": {
+      "import": "./dist/style.css"
+    },
+    "./dist/index.d.ts": {
+      "import": "./dist/index.d.ts"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "dist/index.d.ts"
+      ]
+    }
+  },
+  "scripts": {
+    "start": "vite",
+    "build": "node ./scripts/build.mjs",
+    "prepublishOnly": "node ./scripts/build.mjs && node scripts/validate.mjs",
+    "test": "vitest",
+    "ts-lint": "tsc --incremental --watch"
+  },
+  "devDependencies": {
+    "@happy-dom/global-registrator": "^8.1.4",
+    "@iiif/presentation-3": "^1.1.3",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^14.0.0",
+    "@types/react": "^18.0.28",
+    "@types/react-dom": "^18.0.11",
+    "@typescript-eslint/eslint-plugin": "^5.48.2",
+    "@typescript-eslint/parser": "^5.48.2",
+    "@vitejs/plugin-react": "^3.1.0",
+    "@vitest/coverage-c8": "^0.27.2",
+    "chalk": "^5.2.0",
+    "cross-fetch": "^3.1.5",
+    "dts-bundle-generator": "^7.1.0",
+    "eslint": "^8.32.0",
+    "eslint-plugin-json": "^3.1.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "execa": "^6.1.0",
+    "jsdom": "^21.1.1",
+    "node-fetch": "^3.3.0",
+    "prettier": "^2.8.3",
+    "preact": "^10.15.0",
+    "terser": "^5.16.1",
+    "tslib": "^2.4.1",
+    "typescript": "^4.9.4",
+    "vite": "^4.0.4",
+    "vitest": "^0.27.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@atlas-viewer/iiif-image-api": "^2.1.1",
+    "@iiif/vault-helpers": "https://pkg.csb.dev/IIIF-Commons/vault-helpers/commit/8cc61732/@iiif/vault-helpers",
+    "@iiif/vocabulary": "^1.0.26",
+    "leva": "^0.9.34",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
