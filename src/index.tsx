@@ -1,4 +1,3 @@
-export * from './components/Thumbnail';
-export * from './components/ThumbnailPanel';
+export * from './components/Aleph';
 export * from './lib/helpers';
 export * from './context/IIIFResourceContext';

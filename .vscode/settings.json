@@ -1,4 +1,8 @@
 {
-  "editor.codeActionsOnSave": {},
-  "sort-imports.on-save": true
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "eslint.validate": [
+    "javascript"
+  ]
 }
