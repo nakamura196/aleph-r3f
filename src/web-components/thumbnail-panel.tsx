@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useRef } from 'react';
 
 import { IIIFContentProvider } from '../context/IIIFResourceContext';
-import { ThumbnailPanel } from '../components/ThumbnailPanel';
+import { ThumbnailPanel } from '../components/Aleph';
 import register from '../lib/preact-custom-element/preact-custom-element';
 import { useCustomEvent } from './helpers/use-custom-event';
 

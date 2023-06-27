@@ -234,12 +234,12 @@ function IIIFContentProvider({ initialState = defaultState, children }: IIIFCont
   return <ReactContext.Provider value={value}>{children}</ReactContext.Provider>;
 }
 
-function useThumbnailPanelContext() {
+function useIIIFContext() {
   const context = useContext(ReactContext);
   if (context === undefined) {
-    throw new Error('useThumbnailPanelContext must be used within a IIIFContentProvider');
+    throw new Error('useIIIFContext must be used within a IIIFContentProvider');
   }
   return context;
 }
 
-export { IIIFContentProvider, ReactContext, useThumbnailPanelContext };
+export { IIIFContentProvider, ReactContext, useIIIFContext };
