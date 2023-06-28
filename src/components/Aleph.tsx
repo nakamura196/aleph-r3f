@@ -1,17 +1,25 @@
 import '../style.css';
-import React from 'react';
+import React, { useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { GLTF } from './GLTF';
 import { ModelSrc } from 'src/types/ModelSrc';
-import { SceneNavigator } from './SceneNavigator';
+import { CameraControls } from '@react-three/drei';
+import { Group, Object3D } from 'three';
+// import { SceneNavigator } from './SceneNavigator';
 
 interface AlephProps {
   ambientLightIntensity?: number;
   src: string | ModelSrc | ModelSrc[];
   onLoad?: (resource: any) => void;
+  minDistance?: number;
+  grid?: boolean;
+  axes?: boolean;
 }
 
-function Scene({ ambientLightIntensity = 1.5, src }: AlephProps) {
+function Scene({ ambientLightIntensity = 1, src, minDistance = 0, grid, axes }: AlephProps) {
+  const boundsRef = useRef<Group | null>(null);
+  const cameraControlsRef = useRef<CameraControls | null>(null);
+
   const modelSrcs: ModelSrc[] = [];
 
   // is the src a string or an array of ModelSrc objects?
@@ -30,13 +38,47 @@ function Scene({ ambientLightIntensity = 1.5, src }: AlephProps) {
     modelSrcs.push(src as ModelSrc);
   }
 
+  function zoomToObject(object: Object3D) {
+    cameraControlsRef.current!.fitToBox(object, true);
+  }
+
+  function Bounds({ children }: { children: React.ReactNode }) {
+    return (
+      <group
+        ref={boundsRef}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (e.delta <= 2) {
+            zoomToObject(e.object);
+          }
+        }}
+        onPointerMissed={(_e) => {
+          zoomToObject(boundsRef.current!);
+        }}>
+        {children}
+      </group>
+    );
+  }
+
   return (
     <>
-      <SceneNavigator />
+      {/* <SceneNavigator /> */}
+      {grid && <gridHelper args={[100, 100]} />}
+      {axes && <axesHelper args={[5]} />}
       <ambientLight intensity={ambientLightIntensity} />
-      {modelSrcs.map((modelSrc, index) => {
-        return <GLTF key={index} {...modelSrc} />;
-      })}
+      <Bounds>
+        {modelSrcs.map((modelSrc, index) => {
+          return <GLTF key={index} {...modelSrc} />;
+        })}
+      </Bounds>
+      <CameraControls
+        ref={cameraControlsRef}
+        minDistance={minDistance}
+        // enabled={enabled}
+        // verticalDragToForward={verticalDragToForward}
+        // dollyToCursor={dollyToCursor}
+        // infinityDolly={infinityDolly}
+      />
     </>
   );
 }

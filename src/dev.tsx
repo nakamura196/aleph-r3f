@@ -5,7 +5,7 @@ import { useControls } from 'leva';
 import { ModelSrc } from './types/ModelSrc';
 
 const Wrapper = () => {
-  const [{ src, ambientLightIntensity }, setLevaControls] = useControls(() => ({
+  const [{ src, ambientLightIntensity, grid, axes }, setLevaControls] = useControls(() => ({
     src: {
       options: {
         'Flight Helmet':
@@ -52,11 +52,13 @@ const Wrapper = () => {
       },
     },
     ambientLightIntensity: {
-      value: 1.5,
+      value: 1,
       min: 0,
       max: 5,
       step: 0.1,
     },
+    grid: { value: false, label: 'grid' },
+    axes: { value: false, label: 'axes' },
   }));
 
   return (
@@ -66,6 +68,8 @@ const Wrapper = () => {
       onLoad={() => {
         console.log('loaded');
       }}
+      grid={grid}
+      axes={axes}
     />
   );
 };
