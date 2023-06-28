@@ -1,11 +1,12 @@
 import '../style.css';
-import React, { useEffect, useRef } from 'react';
-import { Canvas } from '@react-three/fiber';
+import React, { Suspense, useEffect, useMemo, useRef } from 'react';
+import { Canvas, useFrame, Vector3 } from '@react-three/fiber';
 import { GLTF } from './GLTF';
 import { ModelSrc } from 'src/types/ModelSrc';
-import { CameraControls, useHelper } from '@react-three/drei';
+import { CameraControls, SpotLight, useHelper } from '@react-three/drei';
 import { BoxHelper, Group, Object3D } from 'three';
 import useStore from '../Store';
+import { getCenterPosition } from '../Utils';
 
 interface AlephProps {
   ambientLightIntensity?: number;
@@ -41,29 +42,39 @@ function Scene({ ambientLightIntensity = 1, src, minDistance = 0, grid, axes, bo
     modelSrcs.push(src as ModelSrc);
   }
 
-  function zoomToObject(object: Object3D) {
-    cameraControlsRef.current!.fitToBox(object, true);
+  function zoomToObject(object: Object3D, instant?: boolean, padding: number = 0.1) {
+    cameraControlsRef.current!.fitToBox(object, !instant, {
+      cover: false,
+      paddingLeft: padding,
+      paddingRight: padding,
+      paddingBottom: padding,
+      paddingTop: padding,
+    });
   }
 
-  // function SceneNavigator() {
-  //   useEffect(() => {
-  //     console.log('SceneNavigator useEffect');
-  //     const handleObjectLoaded = (e: CustomEvent) => {
-  //       e.stopImmediatePropagation();
-  //       zoomToObject(boundsRef.current!);
-  //     };
+  function LoadingCube({ position = [0, 0, 0], color = '#8A8A8A' }: { position?: Vector3; color?: string }) {
+    const boundsRef = useRef<any>(null);
+    const cubeRef = useRef<any>(null);
+    useFrame(() => (cubeRef.current!.rotation.y = cubeRef.current!.rotation.y += 0.05));
 
-  //     // @ts-ignore
-  //     window.addEventListener('modelLoaded', handleObjectLoaded);
+    useEffect(() => {
+      home(true, 5);
+    }, []);
 
-  //     return () => {
-  //       // @ts-ignore
-  //       window.removeEventListener('modelLoaded', handleObjectLoaded);
-  //     };
-  //   }, []);
+    return (
+      <group scale={[1, 1, 1]} position={position} ref={boundsRef}>
+        <pointLight position={[-1, 0, 0]} intensity={1} />
+        <mesh ref={cubeRef}>
+          <boxBufferGeometry args={[0.5, 0.5, 0.5]} attach="geometry" />
+          <meshPhongMaterial color={color} attach="material" />
+        </mesh>
+      </group>
+    );
+  }
 
-  //   return <></>;
-  // }
+  function home(instant?: boolean, padding?: number) {
+    zoomToObject(boundsRef.current!, instant, padding);
+  }
 
   function Bounds({ lineVisible, children }: { lineVisible?: boolean; children: React.ReactNode }) {
     const boundsLineRef = useRef<Group | null>(null);
@@ -79,7 +90,7 @@ function Scene({ ambientLightIntensity = 1, src, minDistance = 0, grid, axes, bo
     };
 
     const handleOnPointerMissed = (_e: any) => {
-      zoomToObject(boundsRef.current!);
+      home();
     };
 
     return (
@@ -104,22 +115,24 @@ function Scene({ ambientLightIntensity = 1, src, minDistance = 0, grid, axes, bo
       {axes && <axesHelper args={[5]} />}
       <ambientLight intensity={ambientLightIntensity} />
       <Bounds lineVisible={boundingBox}>
-        {modelSrcs.map((modelSrc, index) => {
-          return (
-            <GLTF
-              key={index}
-              {...modelSrc}
-              onLoad={() => {
-                // setTimeout(() => {
-                console.log('model onLoad', modelSrc.url);
-                setAllModelsLoaded(true);
-                zoomToObject(boundsRef.current!);
-                // }, 10);
-                // zoomToObject(boundsRef.current!);
-              }}
-            />
-          );
-        })}
+        <Suspense fallback={<LoadingCube position={getCenterPosition(modelSrcs)} />}>
+          {modelSrcs.map((modelSrc, index) => {
+            return (
+              <GLTF
+                key={index}
+                {...modelSrc}
+                onLoad={() => {
+                  // setTimeout(() => {
+                  console.log('model onLoad', modelSrc.url);
+                  // setAllModelsLoaded(true);
+                  setTimeout(() => {
+                    home(true);
+                  }, 10);
+                }}
+              />
+            );
+          })}
+        </Suspense>
       </Bounds>
     </>
   );
@@ -132,7 +145,7 @@ export const Aleph: React.FC<AlephProps> = (props) => {
     <Canvas
       onCreated={() => {
         // state update forces scene refs to be available
-        setSceneCreated(true);
+        // setSceneCreated(true);
       }}>
       <Scene {...props} />
     </Canvas>
