@@ -1,76 +1,50 @@
 import '../style.css';
-import { useAlephContext } from '../context/IIIFResourceContext';
-import React, { useEffect, useState } from 'react';
-
-import Items from './Items';
-import { Orientation } from 'src/types/options';
-import { type OnResourceChanged, type Resource } from 'src/types/types';
-import { fetch } from '@iiif/vault-helpers/fetch';
+import React from 'react';
+import { Canvas } from '@react-three/fiber';
+import { GLTF } from './GLTF';
+import { ModelSrc } from 'src/types/ModelSrc';
+import { SceneNavigator } from './SceneNavigator';
 
 interface AlephProps {
-  children?: React.ReactNode;
-  currentResourceId?: string;
-  iiifContent: string;
+  ambientLightIntensity?: number;
+  src: string | ModelSrc | ModelSrc[];
   onLoad?: (resource: any) => void;
-  onResourceChanged?: OnResourceChanged;
-  orientation?: Orientation;
-  overrides?: Partial<Resource>;
 }
 
-export const Aleph: React.FC<AlephProps> = ({
-  currentResourceId,
-  iiifContent,
-  onLoad,
-  onResourceChanged,
-  orientation = 'vertical',
-  overrides,
-}) => {
-  return <>{iiifContent}</>;
+function Scene({ ambientLightIntensity = 1.5, src }: AlephProps) {
+  const modelSrcs: ModelSrc[] = [];
 
-  // const [error, setError] = useState(false);
-  // const { dispatch } = useAlephContext();
+  // is the src a string or an array of ModelSrc objects?
+  // if it's a string, create a ModelSrc object from it
+  if (typeof src === 'string') {
+    const modelSrc: ModelSrc = {
+      url: src as string,
+    };
 
-  // useEffect(() => {
-  //   if (currentResourceId) {
-  //     dispatch({
-  //       type: 'updateCurrentId',
-  //       id: currentResourceId,
-  //     });
-  //   }
-  // }, [currentResourceId]);
+    modelSrcs.push(modelSrc);
+  } else if (Array.isArray(src)) {
+    // if it's an array, then it's already a ModelSrc object
+    modelSrcs.push(...(src as ModelSrc[]));
+  } else {
+    // if it's not a string or an array, then it's a single ModelSrc object
+    modelSrcs.push(src as ModelSrc);
+  }
 
-  // useEffect(() => {
-  //   if (!iiifContent) {
-  //     return;
-  //   }
+  return (
+    <>
+      <SceneNavigator />
+      <ambientLight intensity={ambientLightIntensity} />
+      {modelSrcs.map((modelSrc, index) => {
+        return <GLTF key={index} {...modelSrc} />;
+      })}
+    </>
+  );
+}
 
-  //   const controller = new AbortController();
-
-  //   fetch(iiifContent, { signal: controller.signal })
-  //     .then((json) => {
-  //       // Update Context with Aleph config props
-  //       dispatch({
-  //         type: 'initialize',
-  //         payload: {
-  //           currentResourceId: currentResourceId || '',
-  //           isControlled: !!currentResourceId,
-  //           isLoaded: true,
-  //           onResourceChanged,
-  //           resource: json,
-  //           orientation,
-  //           overrides,
-  //         },
-  //       });
-  //       if (onLoad) {
-  //         onLoad(json);
-  //       }
-  //     })
-  //     .catch((e) => setError(e));
-
-  //   return () => {
-  //     controller.abort();
-  //   };
-  // }, [iiifContent]);
-
-  // return <Items onResourceChanged={onResourceChanged} />;
+export const Aleph: React.FC<AlephProps> = (props) => {
+  return (
+    <Canvas>
+      <Scene {...props} />
+    </Canvas>
+  );
 };
