@@ -4,16 +4,24 @@ import { a } from '@react-spring/three';
 import { Group } from 'three';
 import { ModelSrc } from 'src/types/ModelSrc';
 
-export const GLTF = ({ url, position = [0, 0, 0], rotation = [0, 0, 0], scale = [1, 1, 1] }: ModelSrc) => {
-  const { scene } = useGLTF(url);
+type GLTFProps = ModelSrc & {
+  onLoad?: (url: string) => void;
+};
+
+export const GLTF = ({ url, position = [0, 0, 0], rotation = [0, 0, 0], scale = [1, 1, 1], onLoad }: GLTFProps) => {
+  const { scene } = useGLTF(url, true, true, (e) => {
+    e.manager.onLoad = () => {
+      // console.log('model loaded', url);
+      if (onLoad) {
+        onLoad(url);
+      }
+      // const event = new CustomEvent('modelLoaded', { detail: url });
+      // window.dispatchEvent(event);
+    };
+    console.log('model loading', url);
+  });
   const ref = useRef<Group | null>(null);
   const modelRef = useRef();
-
-  useEffect(() => {
-    const event = new CustomEvent('modelLoaded', { detail: url });
-    window.dispatchEvent(event);
-    console.log('model loaded', url);
-  }, [url]);
 
   return (
     <a.group ref={ref} position={position} rotation={rotation} scale={scale}>
