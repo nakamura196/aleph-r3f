@@ -5,7 +5,7 @@ import { useControls } from 'leva';
 import { ModelSrc } from './types/ModelSrc';
 
 const Wrapper = () => {
-  const [{ src, ambientLightIntensity, grid, axes, boundingBox }, setLevaControls] = useControls(() => ({
+  const [{ src, ambientLightIntensity, grid, axes, boundingBox, environment }, setLevaControls] = useControls(() => ({
     src: {
       options: {
         'Flight Helmet':
@@ -52,7 +52,7 @@ const Wrapper = () => {
       },
     },
     ambientLightIntensity: {
-      value: 1,
+      value: 0,
       min: 0,
       max: 5,
       step: 0.1,
@@ -60,6 +60,20 @@ const Wrapper = () => {
     grid: { value: false, label: 'grid' },
     axes: { value: false, label: 'axes' },
     boundingBox: { value: false, label: 'bounding box' },
+    environment: {
+      options: {
+        Apartment: 'apartment',
+        City: 'city',
+        Dawn: 'dawn',
+        Forest: 'forest',
+        Lobby: 'lobby',
+        Night: 'night',
+        Park: 'park',
+        Studio: 'studio',
+        Sunset: 'sunset',
+        Warehouse: 'warehouse',
+      },
+    },
   }));
 
   return (
@@ -72,6 +86,7 @@ const Wrapper = () => {
       boundingBox={boundingBox}
       grid={grid}
       axes={axes}
+      environment={environment}
     />
   );
 };

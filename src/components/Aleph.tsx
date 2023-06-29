@@ -3,7 +3,7 @@ import React, { Suspense, useEffect, useMemo, useRef } from 'react';
 import { Canvas, useFrame, Vector3 } from '@react-three/fiber';
 import { GLTF } from './GLTF';
 import { ModelSrc } from 'src/types/ModelSrc';
-import { CameraControls, SpotLight, useHelper } from '@react-three/drei';
+import { CameraControls, Environment, useHelper } from '@react-three/drei';
 import { BoxHelper, Group, Object3D } from 'three';
 import useStore from '../Store';
 import { getCenterPosition } from '../Utils';
@@ -16,9 +16,30 @@ interface AlephProps {
   grid?: boolean;
   axes?: boolean;
   boundingBox?: boolean;
+  environment:
+    | 'apartment'
+    | 'city'
+    | 'dawn'
+    | 'forest'
+    | 'lobby'
+    | 'night'
+    | 'park'
+    | 'studio'
+    | 'sunset'
+    | 'warehouse'
+    | undefined;
 }
 
-function Scene({ ambientLightIntensity = 1, axes, boundingBox, grid, minDistance = 0, onLoad, src }: AlephProps) {
+function Scene({
+  ambientLightIntensity = 0,
+  axes,
+  boundingBox,
+  grid,
+  minDistance = 0,
+  onLoad,
+  src,
+  environment,
+}: AlephProps) {
   const boundsRef = useRef<Group | null>(null);
   const cameraControlsRef = useRef<CameraControls | null>(null);
 
@@ -144,6 +165,7 @@ function Scene({ ambientLightIntensity = 1, axes, boundingBox, grid, minDistance
           })}
         </Suspense>
       </Bounds>
+      <Environment preset={environment} />
     </>
   );
 }
