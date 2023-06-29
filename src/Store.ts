@@ -2,24 +2,16 @@ import { create } from 'zustand';
 // import { mountStoreDevtool } from 'simple-zustand-devtools';
 
 type State = {
-  sceneCreated: boolean;
-  allModelsLoaded: boolean;
-  setSceneCreated: (created: boolean) => void;
-  setAllModelsLoaded: (loaded: boolean) => void;
+  loading: boolean;
+  setLoading: (loading: boolean) => void;
 };
 
 const useStore = create<State>((set) => ({
-  sceneCreated: false,
-  allModelsLoaded: false,
+  loading: false,
 
-  setSceneCreated: (sceneCreated: boolean) =>
+  setLoading: (loading: boolean) =>
     set({
-      sceneCreated,
-    }),
-
-  setAllModelsLoaded: (allModelsLoaded: boolean) =>
-    set({
-      allModelsLoaded,
+      loading,
     }),
 }));
 

@@ -31,19 +31,19 @@ const Wrapper = () => {
           },
           {
             url: 'https://modelviewer.dev/assets/ShopifyModels/GeoPlanter.glb',
-            position: [2, 0, 0],
+            position: [0.5, 0, 0],
             rotation: [0, 0, 0],
             scale: [1, 1, 1],
           },
           {
             url: 'https://modelviewer.dev/assets/ShopifyModels/ToyTrain.glb',
-            position: [4, 0, 0],
+            position: [1, 0, 0],
             rotation: [0, 0, 0],
             scale: [1, 1, 1],
           },
           {
             url: 'https://modelviewer.dev/assets/ShopifyModels/Chair.glb',
-            position: [6, 0, 0],
+            position: [1.5, 0, 0],
             rotation: [0, 0, 0],
             scale: [1, 1, 1],
           },
@@ -67,7 +67,7 @@ const Wrapper = () => {
       src={src}
       ambientLightIntensity={ambientLightIntensity}
       onLoad={() => {
-        console.log('loaded');
+        console.log('Aleph loaded');
       }}
       boundingBox={boundingBox}
       grid={grid}

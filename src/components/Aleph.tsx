@@ -11,18 +11,24 @@ import { getCenterPosition } from '../Utils';
 interface AlephProps {
   ambientLightIntensity?: number;
   src: string | ModelSrc | ModelSrc[];
-  onLoad?: (resource: any) => void;
+  onLoad?: () => void;
   minDistance?: number;
   grid?: boolean;
   axes?: boolean;
   boundingBox?: boolean;
 }
 
-function Scene({ ambientLightIntensity = 1, src, minDistance = 0, grid, axes, boundingBox }: AlephProps) {
+function Scene({ ambientLightIntensity = 1, axes, boundingBox, grid, minDistance = 0, onLoad, src }: AlephProps) {
   const boundsRef = useRef<Group | null>(null);
   const cameraControlsRef = useRef<CameraControls | null>(null);
 
-  const { setAllModelsLoaded } = useStore();
+  const { setLoading, loading } = useStore();
+
+  useEffect(() => {
+    console.log('src changed');
+    setLoading(true);
+    home();
+  }, [src]);
 
   const modelSrcs: ModelSrc[] = [];
 
@@ -65,7 +71,7 @@ function Scene({ ambientLightIntensity = 1, src, minDistance = 0, grid, axes, bo
       <group scale={[1, 1, 1]} position={position} ref={boundsRef}>
         <pointLight position={[-1, 0, 0]} intensity={1} />
         <mesh ref={cubeRef}>
-          <boxBufferGeometry args={[0.5, 0.5, 0.5]} attach="geometry" />
+          <boxGeometry args={[0.5, 0.5, 0.5]} attach="geometry" />
           <meshPhongMaterial color={color} attach="material" />
         </mesh>
       </group>
@@ -114,7 +120,7 @@ function Scene({ ambientLightIntensity = 1, src, minDistance = 0, grid, axes, bo
       {grid && <gridHelper args={[100, 100]} />}
       {axes && <axesHelper args={[5]} />}
       <ambientLight intensity={ambientLightIntensity} />
-      <Bounds lineVisible={boundingBox}>
+      <Bounds lineVisible={boundingBox && !loading}>
         <Suspense fallback={<LoadingCube position={getCenterPosition(modelSrcs)} />}>
           {modelSrcs.map((modelSrc, index) => {
             return (
@@ -122,12 +128,16 @@ function Scene({ ambientLightIntensity = 1, src, minDistance = 0, grid, axes, bo
                 key={index}
                 {...modelSrc}
                 onLoad={() => {
-                  // setTimeout(() => {
-                  console.log('model onLoad', modelSrc.url);
-                  // setAllModelsLoaded(true);
+                  // this only fires when the last model is loaded
+
+                  setLoading(false);
+
                   setTimeout(() => {
                     home(true);
-                  }, 10);
+                    if (onLoad) {
+                      onLoad();
+                    }
+                  }, 0);
                 }}
               />
             );
@@ -139,8 +149,6 @@ function Scene({ ambientLightIntensity = 1, src, minDistance = 0, grid, axes, bo
 }
 
 export const Aleph: React.FC<AlephProps> = (props) => {
-  const { setSceneCreated } = useStore();
-
   return (
     <Canvas
       onCreated={() => {
