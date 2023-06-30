@@ -1,12 +1,11 @@
 import '../style.css';
 import React, { Suspense, useEffect, useRef } from 'react';
-import { Canvas, useFrame, Vector3 } from '@react-three/fiber';
+import { Canvas } from '@react-three/fiber';
 import { GLTF } from './GLTF';
 import { ModelSrc } from 'src/types/ModelSrc';
 import { CameraControls, Environment, Html, useHelper, useProgress } from '@react-three/drei';
 import { BoxHelper, Group, Object3D } from 'three';
 import useStore from '../Store';
-import { getCenterPosition } from '../Utils';
 import { Environment as EnvironmentName } from '../types/Environment';
 
 interface AlephProps {
@@ -33,7 +32,7 @@ function Scene({
   const boundsRef = useRef<Group | null>(null);
   const cameraControlsRef = useRef<CameraControls | null>(null);
 
-  const { setLoading, loading, setModelSrcs, modelSrcs } = useStore();
+  const { setModelSrcs, modelSrcs } = useStore();
 
   useEffect(() => {
     const modelSrcs: ModelSrc[] = [];
@@ -55,14 +54,6 @@ function Scene({
     }
 
     setModelSrcs(modelSrcs);
-
-    // have these models been loaded before?
-    // if so, they'll appear immediately, so zoom to the bounds of the model
-
-    // if (modelSrcs.every((modelSrc) => modelSrc.loaded)) {
-    //   home(true);
-    // }
-    // home(); // zoom to loading cube
   }, [src]);
 
   function zoomToObject(object: Object3D, instant?: boolean, padding: number = 0.1) {
@@ -141,7 +132,7 @@ function Scene({
 
   return (
     <>
-      <CameraControls ref={cameraControlsRef} minDistance={minDistance} />
+      <CameraControls ref={cameraControlsRef} minDistance={minDistance} fov="45" />
       <ambientLight intensity={ambientLightIntensity} />
       <Bounds lineVisible={boundingBox}>
         <Suspense fallback={<Loader />}>
@@ -159,11 +150,7 @@ function Scene({
 
 export const Aleph: React.FC<AlephProps> = (props) => {
   return (
-    <Canvas
-      onCreated={() => {
-        // state update forces scene refs to be available
-        // setSceneCreated(true);
-      }}>
+    <Canvas>
       <Scene {...props} />
     </Canvas>
   );
