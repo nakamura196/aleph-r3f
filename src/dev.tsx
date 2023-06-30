@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { Aleph } from './index';
 import { useControls } from 'leva';
 import { ModelSrc } from './types/ModelSrc';
+import { Environment } from './types/Environment';
 
 const Wrapper = () => {
   const [{ src, ambientLightIntensity, grid, axes, boundingBox, environment }, setLevaControls] = useControls(() => ({
@@ -86,7 +87,7 @@ const Wrapper = () => {
       boundingBox={boundingBox}
       grid={grid}
       axes={axes}
-      environment={environment}
+      environment={environment as Environment}
     />
   );
 };

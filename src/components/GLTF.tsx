@@ -11,14 +11,10 @@ type GLTFProps = ModelSrc & {
 export const GLTF = ({ url, position = [0, 0, 0], rotation = [0, 0, 0], scale = [1, 1, 1], onLoad }: GLTFProps) => {
   const { scene } = useGLTF(url, true, true, (e) => {
     e.manager.onLoad = () => {
-      // console.log('model loaded', url);
       if (onLoad) {
         onLoad(url);
       }
-      // const event = new CustomEvent('modelLoaded', { detail: url });
-      // window.dispatchEvent(event);
     };
-    console.log('model loading', url);
   });
   const ref = useRef<Group | null>(null);
   const modelRef = useRef();

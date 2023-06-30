@@ -14,3 +14,9 @@ body,
 body {
   background: #303035;
 }
+
+.loading {
+  white-space: nowrap;
+  color: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+}
