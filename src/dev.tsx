@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import { Aleph } from './index';
 import { button, folder, useControls } from 'leva';
@@ -6,6 +6,7 @@ import { ModelSrc } from './types/ModelSrc';
 import { Environment } from './types/Environment';
 
 const Wrapper = () => {
+  const alephRef = useRef(null);
   const YUP: [number, number, number] = [0, 1, 0];
   const ZUP: [number, number, number] = [0, 0, -1];
   const [upVector, setUpVector] = useState<[number, number, number]>(YUP);
@@ -88,13 +89,15 @@ const Wrapper = () => {
         },
         { collapsed: true }
       ),
-      'Zoom to bounds': button((_get) => {
-        console.log('resetCamera');
+      Home: button((_get) => {
+        // @ts-ignore
+        alephRef.current?.home();
       }),
     }));
 
   return (
     <Aleph
+      ref={alephRef}
       src={src}
       ambientLightIntensity={ambientLightIntensity}
       onLoad={() => {

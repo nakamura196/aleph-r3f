@@ -1,8 +1,7 @@
 import '../style.css';
-import React, { Suspense, useEffect, useRef } from 'react';
+import React, { RefObject, Suspense, forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { GLTF } from './GLTF';
-import { ModelSrc } from 'src/types/ModelSrc';
 import {
   CameraControls,
   Environment,
@@ -14,20 +13,7 @@ import {
 } from '@react-three/drei';
 import { BoxHelper, Group, Object3D, Vector3 } from 'three';
 import useStore from '../Store';
-import { Environment as EnvironmentName } from '../types/Environment';
-
-interface AlephProps {
-  ambientLightIntensity?: number;
-  axes?: boolean;
-  boundingBox?: boolean;
-  environment: EnvironmentName;
-  grid?: boolean;
-  minDistance?: number;
-  onLoad?: () => void;
-  orthographic?: boolean;
-  src: string | ModelSrc | ModelSrc[];
-  upVector?: [number, number, number];
-}
+import { AlephProps, ModelSrc } from 'src/types';
 
 function Scene({
   ambientLightIntensity = 0,
@@ -52,6 +38,21 @@ function Scene({
 
   const { setModelSrcs, modelSrcs } = useStore();
 
+  const handleHomeEvent = () => {
+    home();
+  };
+
+  useEffect(() => {
+    // @ts-ignore
+    window.addEventListener('alhome', handleHomeEvent);
+
+    return () => {
+      // @ts-ignore
+      window.removeEventListener('alhome', handleHomeEvent);
+    };
+  }, []);
+
+  // src changed
   useEffect(() => {
     const modelSrcs: ModelSrc[] = [];
 
@@ -151,10 +152,23 @@ function Scene({
   );
 }
 
-export const Aleph: React.FC<AlephProps> = (props) => {
+function triggerHomeEvent() {
+  const event = new CustomEvent('alhome');
+  window.dispatchEvent(event);
+}
+
+const Aleph = (props: AlephProps, ref: ((instance: unknown) => void) | RefObject<unknown> | null | undefined) => {
+  useImperativeHandle(ref, () => ({
+    home: () => {
+      triggerHomeEvent();
+    },
+  }));
+
   return (
     <Canvas>
       <Scene {...props} />
     </Canvas>
   );
 };
+
+export default forwardRef(Aleph);

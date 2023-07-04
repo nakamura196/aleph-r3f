@@ -1,1 +1,1 @@
-import './thumbnail-panel';
+import './aleph';
