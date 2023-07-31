@@ -1,6 +1,6 @@
 import '../style.css';
 import React, { RefObject, Suspense, forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
-import { Canvas, useThree } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { GLTF } from './GLTF';
 import {
   CameraControls,
@@ -14,6 +14,7 @@ import {
 import { BoxHelper, Group, Intersection, Object3D, Vector3 } from 'three';
 import useStore from '../Store';
 import { AlephProps, Annotation, ModelSrc } from 'src/types';
+import { clsx } from 'clsx';
 
 function Scene({
   annotation,
@@ -135,13 +136,7 @@ function Scene({
   }
 
   function Annotation() {
-    // https://docs.pmnd.rs/react-three-fiber/api/hooks#state-properties
-    // const { scene, pointer, raycaster } = useThree();
-    // const scene = useThree((state) => state.scene);
-    // const pointer = useThree((state) => state.pointer);
-    // const raycaster = useThree((state) => state.raycaster);
-
-    // const raycaster = new Raycaster();
+    const annoNormalFacingCameraCheckMS: number = 250;
 
     useEffect(() => {
       // @ts-ignore
@@ -162,21 +157,56 @@ function Scene({
         setAnnotations([
           ...annotations,
           {
-            label: `annotation ${annotations.length + 1}`,
+            label: `${annotations.length + 1}`,
             position: intersects[0].point,
             normal: intersects[0].face?.normal!,
           },
         ]);
+
+        // avoids delay before annotations fade
+        checkNormalsFacingDirection();
       }
     };
 
+    function checkNormalsFacingDirection() {
+      // loop through all annotations and check if their normals
+      // are facing towards or away from the camera
+      annotations.forEach((anno: Annotation, idx: number) => {
+        const cameraDirection: Vector3 = camera.position.sub(anno.position).normalize();
+        const dotProduct: number = cameraDirection.dot(anno.normal);
+
+        const annoEl: HTMLElement = document.getElementById(`anno-${idx}`)!;
+
+        if (dotProduct < 0) {
+          // console.log(`away`);
+          annoEl.classList.add('disabled');
+        } else {
+          // console.log(`towards`);
+          annoEl.classList.remove('disabled');
+        }
+
+        return anno;
+      });
+    }
+
+    useEffect(() => {
+      const interval = setInterval(() => {
+        checkNormalsFacingDirection();
+      }, annoNormalFacingCameraCheckMS);
+
+      return () => clearInterval(interval);
+    }, []);
+
     return (
       <>
-        {annotations.map((anno, index) => {
+        {annotations.map((anno, idx) => {
+          const classes = clsx('annotation');
           return (
-            <Html key={index} position={anno.position}>
-              <div className="annotation">
-                {anno.label}, {anno.normal.x}
+            <Html key={idx} position={anno.position}>
+              <div id={`anno-${idx}`} className="annotation">
+                <div className="circle">
+                  <span className="label">{anno.label}</span>
+                </div>
               </div>
             </Html>
           );

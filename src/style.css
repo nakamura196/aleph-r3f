@@ -21,8 +21,61 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* The container that holds the circle */
 .annotation {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 24px; /* Adjust the size of the container to your preference */
+  height: 24px; /* Adjust the size of the container to your preference */
+  transition: opacity 0.25s ease-in-out;
+}
+
+/* The circle */
+.annotation .circle {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border-radius: 50%; /* Creates a circle */
+  background-color: rgba(0, 0, 0, 0.75);
+  border: 1px solid white;
+  width: 100%;
+  height: 100%;
+  color: white;
+  font-size: 11px; /* Adjust the font size to your preference */
+  font-weight: normal;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* The number to be centered */
+.annotation .circle span {
+  display: inline-block;
+  text-align: center;
   font-family: sans-serif;
-  background-color: #fff;
-  white-space: nowrap;
+}
+
+.annotation.disabled {
+  opacity: 10%;
+  transition: opacity 0.25s ease-in-out;
+  pointer-events: none;
 }

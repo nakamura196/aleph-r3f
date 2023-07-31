@@ -4,4 +4,5 @@ export type Annotation = {
   label: string;
   position: Vector3;
   normal: Vector3;
+  normalFacingCamera?: boolean;
 };
