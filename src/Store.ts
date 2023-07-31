@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { ModelSrc } from './types/ModelSrc';
+import { Annotation, ModelSrc } from './types/';
 // import { mountStoreDevtool } from 'simple-zustand-devtools';
 
 type State = {
@@ -7,11 +7,14 @@ type State = {
   setLoading: (loading: boolean) => void;
   modelSrcs: ModelSrc[];
   setModelSrcs: (modelSrcs: ModelSrc[]) => void;
+  annotations: Annotation[];
+  setAnnotations: (annotations: Annotation[]) => void;
 };
 
 const useStore = create<State>((set) => ({
   loading: false,
   modelSrcs: [],
+  annotations: [],
 
   setLoading: (loading: boolean) =>
     set({
@@ -22,6 +25,11 @@ const useStore = create<State>((set) => ({
     set({
       modelSrcs,
       loading: true,
+    }),
+
+  setAnnotations: (annotations: Annotation[]) =>
+    set({
+      annotations,
     }),
 }));
 

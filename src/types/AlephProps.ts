@@ -1,6 +1,7 @@
 import { Environment as EnvironmentName, ModelSrc } from './index';
 
 export type AlephProps = {
+  annotation?: boolean;
   ambientLightIntensity?: number;
   axes?: boolean;
   boundingBox?: boolean;

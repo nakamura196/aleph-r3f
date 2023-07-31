@@ -11,11 +11,12 @@ import {
   useHelper,
   useProgress,
 } from '@react-three/drei';
-import { BoxHelper, Group, Object3D, Vector3 } from 'three';
+import { BoxHelper, Group, Intersection, Object3D, Vector3 } from 'three';
 import useStore from '../Store';
-import { AlephProps, ModelSrc } from 'src/types';
+import { AlephProps, Annotation, ModelSrc } from 'src/types';
 
 function Scene({
+  annotation,
   ambientLightIntensity = 0,
   axes,
   boundingBox,
@@ -30,18 +31,19 @@ function Scene({
   const boundsRef = useRef<Group | null>(null);
   const cameraControlsRef = useRef<CameraControls | null>(null);
 
-  const { camera } = useThree();
+  const { scene, camera, pointer, raycaster } = useThree();
 
   // set the camera up vector
   camera.up.copy(new Vector3(upVector[0], upVector[1], upVector[2]));
   cameraControlsRef.current?.updateCameraUp();
 
-  const { setModelSrcs, modelSrcs } = useStore();
+  const { setAnnotations, setModelSrcs, modelSrcs, annotations } = useStore();
 
   const handleHomeEvent = () => {
     home();
   };
 
+  // register/unregister event handlers
   useEffect(() => {
     // @ts-ignore
     window.addEventListener('alhome', handleHomeEvent);
@@ -97,22 +99,25 @@ function Scene({
     // @ts-ignore
     useHelper(boundsLineRef, BoxHelper, 'white');
 
-    const handleOnClick = (e: any) => {
-      e.stopPropagation();
-      if (e.delta <= 2) {
-        zoomToObject(e.object);
-      }
-    };
+    // disabling as inteferes with double click
+    // const handleOnClick = (e: any) => {
+    //   e.stopPropagation();
+    //   if (e.delta <= 2) {
+    //     zoomToObject(e.object);
+    //   }
+    // };
 
-    const handleOnPointerMissed = (_e: any) => {
-      home();
-    };
+    // const handleOnPointerMissed = (_e: any) => {
+    //   home();
+    // };
 
-    return (
-      <group ref={boundsRef} onClick={handleOnClick} onPointerMissed={handleOnPointerMissed}>
-        {lineVisible ? <group ref={boundsLineRef}>{children}</group> : children}
-      </group>
-    );
+    // return (
+    //   <group ref={boundsRef} onClick={handleOnClick} onPointerMissed={handleOnPointerMissed}>
+    //     {lineVisible ? <group ref={boundsLineRef}>{children}</group> : children}
+    //   </group>
+    // );
+
+    return <group ref={boundsRef}>{lineVisible ? <group ref={boundsLineRef}>{children}</group> : children}</group>;
   }
 
   function Loader() {
@@ -127,6 +132,57 @@ function Scene({
     }
 
     return <Html wrapperClass="loading">{Math.ceil(progress)} %</Html>;
+  }
+
+  function Annotation() {
+    // https://docs.pmnd.rs/react-three-fiber/api/hooks#state-properties
+    // const { scene, pointer, raycaster } = useThree();
+    // const scene = useThree((state) => state.scene);
+    // const pointer = useThree((state) => state.pointer);
+    // const raycaster = useThree((state) => state.raycaster);
+
+    // const raycaster = new Raycaster();
+
+    useEffect(() => {
+      // @ts-ignore
+      window.addEventListener('aldblclick', handleDoubleClickEvent);
+
+      return () => {
+        // @ts-ignore
+        window.removeEventListener('aldblclick', handleDoubleClickEvent);
+      };
+    }, []);
+
+    const handleDoubleClickEvent = () => {
+      raycaster.setFromCamera(pointer, camera);
+
+      const intersects: Intersection<Object3D<Event>>[] = raycaster.intersectObjects(scene.children, true);
+
+      if (intersects.length > 0) {
+        setAnnotations([
+          ...annotations,
+          {
+            label: `annotation ${annotations.length + 1}`,
+            position: intersects[0].point,
+            normal: intersects[0].face?.normal!,
+          },
+        ]);
+      }
+    };
+
+    return (
+      <>
+        {annotations.map((anno, index) => {
+          return (
+            <Html key={index} position={anno.position}>
+              <div className="annotation">
+                {anno.label}, {anno.normal.x}
+              </div>
+            </Html>
+          );
+        })}
+      </>
+    );
   }
 
   return (
@@ -146,6 +202,7 @@ function Scene({
         </Suspense>
       </Bounds>
       <Environment preset={environment} />
+      {annotation && <Annotation />}
       {grid && <gridHelper args={[100, 100]} />}
       {axes && <axesHelper args={[5]} />}
     </>
@@ -157,6 +214,11 @@ function triggerHomeEvent() {
   window.dispatchEvent(event);
 }
 
+function triggerDoubleClickEvent(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+  const event = new CustomEvent('aldblclick', { detail: e });
+  window.dispatchEvent(event);
+}
+
 const Aleph = (props: AlephProps, ref: ((instance: unknown) => void) | RefObject<unknown> | null | undefined) => {
   useImperativeHandle(ref, () => ({
     home: () => {
@@ -165,7 +227,10 @@ const Aleph = (props: AlephProps, ref: ((instance: unknown) => void) | RefObject
   }));
 
   return (
-    <Canvas>
+    <Canvas
+      onDoubleClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        triggerDoubleClickEvent(e);
+      }}>
       <Scene {...props} />
     </Canvas>
   );
