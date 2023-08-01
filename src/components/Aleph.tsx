@@ -1,7 +1,7 @@
 import '../style.css';
 import React, { RefObject, Suspense, forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { GLTF } from './GLTF';
+import { Canvas, useThree } from '@react-three/fiber';
+import { GLTF } from '../components/GLTF';
 import {
   CameraControls,
   Environment,
@@ -13,12 +13,13 @@ import {
 } from '@react-three/drei';
 import { BoxHelper, Group, Intersection, Object3D, Vector3 } from 'three';
 import useStore from '../Store';
-import { AlephProps, Annotation, ModelSrc } from 'src/types';
-import { clsx } from 'clsx';
+import { AlephProps, Annotation, ModelSrc } from '@/types';
+import { formatVector3AsString } from '../lib/utils';
 
 function Scene({
   annotation,
   ambientLightIntensity = 0,
+  arrowHelpers,
   axes,
   boundingBox,
   environment,
@@ -33,6 +34,8 @@ function Scene({
   const cameraControlsRef = useRef<CameraControls | null>(null);
 
   const { scene, camera, pointer, raycaster } = useThree();
+
+  const DOT_PRODUCT_THRESHOLD = -0.3; // if the dot product is less than this, then the normal is facing away from the camera
 
   // set the camera up vector
   camera.up.copy(new Vector3(upVector[0], upVector[1], upVector[2]));
@@ -136,7 +139,9 @@ function Scene({
   }
 
   function Annotation() {
-    const annoNormalFacingCameraCheckMS: number = 250;
+    const lastAnnoLength = useRef<number>(0);
+
+    let annoNormalFacingCameraCheckMS: number = 100;
 
     useEffect(() => {
       // @ts-ignore
@@ -162,31 +167,57 @@ function Scene({
             normal: intersects[0].face?.normal!,
           },
         ]);
-
-        // avoids delay before annotations fade
-        checkNormalsFacingDirection();
       }
     };
+
+    function getCameraDotProduct(anno: Annotation): number {
+      const cameraPosition: Vector3 = new Vector3();
+      cameraPosition.copy(camera.position);
+
+      const annoPosition: Vector3 = new Vector3();
+      annoPosition.copy(anno.position);
+
+      const cameraDirection: Vector3 = cameraPosition.normalize().sub(annoPosition.normalize());
+      const dotProduct: number = cameraDirection.dot(anno.normal);
+
+      return dotProduct;
+    }
 
     function checkNormalsFacingDirection() {
       // loop through all annotations and check if their normals
       // are facing towards or away from the camera
-      annotations.forEach((anno: Annotation, idx: number) => {
-        const cameraDirection: Vector3 = camera.position.sub(anno.position).normalize();
-        const dotProduct: number = cameraDirection.dot(anno.normal);
 
+      const annosChanged = lastAnnoLength.current !== annotations.length;
+
+      // if the number of annotations has changed, then we need to
+      // check the normals immediately
+      if (annosChanged) {
+        annoNormalFacingCameraCheckMS = 1;
+      } else {
+        annoNormalFacingCameraCheckMS = 10;
+      }
+
+      annotations.forEach((anno: Annotation, idx: number) => {
         const annoEl: HTMLElement = document.getElementById(`anno-${idx}`)!;
 
-        if (dotProduct < 0) {
-          // console.log(`away`);
-          annoEl.classList.add('disabled');
+        if (annosChanged) {
+          annoEl.classList.add('no-fade');
         } else {
-          // console.log(`towards`);
-          annoEl.classList.remove('disabled');
+          annoEl.classList.remove('no-fade');
         }
 
-        return anno;
+        const dotProduct: number = getCameraDotProduct(anno);
+
+        // annoEl.innerHTML = `${dotProduct.toFixed(2)}`;
+
+        if (dotProduct < DOT_PRODUCT_THRESHOLD) {
+          annoEl.classList.add('disabled');
+        } else {
+          annoEl.classList.remove('disabled');
+        }
       });
+
+      lastAnnoLength.current = annotations.length;
     }
 
     useEffect(() => {
@@ -200,15 +231,24 @@ function Scene({
     return (
       <>
         {annotations.map((anno, idx) => {
-          const classes = clsx('annotation');
           return (
-            <Html key={idx} position={anno.position}>
-              <div id={`anno-${idx}`} className="annotation">
-                <div className="circle">
-                  <span className="label">{anno.label}</span>
+            <React.Fragment key={idx}>
+              {arrowHelpers && <arrowHelper args={[anno.normal, anno.position, 0.05, 0xffffff]} />}
+              <Html position={anno.position}>
+                <div id={`anno-${idx}`} className="annotation">
+                  <div
+                    className="circle"
+                    onClick={(e) => {
+                      const dotProduct: number = getCameraDotProduct(anno);
+                      if (dotProduct > DOT_PRODUCT_THRESHOLD) {
+                        console.log(`clicked ${idx}`);
+                      }
+                    }}>
+                    <span className="label">{anno.label}</span>
+                  </div>
                 </div>
-              </div>
-            </Html>
+              </Html>
+            </React.Fragment>
           );
         })}
       </>
@@ -220,7 +260,7 @@ function Scene({
       {orthographic ? (
         <OrthographicCamera makeDefault position={[0, 0, 2]} near={0} zoom={200} />
       ) : (
-        <PerspectiveCamera position={[0, 0, 2]} fov={60} />
+        <PerspectiveCamera position={[0, 0, 2]} fov={50} near={0.01} />
       )}
       <CameraControls ref={cameraControlsRef} minDistance={minDistance} />
       <ambientLight intensity={ambientLightIntensity} />

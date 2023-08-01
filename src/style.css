@@ -45,37 +45,49 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 24px; /* Adjust the size of the container to your preference */
-  height: 24px; /* Adjust the size of the container to your preference */
-  transition: opacity 0.25s ease-in-out;
+  width: 25px;
+  height: 25px;
 }
 
 /* The circle */
 .annotation .circle {
   position: absolute;
   transform: translate(-50%, -50%);
-  border-radius: 50%; /* Creates a circle */
+  border-radius: 50%;
   background-color: rgba(0, 0, 0, 0.75);
   border: 1px solid white;
   width: 100%;
   height: 100%;
   color: white;
-  font-size: 11px; /* Adjust the font size to your preference */
+  font-size: 11px;
   font-weight: normal;
   display: flex;
   justify-content: center;
   align-items: center;
+  cursor: pointer;
+  opacity: 100%;
+  transition: opacity 0.25s ease-in-out;
 }
 
-/* The number to be centered */
-.annotation .circle span {
+/* The label */
+.annotation .circle .label {
   display: inline-block;
   text-align: center;
   font-family: sans-serif;
+  white-space: nowrap;
 }
 
-.annotation.disabled {
+.annotation.disabled .circle {
   opacity: 10%;
   transition: opacity 0.25s ease-in-out;
+  cursor: default;
   pointer-events: none;
+}
+
+.annotation.disabled .circle .label {
+  pointer-events: none;
+}
+
+.annotation.no-fade .circle {
+  transition: opacity 0s;
 }

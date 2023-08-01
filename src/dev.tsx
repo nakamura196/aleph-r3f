@@ -12,7 +12,7 @@ const Wrapper = () => {
   const [upVector, setUpVector] = useState<[number, number, number]>(YUP);
 
   const [
-    { src, annotation, ambientLightIntensity, grid, axes, boundingBox, environment, orthographic },
+    { src, annotation, ambientLightIntensity, arrowHelpers, grid, axes, boundingBox, environment, orthographic },
     setLevaControls,
   ] = useControls(() => ({
     src: {
@@ -67,6 +67,7 @@ const Wrapper = () => {
       max: 5,
       step: 0.1,
     },
+    arrowHelpers: { value: false, label: 'arrowHelpers' },
     grid: { value: false, label: 'grid' },
     axes: { value: false, label: 'axes' },
     boundingBox: { value: false, label: 'bounding box' },
@@ -104,6 +105,7 @@ const Wrapper = () => {
       src={src}
       annotation={annotation}
       ambientLightIntensity={ambientLightIntensity}
+      arrowHelpers={arrowHelpers}
       onLoad={() => {
         console.log('Aleph loaded');
       }}
