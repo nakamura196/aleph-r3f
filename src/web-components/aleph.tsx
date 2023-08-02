@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useRef } from 'react';
 
-import { default as Aleph } from '../components/Aleph';
+import { default as Aleph } from '../components/_Aleph';
 import register from '../lib/preact-custom-element/preact-custom-element';
 // import { useCustomEvent } from './helpers/use-custom-event';
 import { AlephProps } from 'src/types';

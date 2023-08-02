@@ -1,7 +1,7 @@
 import '../style.css';
 import React, { RefObject, Suspense, forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
-import { GLTF } from '../components/GLTF';
+import { GLTF } from './_GLTF';
 import {
   CameraControls,
   Environment,
