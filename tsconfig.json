@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     },
     "allowSyntheticDefaultImports": true,
-    "baseUrl": ".",
     "declaration": true,
     "downlevelIteration": false,
     "emitDeclarationOnly": true,

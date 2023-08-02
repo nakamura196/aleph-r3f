@@ -1,12 +1,12 @@
 import { Environment as EnvironmentName, ModelSrc } from './index';
 
 export type ViewerProps = {
-  annotation?: boolean;
+  annotationEnabled?: boolean;
   ambientLightIntensity?: number;
   arrowHelpers?: boolean;
   axes?: boolean;
   boundingBox?: boolean;
-  environment: EnvironmentName;
+  environment?: EnvironmentName;
   grid?: boolean;
   minDistance?: number;
   onLoad?: () => void;

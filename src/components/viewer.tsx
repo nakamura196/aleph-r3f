@@ -16,12 +16,12 @@ import useStore from '../Store';
 import { ViewerProps as ViewerProps, Annotation, ModelSrc } from '@/types';
 
 function Scene({
-  annotation,
+  annotationEnabled,
   ambientLightIntensity = 0,
   arrowHelpers,
   axes,
   boundingBox,
-  environment,
+  environment = 'apartment',
   grid,
   minDistance = 0,
   onLoad,
@@ -140,7 +140,7 @@ function Scene({
   function Annotation() {
     const lastAnnoLength = useRef<number>(0);
 
-    let annoNormalFacingCameraCheckMS: number = 100;
+    let annotationsFacingCameraCheckMS: number = 100;
 
     useEffect(() => {
       // @ts-ignore
@@ -180,7 +180,7 @@ function Scene({
       return true;
     }
 
-    function checkNormalsFacingDirection() {
+    function checkAnnotationsFacingCamera() {
       // loop through all annotations and check if their normals
       // are facing towards or away from the camera
 
@@ -189,9 +189,9 @@ function Scene({
       // if the number of annotations has changed, then we need to
       // check the normals immediately
       if (annosChanged) {
-        annoNormalFacingCameraCheckMS = 1;
+        annotationsFacingCameraCheckMS = 1;
       } else {
-        annoNormalFacingCameraCheckMS = 10;
+        annotationsFacingCameraCheckMS = 10;
       }
 
       annotations.forEach((anno: Annotation, idx: number) => {
@@ -216,8 +216,8 @@ function Scene({
     useEffect(() => {
       // check the whether annotations are facing the camera
       const interval = setInterval(() => {
-        checkNormalsFacingDirection();
-      }, annoNormalFacingCameraCheckMS);
+        checkAnnotationsFacingCamera();
+      }, annotationsFacingCameraCheckMS);
 
       return () => clearInterval(interval);
     }, []);
@@ -228,7 +228,12 @@ function Scene({
           return (
             <React.Fragment key={idx}>
               {arrowHelpers && <arrowHelper args={[anno.normal, anno.position, 0.05, 0xffffff]} />}
-              <Html position={anno.position}>
+              <Html
+                position={anno.position}
+                style={{
+                  width: 0,
+                  height: 0,
+                }}>
                 <div id={`anno-${idx}`} className="annotation">
                   <div
                     className="circle"
@@ -265,7 +270,7 @@ function Scene({
         </Suspense>
       </Bounds>
       <Environment preset={environment} />
-      {annotation && <Annotation />}
+      {annotationEnabled && <Annotation />}
       {grid && <gridHelper args={[100, 100]} />}
       {axes && <axesHelper args={[5]} />}
     </>

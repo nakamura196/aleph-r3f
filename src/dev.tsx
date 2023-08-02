@@ -1,3 +1,4 @@
+import './globals.css';
 import React, { useRef, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import { Viewer } from './index';
@@ -13,97 +14,107 @@ const Wrapper = () => {
   const ZUP: [number, number, number] = [0, 0, -1];
   const [upVector, setUpVector] = useState<[number, number, number]>(YUP);
 
-  const [
-    { src, annotation, ambientLightIntensity, arrowHelpers, grid, axes, boundingBox, environment, orthographic },
-    _setLevaControls,
-  ] = useControls(() => ({
-    src: {
-      options: {
-        'Flight Helmet':
-          'https://modelviewer.dev/shared-assets/models/glTF-Sample-Models/2.0/FlightHelmet/glTF/FlightHelmet.gltf',
-        Thor: {
-          url: 'https://modelviewer.dev/assets/SketchfabModels/ThorAndTheMidgardSerpent.glb',
-          position: [0, 0, 0],
-          rotation: [0, 0, 0],
-          scale: [1, 1, 1],
-        } as ModelSrc,
-        'Multiple Objects': [
-          // {
-          //   url: 'https://modelviewer.dev/assets/ShopifyModels/Canoe.glb',
-          //   position: [0, 0, 0],
-          //   rotation: [0, 0, 0],
-          //   scale: [1, 1, 1],
-          // },
-          {
-            url: 'https://modelviewer.dev/assets/ShopifyModels/Mixer.glb',
-            position: [0, 0, 0],
-            rotation: [0, 0, 0],
-            scale: [1, 1, 1],
-          },
-          {
-            url: 'https://modelviewer.dev/assets/ShopifyModels/GeoPlanter.glb',
-            position: [0.5, 0, 0],
-            rotation: [0, 0, 0],
-            scale: [1, 1, 1],
-          },
-          {
-            url: 'https://modelviewer.dev/assets/ShopifyModels/ToyTrain.glb',
-            position: [1, 0, 0],
-            rotation: [0, 0, 0],
-            scale: [1, 1, 1],
-          },
-          {
-            url: 'https://modelviewer.dev/assets/ShopifyModels/Chair.glb',
-            position: [1.5, 0, 0],
-            rotation: [0, 0, 0],
-            scale: [1, 1, 1],
-          },
-        ] as ModelSrc[],
-        'Frog (Draco) URL': 'https://aleph-gltf-models.netlify.app/Frog.glb',
-      },
-    },
-    annotation: { value: false, label: 'annotation' },
-    ambientLightIntensity: {
-      value: 0,
-      min: 0,
-      max: 5,
-      step: 0.1,
-    },
-    arrowHelpers: { value: false, label: 'arrowHelpers' },
-    grid: { value: false, label: 'grid' },
-    axes: { value: false, label: 'axes' },
-    boundingBox: { value: false, label: 'bounding box' },
-    environment: {
-      options: {
-        Apartment: 'apartment',
-        City: 'city',
-        Dawn: 'dawn',
-        Forest: 'forest',
-        Lobby: 'lobby',
-        Night: 'night',
-        Park: 'park',
-        Studio: 'studio',
-        Sunset: 'sunset',
-        Warehouse: 'warehouse',
-      },
-    },
-    orthographic: { value: false, label: 'orthographic' },
-    setUpVector: folder(
-      {
-        'y-up': button((_get) => setUpVector(YUP)),
-        'z-up': button((_get) => setUpVector(ZUP)),
-      },
-      { collapsed: true }
-    ),
-    Home: button((_get) => {
-      viewerRef.current?.home();
-    }),
-  }));
+  // const [
+  //   { src, annotation, ambientLightIntensity, arrowHelpers, grid, axes, boundingBox, environment, orthographic },
+  //   _setLevaControls,
+  // ] = useControls(() => ({
+  //   src: {
+  //     options: {
+  //       'Flight Helmet':
+  //         'https://modelviewer.dev/shared-assets/models/glTF-Sample-Models/2.0/FlightHelmet/glTF/FlightHelmet.gltf',
+  //       Thor: {
+  //         url: 'https://modelviewer.dev/assets/SketchfabModels/ThorAndTheMidgardSerpent.glb',
+  //         position: [0, 0, 0],
+  //         rotation: [0, 0, 0],
+  //         scale: [1, 1, 1],
+  //       } as ModelSrc,
+  //       'Multiple Objects': [
+  //         // {
+  //         //   url: 'https://modelviewer.dev/assets/ShopifyModels/Canoe.glb',
+  //         //   position: [0, 0, 0],
+  //         //   rotation: [0, 0, 0],
+  //         //   scale: [1, 1, 1],
+  //         // },
+  //         {
+  //           url: 'https://modelviewer.dev/assets/ShopifyModels/Mixer.glb',
+  //           position: [0, 0, 0],
+  //           rotation: [0, 0, 0],
+  //           scale: [1, 1, 1],
+  //         },
+  //         {
+  //           url: 'https://modelviewer.dev/assets/ShopifyModels/GeoPlanter.glb',
+  //           position: [0.5, 0, 0],
+  //           rotation: [0, 0, 0],
+  //           scale: [1, 1, 1],
+  //         },
+  //         {
+  //           url: 'https://modelviewer.dev/assets/ShopifyModels/ToyTrain.glb',
+  //           position: [1, 0, 0],
+  //           rotation: [0, 0, 0],
+  //           scale: [1, 1, 1],
+  //         },
+  //         {
+  //           url: 'https://modelviewer.dev/assets/ShopifyModels/Chair.glb',
+  //           position: [1.5, 0, 0],
+  //           rotation: [0, 0, 0],
+  //           scale: [1, 1, 1],
+  //         },
+  //       ] as ModelSrc[],
+  //       'Frog (Draco) URL': 'https://aleph-gltf-models.netlify.app/Frog.glb',
+  //     },
+  //   },
+  //   annotation: { value: false, label: 'annotation' },
+  //   ambientLightIntensity: {
+  //     value: 0,
+  //     min: 0,
+  //     max: 5,
+  //     step: 0.1,
+  //   },
+  //   arrowHelpers: { value: false, label: 'arrowHelpers' },
+  //   grid: { value: false, label: 'grid' },
+  //   axes: { value: false, label: 'axes' },
+  //   boundingBox: { value: false, label: 'bounding box' },
+  //   environment: {
+  //     options: {
+  //       Apartment: 'apartment',
+  //       City: 'city',
+  //       Dawn: 'dawn',
+  //       Forest: 'forest',
+  //       Lobby: 'lobby',
+  //       Night: 'night',
+  //       Park: 'park',
+  //       Studio: 'studio',
+  //       Sunset: 'sunset',
+  //       Warehouse: 'warehouse',
+  //     },
+  //   },
+  //   orthographic: { value: false, label: 'orthographic' },
+  //   setUpVector: folder(
+  //     {
+  //       'y-up': button((_get) => setUpVector(YUP)),
+  //       'z-up': button((_get) => setUpVector(ZUP)),
+  //     },
+  //     { collapsed: true }
+  //   ),
+  //   Home: button((_get) => {
+  //     viewerRef.current?.home();
+  //   }),
+  // }));
+
+  const [annotationEnabled, setAnnotationEnabled] = useState(false);
+  const [ambientLightIntensity, setAmbientLightIntensity] = useState(0);
+  const [src, setSrc] = useState<ModelSrc | string>(
+    'https://modelviewer.dev/shared-assets/models/glTF-Sample-Models/2.0/FlightHelmet/glTF/FlightHelmet.gltf'
+  );
 
   return (
     <div id="container">
       <div id="control-panel">
         <ControlPanel
+          annotationEnabled={annotationEnabled}
+          onAnnotationsEnabledChange={(enabled: boolean) => {
+            setAnnotationEnabled(enabled);
+          }}
           onHome={() => {
             viewerRef.current?.home();
           }}></ControlPanel>
@@ -112,17 +123,17 @@ const Wrapper = () => {
         <Viewer
           ref={viewerRef}
           src={src}
-          annotation={annotation}
+          annotationEnabled={annotationEnabled}
           ambientLightIntensity={ambientLightIntensity}
-          arrowHelpers={arrowHelpers}
+          // arrowHelpers={arrowHelpers}
           onLoad={() => {
             console.log('model(s) loaded');
           }}
-          boundingBox={boundingBox}
-          grid={grid}
-          axes={axes}
-          environment={environment as Environment}
-          orthographic={orthographic}
+          // boundingBox={boundingBox}
+          // grid={grid}
+          // axes={axes}
+          // environment={environment as Environment}
+          // orthographic={orthographic}
           upVector={upVector}
         />
       </div>
