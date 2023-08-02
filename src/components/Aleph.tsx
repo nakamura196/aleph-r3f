@@ -211,9 +211,9 @@ function Scene({
         }
 
         if (isFacingCamera(anno.position, anno.normal)) {
-          annoEl.classList.remove('disabled');
+          annoEl.classList.remove('facing-away');
         } else {
-          annoEl.classList.add('disabled');
+          annoEl.classList.add('facing-away');
         }
       });
 

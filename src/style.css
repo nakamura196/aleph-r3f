@@ -69,6 +69,11 @@ body {
   transition: opacity 0.25s ease-in-out;
 }
 
+.annotation .circle:hover {
+  color: cornflowerblue;
+  border: 1px solid cornflowerblue;
+}
+
 /* The label */
 .annotation .circle .label {
   display: inline-block;
@@ -77,14 +82,14 @@ body {
   white-space: nowrap;
 }
 
-.annotation.disabled .circle {
-  opacity: 10%;
+.annotation.facing-away .circle {
+  opacity: 20%;
   transition: opacity 0.25s ease-in-out;
-  cursor: default;
+  /* cursor: default; */
   /* pointer-events: none; */
 }
 
-.annotation.disabled .circle .label {
+.annotation.facing-away .circle .label {
   /* pointer-events: none; */
 }
 
