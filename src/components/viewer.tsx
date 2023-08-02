@@ -1,7 +1,7 @@
-import '../style.css';
+import '../viewer.css';
 import React, { RefObject, Suspense, forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
-import { GLTF } from './_GLTF';
+import { GLTF } from './gltf';
 import {
   CameraControls,
   Environment,
@@ -13,8 +13,7 @@ import {
 } from '@react-three/drei';
 import { BoxHelper, Group, Intersection, Object3D, Vector3 } from 'three';
 import useStore from '../Store';
-import { AlephProps, Annotation, ModelSrc } from '@/types';
-import { formatVector3AsString } from '../lib/utils';
+import { ViewerProps as ViewerProps, Annotation, ModelSrc } from '@/types';
 
 function Scene({
   annotation,
@@ -29,7 +28,7 @@ function Scene({
   orthographic,
   src,
   upVector = [0, 1, 0],
-}: AlephProps) {
+}: ViewerProps) {
   const boundsRef = useRef<Group | null>(null);
   const cameraControlsRef = useRef<CameraControls | null>(null);
 
@@ -171,12 +170,6 @@ function Scene({
     };
 
     function isFacingCamera(position: Vector3, normal: Vector3): boolean {
-      // const cameraPosition: Vector3 = new Vector3();
-      // cameraPosition.copy(camera.position);
-
-      // const copiedPosition: Vector3 = new Vector3();
-      // copiedPosition.copy(position);
-
       const cameraDirection: Vector3 = camera.position.clone().normalize().sub(position.clone().normalize());
       const dotProduct: number = cameraDirection.dot(normal);
 
@@ -221,6 +214,7 @@ function Scene({
     }
 
     useEffect(() => {
+      // check the whether annotations are facing the camera
       const interval = setInterval(() => {
         checkNormalsFacingDirection();
       }, annoNormalFacingCameraCheckMS);
@@ -288,7 +282,7 @@ function triggerDoubleClickEvent(e: React.MouseEvent<HTMLDivElement, MouseEvent>
   window.dispatchEvent(event);
 }
 
-const Aleph = (props: AlephProps, ref: ((instance: unknown) => void) | RefObject<unknown> | null | undefined) => {
+const Viewer = (props: ViewerProps, ref: ((instance: unknown) => void) | RefObject<unknown> | null | undefined) => {
   useImperativeHandle(ref, () => ({
     home: () => {
       triggerHomeEvent();
@@ -305,4 +299,4 @@ const Aleph = (props: AlephProps, ref: ((instance: unknown) => void) | RefObject
   );
 };
 
-export default forwardRef(Aleph);
+export default forwardRef(Viewer);

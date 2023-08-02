@@ -1,15 +1,15 @@
 import React, { useLayoutEffect, useRef } from 'react';
 
-import { default as Aleph } from '../components/_Aleph';
+import { default as Viewer } from '../components/viewer';
 import register from '../lib/preact-custom-element/preact-custom-element';
 // import { useCustomEvent } from './helpers/use-custom-event';
-import { AlephProps } from 'src/types';
+import { ViewerProps } from 'src/types';
 
 interface AlephAttributes {
   src: string;
 }
 
-interface WCAlephProps extends AlephProps {
+interface WCAlephProps extends ViewerProps {
   __registerPublicApi: (component: any) => void;
 }
 
@@ -27,7 +27,7 @@ function AlephWebComponent(props: WCAlephProps & AlephAttributes) {
   // const handleOnChange = useCustomEvent(webComponent, 'resource-changed', (e) => e);
 
   return (
-    <Aleph {...props} />
+    <Viewer {...props} />
     // <Aleph {...props} onResourceChanged={handleOnChange} orientation={'vertical'} />
   );
 }

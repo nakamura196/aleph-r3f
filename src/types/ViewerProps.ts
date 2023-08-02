@@ -1,6 +1,6 @@
 import { Environment as EnvironmentName, ModelSrc } from './index';
 
-export type AlephProps = {
+export type ViewerProps = {
   annotation?: boolean;
   ambientLightIntensity?: number;
   arrowHelpers?: boolean;
@@ -13,4 +13,8 @@ export type AlephProps = {
   orthographic?: boolean;
   src: string | ModelSrc | ModelSrc[];
   upVector?: [number, number, number];
+};
+
+export type ViewerRef = {
+  home: () => void;
 };
