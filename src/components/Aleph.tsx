@@ -170,17 +170,21 @@ function Scene({
       }
     };
 
-    function getCameraDotProduct(anno: Annotation): number {
-      const cameraPosition: Vector3 = new Vector3();
-      cameraPosition.copy(camera.position);
+    function isFacingCamera(position: Vector3, normal: Vector3): boolean {
+      // const cameraPosition: Vector3 = new Vector3();
+      // cameraPosition.copy(camera.position);
 
-      const annoPosition: Vector3 = new Vector3();
-      annoPosition.copy(anno.position);
+      // const copiedPosition: Vector3 = new Vector3();
+      // copiedPosition.copy(position);
 
-      const cameraDirection: Vector3 = cameraPosition.normalize().sub(annoPosition.normalize());
-      const dotProduct: number = cameraDirection.dot(anno.normal);
+      const cameraDirection: Vector3 = camera.position.clone().normalize().sub(position.clone().normalize());
+      const dotProduct: number = cameraDirection.dot(normal);
 
-      return dotProduct;
+      if (dotProduct < DOT_PRODUCT_THRESHOLD) {
+        return false;
+      }
+
+      return true;
     }
 
     function checkNormalsFacingDirection() {
@@ -206,14 +210,10 @@ function Scene({
           annoEl.classList.remove('no-fade');
         }
 
-        const dotProduct: number = getCameraDotProduct(anno);
-
-        // annoEl.innerHTML = `${dotProduct.toFixed(2)}`;
-
-        if (dotProduct < DOT_PRODUCT_THRESHOLD) {
-          annoEl.classList.add('disabled');
-        } else {
+        if (isFacingCamera(anno.position, anno.normal)) {
           annoEl.classList.remove('disabled');
+        } else {
+          annoEl.classList.add('disabled');
         }
       });
 
@@ -239,8 +239,7 @@ function Scene({
                   <div
                     className="circle"
                     onClick={(e) => {
-                      const dotProduct: number = getCameraDotProduct(anno);
-                      if (dotProduct > DOT_PRODUCT_THRESHOLD) {
+                      if (isFacingCamera(anno.position, anno.normal)) {
                         console.log(`clicked ${idx}`);
                       }
                     }}>
