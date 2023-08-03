@@ -1,7 +1,7 @@
-import '../viewer.css';
+import '@/viewer.css';
 import React, { RefObject, Suspense, forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
-import { GLTF } from './gltf';
+import { GLTF } from '@/components/gltf';
 import {
   CameraControls,
   Environment,
@@ -12,7 +12,7 @@ import {
   useProgress,
 } from '@react-three/drei';
 import { BoxHelper, Group, Intersection, Object3D, Vector3 } from 'three';
-import useStore from '../Store';
+import useStore from '@/Store';
 import { ViewerProps as ViewerProps, Annotation, ModelSrc } from '@/types';
 
 function Scene({
@@ -34,7 +34,8 @@ function Scene({
 
   const { scene, camera, pointer, raycaster } = useThree();
 
-  const DOT_PRODUCT_THRESHOLD = -0.3; // if the dot product is less than this, then the normal is facing away from the camera
+  // if a dot product is less than this, then the normal is facing away from the camera
+  const DOT_PRODUCT_THRESHOLD = Math.PI * -0.1;
 
   // set the camera up vector
   camera.up.copy(new Vector3(upVector[0], upVector[1], upVector[2]));
