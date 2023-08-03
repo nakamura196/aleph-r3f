@@ -13,14 +13,17 @@ import {
 } from '@react-three/drei';
 import { BoxHelper, Group, Intersection, Object3D, Vector3 } from 'three';
 import useStore from '@/Store';
-import { ViewerProps as ViewerProps, Annotation, ModelSrc } from '@/types';
+import { ViewerProps as ViewerProps, Annotation, SrcObj } from '@/types';
+import useDoubleClick from '@/lib/hooks/useDoubleClick';
 
 function Scene({
-  annotationEnabled,
+  // annotations,
+  // onAnnotationsChange,
+  annotateOnDoubleClickEnabled = false,
   ambientLightIntensity = 0,
   arrowHelpers,
   axes,
-  boundingBox,
+  boundingBoxEnabled,
   environment = 'apartment',
   grid,
   minDistance = 0,
@@ -60,22 +63,22 @@ function Scene({
 
   // src changed
   useEffect(() => {
-    const modelSrcs: ModelSrc[] = [];
+    const modelSrcs: SrcObj[] = [];
 
     // is the src a string or an array of ModelSrc objects?
     // if it's a string, create a ModelSrc object from it
     if (typeof src === 'string') {
-      const modelSrc: ModelSrc = {
+      const modelSrc: SrcObj = {
         url: src as string,
       };
 
       modelSrcs.push(modelSrc);
     } else if (Array.isArray(src)) {
       // if it's an array, then it's already a ModelSrc object
-      modelSrcs.push(...(src as ModelSrc[]));
+      modelSrcs.push(...(src as SrcObj[]));
     } else {
       // if it's not a string or an array, then it's a single ModelSrc object
-      modelSrcs.push(src as ModelSrc);
+      modelSrcs.push(src as SrcObj);
     }
 
     setModelSrcs(modelSrcs);
@@ -103,25 +106,24 @@ function Scene({
     // @ts-ignore
     useHelper(boundsLineRef, BoxHelper, 'white');
 
-    // disabling as inteferes with double click
-    // const handleOnClick = (e: any) => {
-    //   e.stopPropagation();
-    //   if (e.delta <= 2) {
-    //     zoomToObject(e.object);
-    //   }
-    // };
+    const handleDoubleClickEvent = (e: any) => {
+      if (!annotateOnDoubleClickEnabled) {
+        e.stopPropagation();
+        if (e.delta <= 2) {
+          zoomToObject(e.object);
+        }
+      }
+    };
 
-    // const handleOnPointerMissed = (_e: any) => {
-    //   home();
-    // };
+    const handleOnPointerMissed = useDoubleClick(() => {
+      home();
+    });
 
-    // return (
-    //   <group ref={boundsRef} onClick={handleOnClick} onPointerMissed={handleOnPointerMissed}>
-    //     {lineVisible ? <group ref={boundsLineRef}>{children}</group> : children}
-    //   </group>
-    // );
-
-    return <group ref={boundsRef}>{lineVisible ? <group ref={boundsLineRef}>{children}</group> : children}</group>;
+    return (
+      <group ref={boundsRef} onDoubleClick={handleDoubleClickEvent} onPointerMissed={handleOnPointerMissed}>
+        {lineVisible ? <group ref={boundsLineRef}>{children}</group> : children}
+      </group>
+    );
   }
 
   function Loader() {
@@ -143,6 +145,7 @@ function Scene({
 
     let annotationsFacingCameraCheckMS: number = 100;
 
+    // register/unregister double click event handlers
     useEffect(() => {
       // @ts-ignore
       window.addEventListener('aldblclick', handleDoubleClickEvent);
@@ -154,6 +157,10 @@ function Scene({
     }, []);
 
     const handleDoubleClickEvent = () => {
+      if (!annotateOnDoubleClickEnabled) {
+        return;
+      }
+
       raycaster.setFromCamera(pointer, camera);
 
       const intersects: Intersection<Object3D<Event>>[] = raycaster.intersectObjects(scene.children, true);
@@ -263,7 +270,7 @@ function Scene({
       )}
       <CameraControls ref={cameraControlsRef} minDistance={minDistance} />
       <ambientLight intensity={ambientLightIntensity} />
-      <Bounds lineVisible={boundingBox}>
+      <Bounds lineVisible={boundingBoxEnabled}>
         <Suspense fallback={<Loader />}>
           {modelSrcs.map((modelSrc, index) => {
             return <GLTF key={index} {...modelSrc} />;
@@ -271,7 +278,7 @@ function Scene({
         </Suspense>
       </Bounds>
       <Environment preset={environment} />
-      {annotationEnabled && <Annotation />}
+      <Annotation />
       {grid && <gridHelper args={[100, 100]} />}
       {axes && <axesHelper args={[5]} />}
     </>

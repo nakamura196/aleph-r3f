@@ -2,9 +2,9 @@ import React, { useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { a } from '@react-spring/three';
 import { Group } from 'three';
-import { ModelSrc } from 'src/types/ModelSrc';
+import { SrcObj } from '@/types/Src';
 
-type GLTFProps = ModelSrc & {
+type GLTFProps = SrcObj & {
   onLoad?: (url: string) => void;
 };
 

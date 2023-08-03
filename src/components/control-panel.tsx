@@ -1,27 +1,37 @@
 import React, { useState } from 'react';
 import Tabs, { Tab } from './tabs';
 import { Switch } from '@/components/ui/switch';
+import { Annotation } from '@/types';
 
-type ControlPanelProps = {
-  onHome: () => void;
-  annotationEnabled: boolean;
-  onAnnotationsEnabledChange: (enabled: boolean) => void;
+export type TabName = 'Scene' | 'Annotations';
+
+let tabs: Tab<TabName>[] = [
+  {
+    name: 'Scene',
+    label: 'Scene',
+  },
+  {
+    name: 'Annotations',
+    label: 'Annotations',
+  },
+];
+
+type SceneTabProps = {
+  boundsEnabled: boolean;
+  onBoundsEnabledChange: (enabled: boolean) => void;
+  // onHome: () => void;
 };
 
-export function ControlPanel({ onHome, annotationEnabled, onAnnotationsEnabledChange }: ControlPanelProps) {
-  type TabName = 'Scene' | 'Annotations';
+type AnnotationTabProps = {
+  annotations: Annotation[];
+};
 
-  let tabs: Tab<TabName>[] = [
-    {
-      name: 'Scene',
-      label: 'Scene',
-    },
-    {
-      name: 'Annotations',
-      label: 'Annotations',
-    },
-  ];
+type ControlPanelProps = SceneTabProps &
+  AnnotationTabProps & {
+    onTabChange: (tab: TabName) => void;
+  };
 
+export function ControlPanel({ annotations, boundsEnabled, onBoundsEnabledChange, onTabChange }: ControlPanelProps) {
   const [currentTab, setCurrentTab] = useState<TabName>('Scene');
 
   return (
@@ -38,47 +48,45 @@ export function ControlPanel({ onHome, annotationEnabled, onAnnotationsEnabledCh
           onChange={(current: number) => {
             const name: TabName = tabs[current].name;
             setCurrentTab(name);
+            onTabChange(name);
           }}
         />
       </div>
-      <div>
-        <button className="text-white" onClick={onHome}>
-          Home
-        </button>
-      </div>
       <>
-        {currentTab === 'Scene' && <SceneTab />}
-        {currentTab === 'Annotations' && (
-          <AnnotationsTab
-            annotationEnabled={annotationEnabled}
-            onAnnotationsEnabledChange={onAnnotationsEnabledChange}
-          />
+        {currentTab === 'Scene' && (
+          <SceneTab boundsEnabled={boundsEnabled} onBoundsEnabledChange={onBoundsEnabledChange} />
         )}
+        {currentTab === 'Annotations' && <AnnotationsTab annotations={annotations} />}
       </>
     </>
   );
 }
 
-function SceneTab() {
-  return <div>SceneTab</div>;
-}
-
-function AnnotationsTab({
-  annotationEnabled,
-  onAnnotationsEnabledChange,
-}: {
-  annotationEnabled: boolean;
-  onAnnotationsEnabledChange: (enabled: boolean) => void;
-}) {
+function SceneTab({ boundsEnabled, onBoundsEnabledChange }: SceneTabProps) {
   return (
     <div>
-      <Switch
-        checked={annotationEnabled}
-        onCheckedChange={(val) => {
-          console.log('annotations enabled changed', annotationEnabled);
-          onAnnotationsEnabledChange(!annotationEnabled);
-        }}
-      />
+      <div>
+        {/* <button className="text-white bg-blue-500 px-2 py-1" onClick={onHome}>
+          Home
+        </button> */}
+
+        <Switch
+          checked={boundsEnabled}
+          onCheckedChange={(val) => {
+            onBoundsEnabledChange(!boundsEnabled);
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function AnnotationsTab({ annotations }: AnnotationTabProps) {
+  return (
+    <div>
+      {annotations.map((annotation, index) => {
+        return <div key={index}>{annotation.label}</div>;
+      })}
     </div>
   );
 }

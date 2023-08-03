@@ -1,17 +1,19 @@
-import { Environment as EnvironmentName, ModelSrc } from './index';
+import { Annotation, Environment as EnvironmentName, SrcObj } from './index';
 
 export type ViewerProps = {
-  annotationEnabled?: boolean;
+  annotations?: Annotation[];
+  onAnnotationsChange?: (annotations: Annotation[]) => void;
+  annotateOnDoubleClickEnabled?: boolean;
   ambientLightIntensity?: number;
   arrowHelpers?: boolean;
   axes?: boolean;
-  boundingBox?: boolean;
+  boundingBoxEnabled?: boolean;
   environment?: EnvironmentName;
   grid?: boolean;
   minDistance?: number;
   onLoad?: () => void;
   orthographic?: boolean;
-  src: string | ModelSrc | ModelSrc[];
+  src: string | SrcObj | SrcObj[];
   upVector?: [number, number, number];
 };
 

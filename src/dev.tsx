@@ -3,16 +3,55 @@ import React, { useRef, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import { Viewer } from './index';
 import { button, folder, useControls } from 'leva';
-import { ModelSrc } from './types/ModelSrc';
+import { Src } from './types/Src';
 import { Environment } from './types/Environment';
-import { ControlPanel } from './components/control-panel';
-import { ViewerRef } from './types';
+import { ControlPanel, TabName } from './components/control-panel';
+import { Annotation, ViewerRef } from './types';
 
 const Wrapper = () => {
   const viewerRef = useRef<ViewerRef>(null);
   const YUP: [number, number, number] = [0, 1, 0];
   const ZUP: [number, number, number] = [0, 0, -1];
+
+  const [annotations, setAnnotations] = useState<Annotation[]>([]);
+  const [ambientLightIntensity, setAmbientLightIntensity] = useState(0);
+  const [annotateOnDoubleClickEnabled, setAnnotateOnDoubleClickEnabled] = useState(false);
+  const [boundingBoxEnabled, setBoundingBoxEnabled] = useState(false);
   const [upVector, setUpVector] = useState<[number, number, number]>(YUP);
+
+  const srcs: Src[] = [
+    'https://modelviewer.dev/shared-assets/models/glTF-Sample-Models/2.0/FlightHelmet/glTF/FlightHelmet.gltf',
+    {
+      url: 'https://modelviewer.dev/assets/SketchfabModels/ThorAndTheMidgardSerpent.glb',
+      label: 'Thor',
+    },
+    [
+      {
+        url: 'https://modelviewer.dev/assets/ShopifyModels/Mixer.glb',
+        position: [0, 0, 0],
+        rotation: [0, 0, 0],
+        scale: [1, 1, 1],
+      },
+      {
+        url: 'https://modelviewer.dev/assets/ShopifyModels/GeoPlanter.glb',
+        position: [0.5, 0, 0],
+        rotation: [0, 0, 0],
+        scale: [1, 1, 1],
+      },
+      {
+        url: 'https://modelviewer.dev/assets/ShopifyModels/ToyTrain.glb',
+        position: [1, 0, 0],
+        rotation: [0, 0, 0],
+        scale: [1, 1, 1],
+      },
+      {
+        url: 'https://modelviewer.dev/assets/ShopifyModels/Chair.glb',
+        position: [1.5, 0, 0],
+        rotation: [0, 0, 0],
+        scale: [1, 1, 1],
+      },
+    ],
+  ];
 
   // const [
   //   { src, annotation, ambientLightIntensity, arrowHelpers, grid, axes, boundingBox, environment, orthographic },
@@ -101,35 +140,45 @@ const Wrapper = () => {
   //   }),
   // }));
 
-  const [annotationEnabled, setAnnotationEnabled] = useState(false);
-  const [ambientLightIntensity, setAmbientLightIntensity] = useState(0);
-  const [src, setSrc] = useState<ModelSrc | string>(
-    'https://modelviewer.dev/shared-assets/models/glTF-Sample-Models/2.0/FlightHelmet/glTF/FlightHelmet.gltf'
-  );
-
   return (
     <div id="container">
       <div id="control-panel">
         <ControlPanel
-          annotationEnabled={annotationEnabled}
-          onAnnotationsEnabledChange={(enabled: boolean) => {
-            setAnnotationEnabled(enabled);
+          annotations={annotations}
+          boundsEnabled={boundingBoxEnabled}
+          onBoundsEnabledChange={(enabled: boolean) => {
+            setBoundingBoxEnabled(enabled);
           }}
-          onHome={() => {
-            viewerRef.current?.home();
-          }}></ControlPanel>
+          onTabChange={(tab: TabName) => {
+            switch (tab) {
+              case 'Scene':
+                setAnnotateOnDoubleClickEnabled(false);
+                break;
+              case 'Annotations':
+                setAnnotateOnDoubleClickEnabled(true);
+                break;
+            }
+          }}
+          // onHome={() => {
+          //   viewerRef.current?.home();
+          // }}
+        ></ControlPanel>
       </div>
       <div id="viewer">
         <Viewer
           ref={viewerRef}
-          src={src}
-          annotationEnabled={annotationEnabled}
+          src={srcs[2]}
+          annotations={annotations}
+          onAnnotationsChange={(annotations: Annotation[]) => {
+            setAnnotations(annotations);
+          }}
+          annotateOnDoubleClickEnabled={annotateOnDoubleClickEnabled}
           ambientLightIntensity={ambientLightIntensity}
           // arrowHelpers={arrowHelpers}
           onLoad={() => {
             console.log('model(s) loaded');
           }}
-          // boundingBox={boundingBox}
+          boundingBoxEnabled={boundingBoxEnabled}
           // grid={grid}
           // axes={axes}
           // environment={environment as Environment}

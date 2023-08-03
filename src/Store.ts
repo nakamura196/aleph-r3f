@@ -1,12 +1,12 @@
 import { create } from 'zustand';
-import { Annotation, ModelSrc } from './types/';
+import { Annotation, SrcObj } from './types/';
 // import { mountStoreDevtool } from 'simple-zustand-devtools';
 
 type State = {
   loading: boolean;
   setLoading: (loading: boolean) => void;
-  modelSrcs: ModelSrc[];
-  setModelSrcs: (modelSrcs: ModelSrc[]) => void;
+  modelSrcs: SrcObj[];
+  setModelSrcs: (modelSrcs: SrcObj[]) => void;
   annotations: Annotation[];
   setAnnotations: (annotations: Annotation[]) => void;
 };
@@ -21,7 +21,7 @@ const useStore = create<State>((set) => ({
       loading,
     }),
 
-  setModelSrcs: (modelSrcs: ModelSrc[]) =>
+  setModelSrcs: (modelSrcs: SrcObj[]) =>
     set({
       modelSrcs,
       loading: true,
