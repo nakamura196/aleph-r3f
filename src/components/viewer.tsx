@@ -19,11 +19,11 @@ import useDoubleClick from '@/lib/hooks/useDoubleClick';
 function Scene({
   // annotations,
   // onAnnotationsChange,
-  annotateOnDoubleClickEnabled = false,
-  ambientLightIntensity = 0,
+  // annotateOnDoubleClickEnabled = false,
+  // ambientLightIntensity = 0,
   arrowHelpers,
   axes,
-  boundingBoxEnabled,
+  // boundingBoxEnabled,
   environment = 'apartment',
   grid,
   minDistance = 0,
@@ -44,7 +44,15 @@ function Scene({
   camera.up.copy(new Vector3(upVector[0], upVector[1], upVector[2]));
   cameraControlsRef.current?.updateCameraUp();
 
-  const { setAnnotations, setModelSrcs, modelSrcs, annotations } = useStore();
+  const {
+    ambientLightIntensity,
+    annotateOnDoubleClickEnabled,
+    annotations,
+    boundsEnabled,
+    setAnnotations,
+    setSrcs,
+    srcs,
+  } = useStore();
 
   const handleHomeEvent = () => {
     home();
@@ -63,25 +71,23 @@ function Scene({
 
   // src changed
   useEffect(() => {
-    const modelSrcs: SrcObj[] = [];
+    const srcs: SrcObj[] = [];
 
     // is the src a string or an array of ModelSrc objects?
     // if it's a string, create a ModelSrc object from it
     if (typeof src === 'string') {
-      const modelSrc: SrcObj = {
+      srcs.push({
         url: src as string,
-      };
-
-      modelSrcs.push(modelSrc);
+      });
     } else if (Array.isArray(src)) {
       // if it's an array, then it's already a ModelSrc object
-      modelSrcs.push(...(src as SrcObj[]));
+      srcs.push(...(src as SrcObj[]));
     } else {
       // if it's not a string or an array, then it's a single ModelSrc object
-      modelSrcs.push(src as SrcObj);
+      srcs.push(src as SrcObj);
     }
 
-    setModelSrcs(modelSrcs);
+    setSrcs(srcs);
   }, [src]);
 
   function zoomToObject(object: Object3D, instant?: boolean, padding: number = 0.1) {
@@ -270,10 +276,10 @@ function Scene({
       )}
       <CameraControls ref={cameraControlsRef} minDistance={minDistance} />
       <ambientLight intensity={ambientLightIntensity} />
-      <Bounds lineVisible={boundingBoxEnabled}>
+      <Bounds lineVisible={boundsEnabled}>
         <Suspense fallback={<Loader />}>
-          {modelSrcs.map((modelSrc, index) => {
-            return <GLTF key={index} {...modelSrc} />;
+          {srcs.map((src, index) => {
+            return <GLTF key={index} {...src} />;
           })}
         </Suspense>
       </Bounds>

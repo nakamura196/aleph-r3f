@@ -1,90 +1,69 @@
-import React, { useState } from 'react';
-import Tabs, { Tab } from './tabs';
-import { Switch } from '@/components/ui/switch';
+import React from 'react';
 import { Annotation } from '@/types';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { MapPin, Settings } from 'lucide-react';
+import { AmbientLightSelector } from './ambient-light-selector';
+import useStore from '@/Store';
+import { BoundsSelector } from './bounds-selector';
 
-export type TabName = 'Scene' | 'Annotations';
-
-let tabs: Tab<TabName>[] = [
-  {
-    name: 'Scene',
-    label: 'Scene',
-  },
-  {
-    name: 'Annotations',
-    label: 'Annotations',
-  },
-];
-
-type SceneTabProps = {
-  boundsEnabled: boolean;
-  onBoundsEnabledChange: (enabled: boolean) => void;
-  // onHome: () => void;
-};
-
-type AnnotationTabProps = {
-  annotations: Annotation[];
-};
-
-type ControlPanelProps = SceneTabProps &
-  AnnotationTabProps & {
-    onTabChange: (tab: TabName) => void;
-  };
-
-export function ControlPanel({ annotations, boundsEnabled, onBoundsEnabledChange, onTabChange }: ControlPanelProps) {
-  const [currentTab, setCurrentTab] = useState<TabName>('Scene');
+export function ControlPanel() {
+  const { setAnnotateOnDoubleClickEnabled } = useStore();
 
   return (
-    <>
-      <div className="mb-2 w-full">
-        <Tabs
-          tabs={tabs.map((tab, _index) => {
-            return {
-              name: tab.name,
-              label: tab.label,
-              current: tab.name === currentTab,
-            };
-          })}
-          onChange={(current: number) => {
-            const name: TabName = tabs[current].name;
-            setCurrentTab(name);
-            onTabChange(name);
-          }}
-        />
-      </div>
-      <>
-        {currentTab === 'Scene' && (
-          <SceneTab boundsEnabled={boundsEnabled} onBoundsEnabledChange={onBoundsEnabledChange} />
-        )}
-        {currentTab === 'Annotations' && <AnnotationsTab annotations={annotations} />}
-      </>
-    </>
+    <div className="p-4">
+      <Tabs
+        defaultValue="scene"
+        onValueChange={(tab: string) => {
+          switch (tab) {
+            case 'scene':
+              setAnnotateOnDoubleClickEnabled(false);
+              break;
+            case 'annotations':
+              setAnnotateOnDoubleClickEnabled(true);
+              break;
+          }
+        }}>
+        <TabsList className="grid w-full grid-cols-2 gap-2">
+          <TabsTrigger value="scene">
+            <span className="sr-only">Scene</span>
+            <Settings />
+          </TabsTrigger>
+          <TabsTrigger value="annotations">
+            <span className="sr-only">Annotations</span>
+            <MapPin />
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="scene">
+          <SceneTab />
+        </TabsContent>
+        <TabsContent value="annotations">
+          <AnnotationsTab />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
 
-function SceneTab({ boundsEnabled, onBoundsEnabledChange }: SceneTabProps) {
+function SceneTab() {
   return (
     <div>
       <div>
         {/* <button className="text-white bg-blue-500 px-2 py-1" onClick={onHome}>
           Home
         </button> */}
-
-        <Switch
-          checked={boundsEnabled}
-          onCheckedChange={(val) => {
-            onBoundsEnabledChange(!boundsEnabled);
-          }}
-        />
+        <BoundsSelector />
+        <AmbientLightSelector />
       </div>
     </div>
   );
 }
 
-function AnnotationsTab({ annotations }: AnnotationTabProps) {
+function AnnotationsTab() {
+  const { annotations } = useStore();
+
   return (
     <div>
-      {annotations.map((annotation, index) => {
+      {annotations.map((annotation: Annotation, index) => {
         return <div key={index}>{annotation.label}</div>;
       })}
     </div>

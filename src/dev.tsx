@@ -5,18 +5,18 @@ import { Viewer } from './index';
 import { button, folder, useControls } from 'leva';
 import { Src } from './types/Src';
 import { Environment } from './types/Environment';
-import { ControlPanel, TabName } from './components/control-panel';
-import { Annotation, ViewerRef } from './types';
+import { ControlPanel } from './components/control-panel';
+import { ViewerRef } from './types';
 
 const Wrapper = () => {
   const viewerRef = useRef<ViewerRef>(null);
   const YUP: [number, number, number] = [0, 1, 0];
   const ZUP: [number, number, number] = [0, 0, -1];
 
-  const [annotations, setAnnotations] = useState<Annotation[]>([]);
-  const [ambientLightIntensity, setAmbientLightIntensity] = useState(0);
-  const [annotateOnDoubleClickEnabled, setAnnotateOnDoubleClickEnabled] = useState(false);
-  const [boundingBoxEnabled, setBoundingBoxEnabled] = useState(false);
+  // const [annotations, setAnnotations] = useState<Annotation[]>([]);
+  // const [ambientLightIntensity, setAmbientLightIntensity] = useState(0);
+  // const [annotateOnDoubleClickEnabled, setAnnotateOnDoubleClickEnabled] = useState(false);
+  // const [boundingBoxEnabled, setBoundingBoxEnabled] = useState(false);
   const [upVector, setUpVector] = useState<[number, number, number]>(YUP);
 
   const srcs: Src[] = [
@@ -144,41 +144,32 @@ const Wrapper = () => {
     <div id="container">
       <div id="control-panel">
         <ControlPanel
-          annotations={annotations}
-          boundsEnabled={boundingBoxEnabled}
-          onBoundsEnabledChange={(enabled: boolean) => {
-            setBoundingBoxEnabled(enabled);
-          }}
-          onTabChange={(tab: TabName) => {
-            switch (tab) {
-              case 'Scene':
-                setAnnotateOnDoubleClickEnabled(false);
-                break;
-              case 'Annotations':
-                setAnnotateOnDoubleClickEnabled(true);
-                break;
-            }
-          }}
-          // onHome={() => {
-          //   viewerRef.current?.home();
-          // }}
+        // onBoundsEnabledChange={(enabled: boolean) => {
+        //   setBoundingBoxEnabled(enabled);
+        // }}
+        // onTabChange={(tab: TabName) => {
+        //   switch (tab) {
+        //     case 'scene':
+        //       setAnnotateOnDoubleClickEnabled(false);
+        //       break;
+        //     case 'annotations':
+        //       setAnnotateOnDoubleClickEnabled(true);
+        //       break;
+        //   }
+        // }}
+        // onHome={() => {
+        //   viewerRef.current?.home();
+        // }}
         ></ControlPanel>
       </div>
       <div id="viewer">
         <Viewer
           ref={viewerRef}
           src={srcs[2]}
-          annotations={annotations}
-          onAnnotationsChange={(annotations: Annotation[]) => {
-            setAnnotations(annotations);
-          }}
-          annotateOnDoubleClickEnabled={annotateOnDoubleClickEnabled}
-          ambientLightIntensity={ambientLightIntensity}
           // arrowHelpers={arrowHelpers}
           onLoad={() => {
             console.log('model(s) loaded');
           }}
-          boundingBoxEnabled={boundingBoxEnabled}
           // grid={grid}
           // axes={axes}
           // environment={environment as Environment}
