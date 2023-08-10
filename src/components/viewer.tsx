@@ -270,9 +270,15 @@ function Scene({
   return (
     <>
       {orthographic ? (
-        <OrthographicCamera makeDefault position={[0, 0, 2]} near={0} zoom={200} />
+        <>
+          {/* @ts-ignore */}
+          <OrthographicCamera makeDefault position={[0, 0, 2]} near={0} zoom={200} />
+        </>
       ) : (
-        <PerspectiveCamera position={[0, 0, 2]} fov={50} near={0.01} />
+        <>
+          {/* @ts-ignore */}
+          <PerspectiveCamera position={[0, 0, 2]} fov={50} near={0.01} />
+        </>
       )}
       <CameraControls ref={cameraControlsRef} minDistance={minDistance} />
       <ambientLight intensity={ambientLightIntensity} />
