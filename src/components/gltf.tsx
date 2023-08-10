@@ -10,6 +10,7 @@ type GLTFProps = SrcObj & {
 
 export const GLTF = ({ url, position = [0, 0, 0], rotation = [0, 0, 0], scale = [1, 1, 1], onLoad }: GLTFProps) => {
   const { scene } = useGLTF(url, true, true, (e) => {
+    // @ts-ignore
     e.manager.onLoad = () => {
       if (onLoad) {
         onLoad(url);
