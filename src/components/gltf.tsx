@@ -21,8 +21,11 @@ export const GLTF = ({ url, position = [0, 0, 0], rotation = [0, 0, 0], scale = 
   const modelRef = useRef();
 
   return (
-    <a.group ref={ref} position={position} rotation={rotation} scale={scale}>
-      <primitive ref={modelRef} object={scene} scale={scale} />
-    </a.group>
+    <>
+      {/* @ts-ignore: https://github.com/pmndrs/react-spring/issues/1515 */}
+      <a.group ref={ref} position={position} rotation={rotation} scale={scale}>
+        <primitive ref={modelRef} object={scene} scale={scale} />
+      </a.group>
+    </>
   );
 };
