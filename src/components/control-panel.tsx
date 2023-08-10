@@ -73,9 +73,9 @@ export function ReorderIcon({ dragControls }: Props) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       className="lucide lucide-grip text-gray-400 cursor-grab">
       <circle cx="12" cy="5" r="1" />
       <circle cx="19" cy="5" r="1" />
@@ -115,10 +115,10 @@ export const Item = ({ item }: ItemProps) => {
   );
 };
 
+const initialItems = ['🍅 Tomato', '🥒 Cucumber', '🧀 Cheese', '🥬 Lettuce'];
+
 function AnnotationsTab() {
   // const { annotations, setAnnotations } = useStore();
-
-  const initialItems = ['🍅 Tomato', '🥒 Cucumber', '🧀 Cheese', '🥬 Lettuce'];
 
   const [items, setItems] = useState(initialItems);
 
@@ -129,33 +129,18 @@ function AnnotationsTab() {
       ))}
     </Reorder.Group>
   );
-
-  // const [annos, setAnnos] = useState([{ label: 'Annotation 1' }, { label: 'Annotation 2' }, { label: 'Annotation 3' }]);
-
-  // return (
-  //   <Reorder.Group
-  //     axis="y"
-  //     values={annos}
-  //     onReorder={(reordered) => {
-  //       // console.log(reordered);
-  //       setAnnos(reordered);
-  //       // setAnnotations(reordered);
-  //     }}>
-  //     {annos.map((annotation, index: number) => (
-  //       <Reorder.Item key={index} value={annotation}>
-  //         <div className="text-white">{annotation.label}</div>
-  //       </Reorder.Item>
-  //     ))}
-  //     {/* {annos.map((annotation: Annotation, index: number) => (
-  //       <Reorder.Item key={index} value={annotation}>
-  //         <div className="text-white">{annotation.label ? annotation.label : `Annotation ${index + 1}`}</div>
-  //       </Reorder.Item>
-  //     ))} */}
-  //   </Reorder.Group>
-  //   // <div>
-  //   //   {annotations.map((annotation: Annotation, index) => {
-  //   //     return <div key={index}>{annotation.label}</div>;
-  //   //   })}
-  //   // </div>
-  // );
 }
+
+// function AnnotationsTab() {
+//   const initialItems = ['🍅 Tomato', '🥒 Cucumber', '🧀 Cheese', '🥬 Lettuce'];
+
+//   const [items, setItems] = useState(initialItems);
+
+//   return (
+//     <Reorder.Group axis="y" onReorder={setItems} values={items}>
+//       {items.map((item) => (
+//         <Item key={item} item={item} />
+//       ))}
+//     </Reorder.Group>
+//   );
+// }
