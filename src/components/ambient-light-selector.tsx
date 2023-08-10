@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Label } from '@radix-ui/react-label';
+import { Label } from './ui/label';
 import { Slider } from './ui/slider';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card';
 import useStore from '@/Store';
@@ -10,13 +10,15 @@ export function AmbientLightSelector() {
   const { ambientLightIntensity, setAmbientLightIntensity } = useStore();
 
   return (
-    <div className="grid gap-2 pt-2">
+    <div className="grid gap-4 pt-4">
       <HoverCard openDelay={200}>
         <HoverCardTrigger asChild>
           <div className="grid gap-4">
             <div className="flex items-center justify-between">
-              <Label htmlFor="ambient-light">Ambient Light</Label>
-              <span className="w-12 rounded-md border border-transparent px-2 py-0.5 text-right text-sm text-muted-foreground hover:border-border">
+              <Label htmlFor="ambient-light" className="text-white">
+                Ambient Light
+              </Label>
+              <span className="text-white w-12 rounded-md border border-transparent px-2 py-0.5 text-right text-sm text-muted-foreground hover:border-border">
                 {ambientLightIntensity}
               </span>
             </div>

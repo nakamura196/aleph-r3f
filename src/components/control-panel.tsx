@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Annotation } from '@/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { MapPin, Settings } from 'lucide-react';
 import { AmbientLightSelector } from './ambient-light-selector';
 import useStore from '@/Store';
 import { BoundsSelector } from './bounds-selector';
+import { DragControls, useMotionValue, Reorder, useDragControls } from 'framer-motion';
+import { useRaisedShadow } from '@/lib/hooks/use-raised-shadow';
+import clsx from 'clsx';
 
 export function ControlPanel() {
   const { setAnnotateOnDoubleClickEnabled } = useStore();
@@ -47,25 +50,112 @@ export function ControlPanel() {
 function SceneTab() {
   return (
     <div>
-      <div>
-        {/* <button className="text-white bg-blue-500 px-2 py-1" onClick={onHome}>
+      {/* <button className="text-white bg-blue-500 px-2 py-1" onClick={onHome}>
           Home
         </button> */}
-        <BoundsSelector />
-        <AmbientLightSelector />
-      </div>
+      <BoundsSelector />
+      <AmbientLightSelector />
     </div>
   );
 }
 
-function AnnotationsTab() {
-  const { annotations } = useStore();
+interface Props {
+  dragControls: DragControls;
+}
+
+export function ReorderIcon({ dragControls }: Props) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      onPointerDown={(event) => dragControls.start(event)}
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      className="lucide lucide-grip text-gray-400 cursor-grab">
+      <circle cx="12" cy="5" r="1" />
+      <circle cx="19" cy="5" r="1" />
+      <circle cx="5" cy="5" r="1" />
+      <circle cx="12" cy="12" r="1" />
+      <circle cx="19" cy="12" r="1" />
+      <circle cx="5" cy="12" r="1" />
+      <circle cx="12" cy="19" r="1" />
+      <circle cx="19" cy="19" r="1" />
+      <circle cx="5" cy="19" r="1" />
+    </svg>
+  );
+}
+
+interface ItemProps {
+  item: string;
+}
+
+export const Item = ({ item }: ItemProps) => {
+  const y = useMotionValue(0);
+  const boxShadow = useRaisedShadow(y);
+  const dragControls = useDragControls();
+
+  const classes = clsx('flex justify-between items-center text-white select-none p-2 shrink-0');
 
   return (
-    <div>
-      {annotations.map((annotation: Annotation, index) => {
-        return <div key={index}>{annotation.label}</div>;
-      })}
-    </div>
+    <Reorder.Item
+      value={item}
+      id={item}
+      style={{ boxShadow, y }}
+      className={classes}
+      dragListener={false}
+      dragControls={dragControls}>
+      <span>{item}</span>
+      <ReorderIcon dragControls={dragControls} />
+    </Reorder.Item>
   );
+};
+
+function AnnotationsTab() {
+  // const { annotations, setAnnotations } = useStore();
+
+  const initialItems = ['🍅 Tomato', '🥒 Cucumber', '🧀 Cheese', '🥬 Lettuce'];
+
+  const [items, setItems] = useState(initialItems);
+
+  return (
+    <Reorder.Group axis="y" onReorder={setItems} values={items}>
+      {items.map((item) => (
+        <Item key={item} item={item} />
+      ))}
+    </Reorder.Group>
+  );
+
+  // const [annos, setAnnos] = useState([{ label: 'Annotation 1' }, { label: 'Annotation 2' }, { label: 'Annotation 3' }]);
+
+  // return (
+  //   <Reorder.Group
+  //     axis="y"
+  //     values={annos}
+  //     onReorder={(reordered) => {
+  //       // console.log(reordered);
+  //       setAnnos(reordered);
+  //       // setAnnotations(reordered);
+  //     }}>
+  //     {annos.map((annotation, index: number) => (
+  //       <Reorder.Item key={index} value={annotation}>
+  //         <div className="text-white">{annotation.label}</div>
+  //       </Reorder.Item>
+  //     ))}
+  //     {/* {annos.map((annotation: Annotation, index: number) => (
+  //       <Reorder.Item key={index} value={annotation}>
+  //         <div className="text-white">{annotation.label ? annotation.label : `Annotation ${index + 1}`}</div>
+  //       </Reorder.Item>
+  //     ))} */}
+  //   </Reorder.Group>
+  //   // <div>
+  //   //   {annotations.map((annotation: Annotation, index) => {
+  //   //     return <div key={index}>{annotation.label}</div>;
+  //   //   })}
+  //   // </div>
+  // );
 }

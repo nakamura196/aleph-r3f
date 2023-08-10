@@ -14,7 +14,7 @@ import {
 import { BoxHelper, Group, Intersection, Object3D, Vector3 } from 'three';
 import useStore from '@/Store';
 import { ViewerProps as ViewerProps, Annotation, SrcObj } from '@/types';
-import useDoubleClick from '@/lib/hooks/useDoubleClick';
+import useDoubleClick from '@/lib/hooks/use-double-click';
 
 function Scene({
   // annotations,
@@ -175,7 +175,7 @@ function Scene({
         setAnnotations([
           ...annotations,
           {
-            label: `${annotations.length + 1}`,
+            // label: `${annotations.length + 1}`,
             position: intersects[0].point,
             normal: intersects[0].face?.normal!,
           },
@@ -256,7 +256,7 @@ function Scene({
                         console.log(`clicked ${idx}`);
                       }
                     }}>
-                    <span className="label">{anno.label}</span>
+                    <span className="label">{anno.label ? anno.label : idx + 1}</span>
                   </div>
                 </div>
               </Html>
