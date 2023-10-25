@@ -115,20 +115,36 @@ export const Item = ({ item }: ItemProps) => {
   );
 };
 
-const initialItems = ['🍅 Tomato', '🥒 Cucumber', '🧀 Cheese', '🥬 Lettuce'];
+// const initialItems = ['🍅 Tomato', '🥒 Cucumber', '🧀 Cheese', '🥬 Lettuce'];
 
 function AnnotationsTab() {
   // const { annotations, setAnnotations } = useStore();
 
-  const [items, setItems] = useState(initialItems);
+  // const [items, setItems] = useState(initialItems);
+
+  // return (
+  //   <Reorder.Group axis="y" onReorder={setItems} values={items}>
+  //     {items.map((item) => (
+  //       <Item key={item} item={item} />
+  //     ))}
+  //   </Reorder.Group>
+  // );
+
+  const { annotations, setAnnotations } = useStore();
 
   return (
-    <Reorder.Group axis="y" onReorder={setItems} values={items}>
-      {items.map((item) => (
-        <Item key={item} item={item} />
+    <ul className="text-white">
+      {annotations.map((annotation, idx) => (
+        <li key={idx}>
+          {annotation.label ? annotation.label : Number(idx) + 1}
+          <button className="ml-2" onClick={() =>{
+            // delete annotations[idx];
+            setAnnotations(annotations.filter((_, i) => i !== idx));
+          }}>x</button>
+        </li>
       ))}
-    </Reorder.Group>
-  );
+    </ul>
+  )
 }
 
 // function AnnotationsTab() {
