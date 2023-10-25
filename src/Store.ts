@@ -7,7 +7,9 @@ type State = {
   annotateOnDoubleClickEnabled: boolean;
   annotations: Annotation[];
   arrowHelpersEnabled: boolean;
+  axesEnabled: boolean;
   boundsEnabled: boolean;
+  gridEnabled: boolean;
   loading: boolean;
   orthographicEnabled: boolean;
   srcs: SrcObj[];
@@ -15,7 +17,9 @@ type State = {
   setAnnotateOnDoubleClickEnabled: (annotateOnDoubleClickEnabled: boolean) => void;
   setAnnotations: (annotations: Annotation[]) => void;
   setArrowHelpersEnabled: (arrowHelpers: boolean) => void;
+  setAxesEnabled: (axesEnabled: boolean) => void;
   setBoundsEnabled: (boundsEnabled: boolean) => void;
+  setGridEnabled: (gridEnabled: boolean) => void;
   setLoading: (loading: boolean) => void;
   setOrthographicEnabled: (orthographicEnabled: boolean) => void;
   setSrcs: (srcs: SrcObj[]) => void;
@@ -26,7 +30,9 @@ const useStore = create<State>((set) => ({
   annotateOnDoubleClickEnabled: false,
   annotations: [],
   arrowHelpersEnabled: false,
+  axesEnabled: false,
   boundsEnabled: false,
+  gridEnabled: false,
   loading: false,
   orthographicEnabled: false,
   srcs: [],
@@ -51,9 +57,19 @@ const useStore = create<State>((set) => ({
       arrowHelpersEnabled,
     }),
 
+  setAxesEnabled: (axesEnabled: boolean) =>
+    set({
+      axesEnabled,
+    }),
+
   setBoundsEnabled: (boundsEnabled: boolean) =>
     set({
       boundsEnabled,
+    }),
+
+  setGridEnabled: (gridEnabled: boolean) =>
+    set({
+      gridEnabled,
     }),
 
   setLoading: (loading: boolean) =>

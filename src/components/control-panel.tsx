@@ -9,6 +9,8 @@ import { BoundsSelector } from './bounds-selector';
 // import { useRaisedShadow } from '@/lib/hooks/use-raised-shadow';
 import clsx from 'clsx';
 import { OrthographicSelector } from './orthographic-selector';
+import { GridSelector } from './grid-selector';
+import { AxesSelector } from './axes-selector';
 
 export function ControlPanel() {
   const { setAnnotateOnDoubleClickEnabled } = useStore();
@@ -54,6 +56,8 @@ function SceneTab() {
       <BoundsSelector />
       <AmbientLightSelector />
       <OrthographicSelector />
+      <GridSelector />
+      <AxesSelector />
       {/* <ArrowHelpersSelector /> */}
     </div>
   );

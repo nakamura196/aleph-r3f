@@ -22,10 +22,10 @@ function Scene({
   // annotateOnDoubleClickEnabled = false,
   // ambientLightIntensity = 0,
   // arrowHelpers,
-  axes,
+  // axes,
   // boundingBoxEnabled,
   environment = 'apartment',
-  grid,
+  // grid,
   minDistance = 0,
   onLoad,
   // orthographic,
@@ -49,7 +49,9 @@ function Scene({
     annotateOnDoubleClickEnabled,
     annotations,
     arrowHelpersEnabled,
+    axesEnabled,
     boundsEnabled,
+    gridEnabled,
     orthographicEnabled,
     setAnnotations,
     setSrcs,
@@ -293,8 +295,8 @@ function Scene({
       </Bounds>
       <Environment preset={environment} />
       <Annotation />
-      {grid && <gridHelper args={[100, 100]} />}
-      {axes && <axesHelper args={[5]} />}
+      {gridEnabled && <gridHelper args={[100, 100]} />}
+      {axesEnabled && <axesHelper args={[5]} />}
     </>
   );
 }
