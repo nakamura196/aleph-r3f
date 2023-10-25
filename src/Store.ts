@@ -6,14 +6,18 @@ type State = {
   ambientLightIntensity: number;
   annotateOnDoubleClickEnabled: boolean;
   annotations: Annotation[];
+  arrowHelpersEnabled: boolean;
   boundsEnabled: boolean;
   loading: boolean;
+  orthographicEnabled: boolean;
   srcs: SrcObj[];
   setAmbientLightIntensity: (ambientLightIntensity: number) => void;
   setAnnotateOnDoubleClickEnabled: (annotateOnDoubleClickEnabled: boolean) => void;
   setAnnotations: (annotations: Annotation[]) => void;
+  setArrowHelpersEnabled: (arrowHelpers: boolean) => void;
   setBoundsEnabled: (boundsEnabled: boolean) => void;
   setLoading: (loading: boolean) => void;
+  setOrthographicEnabled: (orthographicEnabled: boolean) => void;
   setSrcs: (srcs: SrcObj[]) => void;
 };
 
@@ -21,8 +25,10 @@ const useStore = create<State>((set) => ({
   ambientLightIntensity: 0,
   annotateOnDoubleClickEnabled: false,
   annotations: [],
+  arrowHelpersEnabled: false,
   boundsEnabled: false,
   loading: false,
+  orthographicEnabled: false,
   srcs: [],
 
   setAmbientLightIntensity: (ambientLightIntensity: number) =>
@@ -40,6 +46,11 @@ const useStore = create<State>((set) => ({
       annotations,
     }),
 
+  setArrowHelpersEnabled: (arrowHelpersEnabled: boolean) =>
+    set({
+      arrowHelpersEnabled,
+    }),
+
   setBoundsEnabled: (boundsEnabled: boolean) =>
     set({
       boundsEnabled,
@@ -48,6 +59,11 @@ const useStore = create<State>((set) => ({
   setLoading: (loading: boolean) =>
     set({
       loading,
+    }),
+
+  setOrthographicEnabled: (orthographicEnabled: boolean) =>
+    set({
+      orthographicEnabled,
     }),
 
   setSrcs: (srcs: SrcObj[]) =>

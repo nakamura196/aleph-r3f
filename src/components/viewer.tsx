@@ -21,14 +21,14 @@ function Scene({
   // onAnnotationsChange,
   // annotateOnDoubleClickEnabled = false,
   // ambientLightIntensity = 0,
-  arrowHelpers,
+  // arrowHelpers,
   axes,
   // boundingBoxEnabled,
   environment = 'apartment',
   grid,
   minDistance = 0,
   onLoad,
-  orthographic,
+  // orthographic,
   src,
   upVector = [0, 1, 0],
 }: ViewerProps) {
@@ -48,7 +48,9 @@ function Scene({
     ambientLightIntensity,
     annotateOnDoubleClickEnabled,
     annotations,
+    arrowHelpersEnabled,
     boundsEnabled,
+    orthographicEnabled,
     setAnnotations,
     setSrcs,
     srcs,
@@ -241,7 +243,7 @@ function Scene({
         {annotations.map((anno, idx) => {
           return (
             <React.Fragment key={idx}>
-              {arrowHelpers && <arrowHelper args={[anno.normal, anno.position, 0.05, 0xffffff]} />}
+              {arrowHelpersEnabled && <arrowHelper args={[anno.normal, anno.position, 0.05, 0xffffff]} />}
               <Html
                 position={anno.position}
                 style={{
@@ -269,7 +271,7 @@ function Scene({
 
   return (
     <>
-      {orthographic ? (
+      {orthographicEnabled ? (
         <>
           {/* @ts-ignore */}
           <OrthographicCamera makeDefault position={[0, 0, 2]} near={0} zoom={200} />
