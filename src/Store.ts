@@ -33,7 +33,7 @@ const useStore = create<State>((set) => ({
   axesEnabled: false,
   boundsEnabled: false,
   gridEnabled: false,
-  loading: false,
+  loading: true,
   orthographicEnabled: false,
   srcs: [],
 

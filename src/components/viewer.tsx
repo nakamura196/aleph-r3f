@@ -6,7 +6,6 @@ import {
   CameraControls,
   Environment,
   Html,
-  OrthographicCamera,
   PerspectiveCamera,
   useHelper,
   useProgress,
@@ -49,8 +48,10 @@ function Scene({
     axesEnabled,
     boundsEnabled,
     gridEnabled,
+    loading,
     orthographicEnabled,
     setAnnotations,
+    setLoading,
     setSrcs,
     srcs,
   } = useStore();
@@ -100,11 +101,11 @@ function Scene({
     setSrcs(srcs);
   }, [src]);
 
-  // useEffect(() => {
-  //   if (loaded) {
-  //     home();
-  //   }
-  // }, [orthographicEnabled])
+  useEffect(() => {
+    if (!loading) {
+      home(true);
+    }
+  }, [loading, orthographicEnabled])
 
   const handleHomeEvent = () => {
     home();
@@ -161,9 +162,10 @@ function Scene({
     const { active, progress, errors, item, loaded, total } = useProgress();
     if (progress === 100) {
       setTimeout(() => {
-        home(true);
+        // home(true);
         if (onLoad) {
           onLoad();
+          setLoading(false);
         }
       }, 1);
     }
