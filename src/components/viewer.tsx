@@ -41,10 +41,6 @@ function Scene({
   // if a dot product is less than this, then the normal is facing away from the camera
   const DOT_PRODUCT_THRESHOLD = Math.PI * -0.1;
 
-  // set the camera up vector
-  camera.up.copy(new Vector3(upVector[0], upVector[1], upVector[2]));
-  cameraControlsRef.current?.updateCameraUp();
-
   const {
     ambientLightIntensity,
     annotateOnDoubleClickEnabled,
@@ -59,9 +55,18 @@ function Scene({
     srcs,
   } = useStore();
 
-  const handleHomeEvent = () => {
-    home();
-  };
+  // set the camera up vector
+  camera.up.copy(new Vector3(upVector[0], upVector[1], upVector[2]));
+  cameraControlsRef.current?.updateCameraUp();
+
+  // const fov = (camera as any).getFocalLength();
+  // console.log('fov', fov);
+
+  if (orthographicEnabled) {
+    (camera as THREE.PerspectiveCamera).setFocalLength(180);
+  } else {
+    (camera as THREE.PerspectiveCamera).setFocalLength(50);
+  }
 
   // register/unregister event handlers
   useEffect(() => {
@@ -94,6 +99,16 @@ function Scene({
 
     setSrcs(srcs);
   }, [src]);
+
+  // useEffect(() => {
+  //   if (loaded) {
+  //     home();
+  //   }
+  // }, [orthographicEnabled])
+
+  const handleHomeEvent = () => {
+    home();
+  };
 
   function zoomToObject(object: Object3D, instant?: boolean, padding: number = 0.1) {
     cameraControlsRef.current!.fitToBox(object, !instant, {
@@ -297,17 +312,16 @@ function Scene({
 
   return (
     <>
-      {orthographicEnabled ? (
+      <PerspectiveCamera position={[0, 0, 2]} near={0.01} />
+      {/* {orthographicEnabled ? (
         <>
-          {/* @ts-ignore */}
           <OrthographicCamera makeDefault position={[0, 0, 2]} near={0} zoom={200} />
         </>
       ) : (
         <>
-          {/* @ts-ignore */}
           <PerspectiveCamera position={[0, 0, 2]} fov={50} near={0.01} />
         </>
-      )}
+      )} */}
       <CameraControls ref={cameraControlsRef} minDistance={minDistance} />
       <ambientLight intensity={ambientLightIntensity} />
       <Bounds lineVisible={boundsEnabled}>
