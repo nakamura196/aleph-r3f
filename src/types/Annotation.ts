@@ -5,4 +5,6 @@ export type Annotation = {
   position: Vector3;
   normal: Vector3;
   normalFacingCamera?: boolean;
+  cameraPosition: Vector3;
+  cameraTarget: Vector3;
 };

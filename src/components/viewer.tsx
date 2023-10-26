@@ -104,6 +104,11 @@ function Scene({
     });
   }
 
+  function zoomToAnnotation(annotation: Annotation) {
+    cameraControlsRef.current!.setPosition(annotation.cameraPosition.x, annotation.cameraPosition.y, annotation.cameraPosition.z, true);
+    cameraControlsRef.current!.setTarget(annotation.cameraTarget.x, annotation.cameraTarget.y, annotation.cameraTarget.z, true);
+  }
+
   function home(instant?: boolean, padding?: number) {
     if (boundsRef.current) {
       zoomToObject(boundsRef.current, instant, padding);
@@ -150,7 +155,7 @@ function Scene({
     return <Html wrapperClass="loading">{Math.ceil(progress)} %</Html>;
   }
 
-  function Annotation() {
+  function Annotations() {
     const lastAnnoLength = useRef<number>(0);
 
     let annotationsFacingCameraCheckMS: number = 100;
@@ -166,6 +171,7 @@ function Scene({
       };
     }, []);
 
+    // create annotation
     const handleDoubleClickEvent = () => {
       if (!annotateOnDoubleClickEnabled) {
         return;
@@ -175,6 +181,14 @@ function Scene({
 
       const intersects: Intersection<Object3D<Event>>[] = raycaster.intersectObjects(scene.children, true);
 
+      // get current camera position
+      const cameraPosition: Vector3 = new Vector3();
+      cameraControlsRef.current!.getPosition(cameraPosition);
+
+      // get cuerrent camera target
+      const cameraTarget: Vector3 = new Vector3();
+      cameraControlsRef.current!.getTarget(cameraTarget);
+
       if (intersects.length > 0) {
         setAnnotations([
           ...annotations,
@@ -182,6 +196,8 @@ function Scene({
             // label: `${annotations.length + 1}`,
             position: intersects[0].point,
             normal: intersects[0].face?.normal!,
+            cameraPosition,
+            cameraTarget
           },
         ]);
       }
@@ -258,6 +274,7 @@ function Scene({
                     onClick={(e) => {
                       if (isFacingCamera(anno.position, anno.normal)) {
                         console.log(`clicked ${idx}`);
+                        zoomToAnnotation(anno);
                       }
                     }}>
                     <span className="label">{anno.label ? anno.label : idx + 1}</span>
@@ -294,7 +311,7 @@ function Scene({
         </Suspense>
       </Bounds>
       <Environment preset={environment} />
-      <Annotation />
+      <Annotations />
       {gridEnabled && <gridHelper args={[100, 100]} />}
       {axesEnabled && <axesHelper args={[5]} />}
     </>
