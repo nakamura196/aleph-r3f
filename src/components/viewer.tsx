@@ -15,6 +15,7 @@ import { BoxHelper, Group, Intersection, Object3D, Vector3 } from 'three';
 import useStore from '@/Store';
 import { ViewerProps as ViewerProps, Annotation, SrcObj } from '@/types';
 import useDoubleClick from '@/lib/hooks/use-double-click';
+import { triggerAnnotationClick } from '@/lib/utils';
 
 function Scene({
   // annotations,
@@ -164,10 +165,12 @@ function Scene({
     useEffect(() => {
       // @ts-ignore
       window.addEventListener('aldblclick', handleDoubleClickEvent);
+      window.addEventListener('alannoclick', handleAnnotationClick);
 
       return () => {
         // @ts-ignore
         window.removeEventListener('aldblclick', handleDoubleClickEvent);
+        window.removeEventListener('alannoclick', handleAnnotationClick);
       };
     }, []);
 
@@ -202,6 +205,10 @@ function Scene({
         ]);
       }
     };
+
+    const handleAnnotationClick = (e: any) => {
+      zoomToAnnotation(e.detail);
+    }
 
     function isFacingCamera(position: Vector3, normal: Vector3): boolean {
       const cameraDirection: Vector3 = camera.position.clone().normalize().sub(position.clone().normalize());
@@ -273,8 +280,8 @@ function Scene({
                     className="circle"
                     onClick={(e) => {
                       if (isFacingCamera(anno.position, anno.normal)) {
-                        console.log(`clicked ${idx}`);
-                        zoomToAnnotation(anno);
+                        // console.log(`clicked ${idx}`);
+                        triggerAnnotationClick(anno);
                       }
                     }}>
                     <span className="label">{anno.label ? anno.label : idx + 1}</span>
