@@ -11,7 +11,7 @@ import clsx from 'clsx';
 import { OrthographicSelector } from './orthographic-selector';
 import { GridSelector } from './grid-selector';
 import { AxesSelector } from './axes-selector';
-import { triggerAnnotationClick } from '@/lib/utils';
+import { triggerAnnotationClickEvent } from '@/lib/utils';
 
 export function ControlPanel() {
   const { setAnnotateOnDoubleClickEnabled } = useStore();
@@ -142,7 +142,7 @@ function AnnotationsTab() {
       {annotations.map((annotation: Annotation, idx) => (
         <li key={idx}>
           <button onClick={() => {
-            triggerAnnotationClick(annotation);
+            triggerAnnotationClickEvent(annotation);
           }}>{annotation.label ? annotation.label : Number(idx) + 1}</button>
           <button className="ml-2" onClick={() =>{
             setAnnotations(annotations.filter((_, i) => i !== idx));

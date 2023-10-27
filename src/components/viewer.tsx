@@ -6,6 +6,7 @@ import {
   CameraControls,
   Environment,
   Html,
+  OrthographicCamera,
   PerspectiveCamera,
   useHelper,
   useProgress,
@@ -14,21 +15,13 @@ import { BoxHelper, Group, Intersection, Object3D, Vector3 } from 'three';
 import useStore from '@/Store';
 import { ViewerProps as ViewerProps, Annotation, SrcObj } from '@/types';
 import useDoubleClick from '@/lib/hooks/use-double-click';
-import { triggerAnnotationClick } from '@/lib/utils';
+import { triggerAnnotationClickEvent, triggerDoubleClickEvent, triggerHomeClickEvent } from '@/lib/utils';
+import { ANNO_CLICK, DBL_CLICK, HOME_CLICK } from '@/types/Events';
 
 function Scene({
-  // annotations,
-  // onAnnotationsChange,
-  // annotateOnDoubleClickEnabled = false,
-  // ambientLightIntensity = 0,
-  // arrowHelpers,
-  // axes,
-  // boundingBoxEnabled,
   environment = 'apartment',
-  // grid,
   minDistance = 0,
   onLoad,
-  // orthographic,
   src,
   upVector = [0, 1, 0],
 }: ViewerProps) {
@@ -63,20 +56,20 @@ function Scene({
   // const fov = (camera as any).getFocalLength();
   // console.log('fov', fov);
 
-  if (orthographicEnabled) {
-    (camera as THREE.PerspectiveCamera).setFocalLength(180);
-  } else {
-    (camera as THREE.PerspectiveCamera).setFocalLength(50);
-  }
+  // if (orthographicEnabled) {
+  //   (camera as THREE.PerspectiveCamera).setFocalLength(180);
+  // } else {
+  //   (camera as THREE.PerspectiveCamera).setFocalLength(50);
+  // }
 
   // register/unregister event handlers
   useEffect(() => {
     // @ts-ignore
-    window.addEventListener('alhome', handleHomeEvent);
+    window.addEventListener(HOME_CLICK, handleHomeClickEvent);
 
     return () => {
       // @ts-ignore
-      window.removeEventListener('alhome', handleHomeEvent);
+      window.removeEventListener(HOME_CLICK, handleHomeClickEvent);
     };
   }, []);
 
@@ -102,12 +95,14 @@ function Scene({
   }, [src]);
 
   useEffect(() => {
-    if (!loading) {
-      home(true);
-    }
+    setTimeout(() => {
+      if (!loading) {
+        home(true);
+      }
+    }, 1);
   }, [loading, orthographicEnabled])
 
-  const handleHomeEvent = () => {
+  const handleHomeClickEvent = () => {
     home();
   };
 
@@ -181,13 +176,13 @@ function Scene({
     // register/unregister double click event handlers
     useEffect(() => {
       // @ts-ignore
-      window.addEventListener('aldblclick', handleDoubleClickEvent);
-      window.addEventListener('alannoclick', handleAnnotationClick);
+      window.addEventListener(DBL_CLICK, handleDoubleClickEvent);
+      window.addEventListener(ANNO_CLICK, handleAnnotationClick);
 
       return () => {
         // @ts-ignore
-        window.removeEventListener('aldblclick', handleDoubleClickEvent);
-        window.removeEventListener('alannoclick', handleAnnotationClick);
+        window.removeEventListener(DBL_CLICK, handleDoubleClickEvent);
+        window.removeEventListener(ANNO_CLICK, handleAnnotationClick);
       };
     }, []);
 
@@ -298,7 +293,7 @@ function Scene({
                     onClick={(e) => {
                       if (isFacingCamera(anno.position, anno.normal)) {
                         // console.log(`clicked ${idx}`);
-                        triggerAnnotationClick(anno);
+                        triggerAnnotationClickEvent(anno);
                       }
                     }}>
                     <span className="label">{anno.label ? anno.label : idx + 1}</span>
@@ -314,8 +309,8 @@ function Scene({
 
   return (
     <>
-      <PerspectiveCamera position={[0, 0, 2]} near={0.01} />
-      {/* {orthographicEnabled ? (
+      {/* <PerspectiveCamera position={[0, 0, 2]} near={0.01} /> */}
+      {orthographicEnabled ? (
         <>
           <OrthographicCamera makeDefault position={[0, 0, 2]} near={0} zoom={200} />
         </>
@@ -323,7 +318,7 @@ function Scene({
         <>
           <PerspectiveCamera position={[0, 0, 2]} fov={50} near={0.01} />
         </>
-      )} */}
+      )}
       <CameraControls ref={cameraControlsRef} minDistance={minDistance} />
       <ambientLight intensity={ambientLightIntensity} />
       <Bounds lineVisible={boundsEnabled}>
@@ -341,20 +336,10 @@ function Scene({
   );
 }
 
-function triggerHomeEvent() {
-  const event = new CustomEvent('alhome');
-  window.dispatchEvent(event);
-}
-
-function triggerDoubleClickEvent(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
-  const event = new CustomEvent('aldblclick', { detail: e });
-  window.dispatchEvent(event);
-}
-
 const Viewer = (props: ViewerProps, ref: ((instance: unknown) => void) | RefObject<unknown> | null | undefined) => {
   useImperativeHandle(ref, () => ({
     home: () => {
-      triggerHomeEvent();
+      triggerHomeClickEvent();
     },
   }));
 
