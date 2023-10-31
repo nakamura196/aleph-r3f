@@ -13,7 +13,7 @@ import { triggerEvent } from '@/lib/utils';
 import { ANNO_CLICK, CAMERA_UPDATE } from '@/types/Events';
 import { Button } from './ui/button';
 import useKeyPress from '@/lib/hooks/use-key-press';
-import useEvent from '@/lib/hooks/use-event';
+import { useEventListener } from '@/lib/hooks/use-event';
 
 export function ControlPanel() {
   const { setAnnotateOnDoubleClickEnabled } = useStore();
@@ -111,7 +111,7 @@ function AnnotationsTab() {
     cameraTargetRef.current = e.detail.cameraTarget;
   };
 
-  useEvent(CAMERA_UPDATE, handleCameraUpdateEvent);
+  useEventListener(CAMERA_UPDATE, handleCameraUpdateEvent);
 
   const dragStart = (e: any) => {
     dragItemRef.current = parseInt(e.target.dataset.idx);

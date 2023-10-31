@@ -15,8 +15,10 @@ import { BoxHelper, Group, Intersection, Object3D, Vector3 } from 'three';
 import useStore from '@/Store';
 import { ViewerProps as ViewerProps, Annotation, SrcObj } from '@/types';
 import useDoubleClick from '@/lib/hooks/use-double-click';
-import { triggerEvent } from '@/lib/utils';
 import { ANNO_CLICK, CAMERA_UPDATE, DBL_CLICK, HOME_CLICK } from '@/types/Events';
+import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
+import useTimeout from '@/lib/hooks/use-timeout';
+import useInterval from '@/lib/hooks/use-interval';
 
 function Scene({ environment = 'apartment', minDistance = 0, onLoad, src, upVector = [0, 1, 0] }: ViewerProps) {
   const boundsRef = useRef<Group | null>(null);
@@ -58,17 +60,6 @@ function Scene({ environment = 'apartment', minDistance = 0, onLoad, src, upVect
   //   (camera as THREE.PerspectiveCamera).setFocalLength(50);
   // }
 
-  // register/unregister event handlers
-  useEffect(() => {
-    // @ts-ignore
-    window.addEventListener(HOME_CLICK, handleHomeClickEvent);
-
-    return () => {
-      // @ts-ignore
-      window.removeEventListener(HOME_CLICK, handleHomeClickEvent);
-    };
-  }, []);
-
   // src changed
   useEffect(() => {
     const srcs: SrcObj[] = [];
@@ -91,17 +82,23 @@ function Scene({ environment = 'apartment', minDistance = 0, onLoad, src, upVect
   }, [src]);
 
   // when loaded or camera type changed, zoom to object(s) instantaneously
-  useEffect(() => {
-    setTimeout(() => {
+  useTimeout(
+    () => {
       if (!loading) {
         home(true);
       }
-    }, 1);
-  }, [loading, orthographicEnabled]);
+    },
+    1,
+    [loading, orthographicEnabled]
+  );
+
+  const triggerCameraUpdateEvent = useEventTrigger(CAMERA_UPDATE);
 
   const handleHomeClickEvent = () => {
     home();
   };
+
+  useEventListener(HOME_CLICK, handleHomeClickEvent);
 
   function zoomToObject(object: Object3D, instant?: boolean, padding: number = 0.1) {
     cameraControlsRef.current!.fitToBox(object, !instant, {
@@ -180,17 +177,6 @@ function Scene({ environment = 'apartment', minDistance = 0, onLoad, src, upVect
 
     let annotationsFacingCameraCheckMS: number = 100;
 
-    // register/unregister double click event handlers
-    useEffect(() => {
-      window.addEventListener(DBL_CLICK, handleDoubleClickEvent);
-      window.addEventListener(ANNO_CLICK, handleAnnotationClick);
-
-      return () => {
-        window.removeEventListener(DBL_CLICK, handleDoubleClickEvent);
-        window.removeEventListener(ANNO_CLICK, handleAnnotationClick);
-      };
-    }, []);
-
     // create annotation on double click
     const handleDoubleClickEvent = () => {
       if (!annotateOnDoubleClickEnabled) {
@@ -217,6 +203,10 @@ function Scene({ environment = 'apartment', minDistance = 0, onLoad, src, upVect
     const handleAnnotationClick = (e: any) => {
       zoomToAnnotation(e.detail);
     };
+
+    useEventListener(DBL_CLICK, handleDoubleClickEvent);
+    useEventListener(ANNO_CLICK, handleAnnotationClick);
+    const triggerAnnoClick = useEventTrigger(ANNO_CLICK);
 
     function isFacingCamera(position: Vector3, normal: Vector3): boolean {
       const cameraDirection: Vector3 = camera.position.clone().normalize().sub(position.clone().normalize());
@@ -262,14 +252,9 @@ function Scene({ environment = 'apartment', minDistance = 0, onLoad, src, upVect
       lastAnnoLength.current = annotations.length;
     }
 
-    useEffect(() => {
-      // check the whether annotations are facing the camera
-      const interval = setInterval(() => {
-        checkAnnotationsFacingCamera();
-      }, annotationsFacingCameraCheckMS);
-
-      return () => clearInterval(interval);
-    }, []);
+    useInterval(() => {
+      checkAnnotationsFacingCamera();
+    }, annotationsFacingCameraCheckMS);
 
     return (
       <>
@@ -288,8 +273,7 @@ function Scene({ environment = 'apartment', minDistance = 0, onLoad, src, upVect
                     className="circle"
                     onClick={(e) => {
                       if (isFacingCamera(anno.position, anno.normal)) {
-                        // console.log(`clicked ${idx}`);
-                        triggerEvent(ANNO_CLICK, anno);
+                        triggerAnnoClick(anno);
                       }
                     }}>
                     <span className="label">{idx + 1}</span>
@@ -318,10 +302,7 @@ function Scene({ environment = 'apartment', minDistance = 0, onLoad, src, upVect
     cameraControlsRef.current!.getTarget(cameraTarget);
     cameraTargetRef.current = cameraTarget;
 
-    triggerEvent(CAMERA_UPDATE, {
-      cameraPosition,
-      cameraTarget,
-    });
+    triggerCameraUpdateEvent({ cameraPosition, cameraTarget });
   }
 
   return (
@@ -336,13 +317,7 @@ function Scene({ environment = 'apartment', minDistance = 0, onLoad, src, upVect
           <PerspectiveCamera position={[0, 0, 2]} fov={50} near={0.01} />
         </>
       )}
-      <CameraControls
-        ref={cameraControlsRef}
-        minDistance={minDistance}
-        onChange={(e: any) => {
-          onCameraChange(e);
-        }}
-      />
+      <CameraControls ref={cameraControlsRef} minDistance={minDistance} onChange={onCameraChange} />
       <ambientLight intensity={ambientLightIntensity} />
       <Bounds lineVisible={boundsEnabled}>
         <Suspense fallback={<Loader />}>
@@ -360,16 +335,19 @@ function Scene({ environment = 'apartment', minDistance = 0, onLoad, src, upVect
 }
 
 const Viewer = (props: ViewerProps, ref: ((instance: unknown) => void) | RefObject<unknown> | null | undefined) => {
+  const triggerDoubleClickEvent = useEventTrigger(DBL_CLICK);
+  const triggerHomeClickEvent = useEventTrigger(HOME_CLICK);
+
   useImperativeHandle(ref, () => ({
     home: () => {
-      triggerEvent(HOME_CLICK);
+      triggerHomeClickEvent();
     },
   }));
 
   return (
     <Canvas
       onDoubleClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        triggerEvent(DBL_CLICK, e);
+        triggerDoubleClickEvent(e);
       }}>
       <Scene {...props} />
     </Canvas>
