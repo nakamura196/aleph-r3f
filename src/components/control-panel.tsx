@@ -9,11 +9,10 @@ import clsx from 'clsx';
 import { OrthographicSelector } from './orthographic-selector';
 import { GridSelector } from './grid-selector';
 import { AxesSelector } from './axes-selector';
-import { triggerEvent } from '@/lib/utils';
 import { ANNO_CLICK, CAMERA_UPDATE } from '@/types/Events';
 import { Button } from './ui/button';
 import useKeyPress from '@/lib/hooks/use-key-press';
-import { useEventListener } from '@/lib/hooks/use-event';
+import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
 
 export function ControlPanel() {
   const { setAnnotateOnDoubleClickEnabled } = useStore();
@@ -112,6 +111,7 @@ function AnnotationsTab() {
   };
 
   useEventListener(CAMERA_UPDATE, handleCameraUpdateEvent);
+  const triggerAnnoClickEvent = useEventTrigger(ANNO_CLICK);
 
   const dragStart = (e: any) => {
     dragItemRef.current = parseInt(e.target.dataset.idx);
@@ -248,7 +248,7 @@ function AnnotationsTab() {
                   <div
                     className="max-w-full"
                     onClick={() => {
-                      triggerEvent(ANNO_CLICK, anno);
+                      triggerAnnoClickEvent(anno);
                     }}>
                     <h3 className="text-white font-medium text-sm md:text-md line-clamp-1 pr-1">{`${idx + 1}. ${
                       anno.label || 'no label'
@@ -264,7 +264,7 @@ function AnnotationsTab() {
                         setEditIdx(idx);
                         setLabel(anno.label);
                         setDescription(anno.description);
-                        triggerEvent(ANNO_CLICK, anno);
+                        triggerAnnoClickEvent(anno);
                       }}>
                       <svg
                         className="h-4 w-4"
