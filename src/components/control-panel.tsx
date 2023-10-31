@@ -83,11 +83,11 @@ function SceneTab() {
 }
 
 function AnnotationsTab() {
-  type ErrorType = 'label';
+  // type ErrorType = 'label';
 
-  type Errors = {
-    [key in ErrorType]?: boolean;
-  };
+  // type Errors = {
+  //   [key in ErrorType]?: boolean;
+  // };
 
   const { annotations, setAnnotations } = useStore();
 
@@ -97,6 +97,10 @@ function AnnotationsTab() {
 
   const dragItem = useRef<number | null>(null);
   const dragOverItem = useRef<number | null>(null);
+
+  useKeyPress('Escape', () => {
+    setEditIdx(null);
+  });
 
   const dragStart = (e: any) => {
     dragItem.current = parseInt(e.target.dataset.idx);
@@ -116,61 +120,74 @@ function AnnotationsTab() {
   };
 
   // Form validation
-  const [errors, setErrors] = useState<Errors>({});
+  // const [errors, setErrors] = useState<Errors>({});
 
-  const handleValidation = () => {
-    let tempErrors: Errors = {};
-    let isValid = true;
+  // const handleValidation = () => {
+  //   let tempErrors: Errors = {};
+  //   let isValid = true;
 
-    if (label!.length <= 0) {
-      tempErrors['label'] = true;
-      isValid = false;
-    }
+  //   if (label!.length <= 0) {
+  //     tempErrors['label'] = true;
+  //     isValid = false;
+  //   }
 
-    setErrors({ ...tempErrors });
-    return isValid;
-  };
+  //   setErrors({ ...tempErrors });
+  //   return isValid;
+  // };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    let isValidForm = handleValidation();
+    // let isValidForm = handleValidation();
 
-    if (isValidForm) {
-      const copyListItems = [...annotations];
-      // const { label: oldLabel } = copyListItems[idx];
-      const updatedItem = { ...copyListItems[editIdx as number], label, description };
-      const updatedListItems = [
-        ...copyListItems.slice(0, editIdx as number),
-        updatedItem,
-        ...copyListItems.slice((editIdx as number) + 1),
-      ];
-      setAnnotations(updatedListItems);
-      setLabel('');
-      setDescription('');
-      setEditIdx(null);
-    }
+    // if (isValidForm) { // using inline validation for now
+    const copyListItems = [...annotations];
+    const updatedItem = { ...copyListItems[editIdx as number], label, description };
+    const updatedListItems = [
+      ...copyListItems.slice(0, editIdx as number),
+      updatedItem,
+      ...copyListItems.slice((editIdx as number) + 1),
+    ];
+    setAnnotations(updatedListItems);
+    setLabel('');
+    setDescription('');
+    setEditIdx(null);
+    // }
   };
 
+  function deleteAnnotation(idx: number) {
+    const annotation = annotations[idx];
+    const message = annotation.label
+      ? `Are you sure you want to delete the annotation "${annotation.label}"?`
+      : 'Are you sure you want to delete this annotation?';
+
+    if (window.confirm(message)) {
+      setAnnotations(annotations.filter((_, i) => i !== idx));
+    }
+  }
+
   return (
-    <div className="grid gap-y-2">
+    <div className="mt-4 grid gap-y-4">
       {annotations.map((anno: Annotation, idx) => {
         return (
           <div
             key={idx}
-            className="flex items-center justify-between shadow-sm cursor-move"
-            draggable="true"
+            className={clsx('flex items-center justify-between', {
+              'cursor-move': editIdx === null,
+            })}
+            draggable={editIdx === null}
             onDragStart={(e) => dragStart(e)}
             onDragEnter={(e) => dragEnter(e)}
+            onDragOver={(e) => e.preventDefault()}
             onDragEnd={drop}
             data-idx={idx}>
             {editIdx === idx && (
-              <form onSubmit={handleSubmit}>
-                <div className="flex flex-col min-w-0">
+              <form onSubmit={handleSubmit} className="flex items-end justify-between w-full py-2">
+                <div className="flex flex-col w-full mr-2">
                   <input
                     type="text"
                     placeholder="Label"
-                    className="font-medium text-sm md:text-md truncate text-black"
+                    className="text-xs text-black mb-1 p-1"
                     defaultValue={anno.label}
                     required
                     maxLength={64}
@@ -180,7 +197,7 @@ function AnnotationsTab() {
                   />
                   <textarea
                     placeholder="Description"
-                    className="text-xs text-zinc-500 dark:text-zinc-400 truncate text-black"
+                    className="text-xs p-1 break-words text-black h-12"
                     defaultValue={anno.description}
                     maxLength={256}
                     onChange={(e) => {
@@ -188,7 +205,7 @@ function AnnotationsTab() {
                     }}
                   />
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex gap-2">
                   <Button variant="default" type="submit">
                     <svg
                       className="h-4 w-4"
@@ -214,10 +231,12 @@ function AnnotationsTab() {
                   onClick={() => {
                     triggerEvent(ANNO_CLICK, anno);
                   }}>
-                  <h3 className="text-white font-medium text-sm md:text-md truncate">{`${idx + 1}, ${
+                  <h3 className="text-white font-medium text-sm md:text-md line-clamp-1 pr-1">{`${idx + 1}. ${
                     anno.label || 'no label'
                   }`}</h3>
-                  <p className="text-white text-xs text-zinc-500 dark:text-zinc-400 truncate">{anno.description}</p>
+                  <p className="text-white text-xs text-zinc-400 dark:text-zinc-400 line-clamp-1 pr-1">
+                    {anno.description}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
@@ -247,7 +266,7 @@ function AnnotationsTab() {
                   <Button
                     variant="destructive"
                     onClick={() => {
-                      setAnnotations(annotations.filter((_, i) => i !== idx));
+                      deleteAnnotation(idx);
                     }}>
                     <svg
                       className=" h-4 w-4"
