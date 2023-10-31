@@ -10,7 +10,7 @@ import { OrthographicSelector } from './orthographic-selector';
 import { GridSelector } from './grid-selector';
 import { AxesSelector } from './axes-selector';
 import { triggerEvent } from '@/lib/utils';
-import { ANNO_CLICK } from '@/types/Events';
+import { ANNO_CLICK, CAMERA_UPDATE } from '@/types/Events';
 import { Button } from './ui/button';
 import useKeyPress from '@/lib/hooks/use-key-press';
 
@@ -95,27 +95,45 @@ function AnnotationsTab() {
   const [label, setLabel] = useState<string | undefined>();
   const [description, setDescription] = useState<string | undefined>();
 
-  const dragItem = useRef<number | null>(null);
-  const dragOverItem = useRef<number | null>(null);
+  const dragItemRef = useRef<number | null>(null);
+  const dragOverItemRef = useRef<number | null>(null);
+
+  const cameraPositionRef = useRef<THREE.Vector3>();
+  const cameraTargetRef = useRef<THREE.Vector3>();
 
   useKeyPress('Escape', () => {
     setEditIdx(null);
   });
 
+  // register/unregister event handlers
+  useEffect(() => {
+    window.addEventListener(CAMERA_UPDATE, handleCameraUpdateEvent);
+
+    return () => {
+      window.removeEventListener(CAMERA_UPDATE, handleCameraUpdateEvent);
+    };
+  }, []);
+
+  const handleCameraUpdateEvent = (e: any) => {
+    cameraPositionRef.current = e.detail.cameraPosition;
+    cameraTargetRef.current = e.detail.cameraTarget;
+  };
+
   const dragStart = (e: any) => {
-    dragItem.current = parseInt(e.target.dataset.idx);
+    dragItemRef.current = parseInt(e.target.dataset.idx);
   };
 
   const dragEnter = (e: any) => {
-    dragOverItem.current = parseInt(e.currentTarget.dataset.idx);
+    dragOverItemRef.current = parseInt(e.currentTarget.dataset.idx);
   };
 
   const drop = () => {
+    // reorder annotations
     const copyListItems = [...annotations];
-    const dragItemContent = copyListItems[dragItem.current as number];
-    copyListItems.splice(dragItem.current as number, 1);
-    copyListItems.splice(dragOverItem.current as number, 0, dragItemContent);
-    dragItem.current = null;
+    const dragItemContent = copyListItems[dragItemRef.current as number];
+    copyListItems.splice(dragItemRef.current as number, 1);
+    copyListItems.splice(dragOverItemRef.current as number, 0, dragItemContent);
+    dragItemRef.current = null;
     setAnnotations(copyListItems);
   };
 
@@ -142,7 +160,13 @@ function AnnotationsTab() {
 
     // if (isValidForm) { // using inline validation for now
     const copyListItems = [...annotations];
-    const updatedItem = { ...copyListItems[editIdx as number], label, description };
+    const updatedItem = {
+      ...copyListItems[editIdx as number],
+      label,
+      description,
+      ...(cameraPositionRef.current !== undefined && { cameraPosition: cameraPositionRef.current }),
+      ...(cameraTargetRef.current !== undefined && { cameraTarget: cameraTargetRef.current }),
+    };
     const updatedListItems = [
       ...copyListItems.slice(0, editIdx as number),
       updatedItem,
@@ -168,127 +192,131 @@ function AnnotationsTab() {
 
   return (
     <div className="mt-4 grid gap-y-4">
-      {annotations.map((anno: Annotation, idx) => {
-        return (
-          <div
-            key={idx}
-            className={clsx('flex items-center justify-between', {
-              'cursor-move': editIdx === null,
-            })}
-            draggable={editIdx === null}
-            onDragStart={(e) => dragStart(e)}
-            onDragEnter={(e) => dragEnter(e)}
-            onDragOver={(e) => e.preventDefault()}
-            onDragEnd={drop}
-            data-idx={idx}>
-            {editIdx === idx && (
-              <form onSubmit={handleSubmit} className="flex items-end justify-between w-full py-2">
-                <div className="flex flex-col w-full mr-2">
-                  <input
-                    type="text"
-                    placeholder="Label"
-                    className="text-xs text-black mb-1 p-1"
-                    defaultValue={anno.label}
-                    required
-                    maxLength={64}
-                    onChange={(e) => {
-                      setLabel(e.target.value);
-                    }}
-                  />
-                  <textarea
-                    placeholder="Description"
-                    className="text-xs p-1 break-words text-black h-12"
-                    defaultValue={anno.description}
-                    maxLength={256}
-                    onChange={(e) => {
-                      setDescription(e.target.value);
-                    }}
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="default" type="submit">
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      height="24"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                      width="24"
-                      xmlns="http://www.w3.org/2000/svg">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  </Button>
-                </div>
-              </form>
-            )}
-            {editIdx !== idx && (
-              <>
-                <div
-                  className="max-w-full"
-                  onClick={() => {
-                    triggerEvent(ANNO_CLICK, anno);
-                  }}>
-                  <h3 className="text-white font-medium text-sm md:text-md line-clamp-1 pr-1">{`${idx + 1}. ${
-                    anno.label || 'no label'
-                  }`}</h3>
-                  <p className="text-white text-xs text-zinc-400 dark:text-zinc-400 line-clamp-1 pr-1">
-                    {anno.description}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
+      {annotations.length ? (
+        annotations.map((anno: Annotation, idx) => {
+          return (
+            <div
+              key={idx}
+              className={clsx('flex items-center justify-between', {
+                'cursor-move': editIdx === null,
+              })}
+              draggable={editIdx === null}
+              onDragStart={(e) => dragStart(e)}
+              onDragEnter={(e) => dragEnter(e)}
+              onDragOver={(e) => e.preventDefault()}
+              onDragEnd={drop}
+              data-idx={idx}>
+              {editIdx === idx && (
+                <form onSubmit={handleSubmit} className="flex items-end justify-between w-full py-2">
+                  <div className="flex flex-col w-full mr-2">
+                    <input
+                      type="text"
+                      placeholder="Label"
+                      className="text-xs text-black mb-1 p-1"
+                      defaultValue={anno.label}
+                      required
+                      maxLength={64}
+                      onChange={(e) => {
+                        setLabel(e.target.value);
+                      }}
+                    />
+                    <textarea
+                      placeholder="Description"
+                      className="text-xs p-1 break-words text-black h-12"
+                      defaultValue={anno.description}
+                      maxLength={256}
+                      onChange={(e) => {
+                        setDescription(e.target.value);
+                      }}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="default" type="submit">
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </Button>
+                  </div>
+                </form>
+              )}
+              {editIdx !== idx && (
+                <>
+                  <div
+                    className="max-w-full"
                     onClick={() => {
-                      setEditIdx(idx);
-                      setLabel(anno.label);
-                      setDescription(anno.description);
                       triggerEvent(ANNO_CLICK, anno);
                     }}>
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      height="24"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                      width="24"
-                      xmlns="http://www.w3.org/2000/svg">
-                      <path d="M4 13.5V4a2 2 0 0 1 2-2h8.5L20 7.5V20a2 2 0 0 1-2 2h-5.5" />
-                      <polyline points="14 2 14 8 20 8" />
-                      <path d="M10.42 12.61a2.1 2.1 0 1 1 2.97 2.97L7.95 21 4 22l.99-3.95 5.43-5.44Z" />
-                    </svg>
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => {
-                      deleteAnnotation(idx);
-                    }}>
-                    <svg
-                      className=" h-4 w-4"
-                      fill="none"
-                      height="24"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                      width="24"
-                      xmlns="http://www.w3.org/2000/svg">
-                      <path d="M18 6 6 18" />
-                      <path d="m6 6 12 12" />
-                    </svg>
-                  </Button>
-                </div>
-              </>
-            )}
-          </div>
-        );
-      })}
+                    <h3 className="text-white font-medium text-sm md:text-md line-clamp-1 pr-1">{`${idx + 1}. ${
+                      anno.label || 'no label'
+                    }`}</h3>
+                    <p className="text-white text-xs text-zinc-400 dark:text-zinc-400 line-clamp-1 pr-1">
+                      {anno.description}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setEditIdx(idx);
+                        setLabel(anno.label);
+                        setDescription(anno.description);
+                        triggerEvent(ANNO_CLICK, anno);
+                      }}>
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 13.5V4a2 2 0 0 1 2-2h8.5L20 7.5V20a2 2 0 0 1-2 2h-5.5" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <path d="M10.42 12.61a2.1 2.1 0 1 1 2.97 2.97L7.95 21 4 22l.99-3.95 5.43-5.44Z" />
+                      </svg>
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={() => {
+                        deleteAnnotation(idx);
+                      }}>
+                      <svg
+                        className=" h-4 w-4"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                      </svg>
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        })
+      ) : (
+        <div className="text-white text-center">No annotations</div>
+      )}
     </div>
   );
 }

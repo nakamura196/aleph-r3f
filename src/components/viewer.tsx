@@ -16,17 +16,13 @@ import useStore from '@/Store';
 import { ViewerProps as ViewerProps, Annotation, SrcObj } from '@/types';
 import useDoubleClick from '@/lib/hooks/use-double-click';
 import { triggerEvent } from '@/lib/utils';
-import { ANNO_CLICK, DBL_CLICK, HOME_CLICK } from '@/types/Events';
+import { ANNO_CLICK, CAMERA_UPDATE, DBL_CLICK, HOME_CLICK } from '@/types/Events';
 
-function Scene({
-  environment = 'apartment',
-  minDistance = 0,
-  onLoad,
-  src,
-  upVector = [0, 1, 0],
-}: ViewerProps) {
+function Scene({ environment = 'apartment', minDistance = 0, onLoad, src, upVector = [0, 1, 0] }: ViewerProps) {
   const boundsRef = useRef<Group | null>(null);
   const cameraControlsRef = useRef<CameraControls | null>(null);
+  const cameraPositionRef = useRef<Vector3>(new Vector3());
+  const cameraTargetRef = useRef<Vector3>(new Vector3());
 
   const { scene, camera, pointer, raycaster } = useThree();
 
@@ -101,7 +97,7 @@ function Scene({
         home(true);
       }
     }, 1);
-  }, [loading, orthographicEnabled])
+  }, [loading, orthographicEnabled]);
 
   const handleHomeClickEvent = () => {
     home();
@@ -118,8 +114,18 @@ function Scene({
   }
 
   function zoomToAnnotation(annotation: Annotation) {
-    cameraControlsRef.current!.setPosition(annotation.cameraPosition.x, annotation.cameraPosition.y, annotation.cameraPosition.z, true);
-    cameraControlsRef.current!.setTarget(annotation.cameraTarget.x, annotation.cameraTarget.y, annotation.cameraTarget.z, true);
+    cameraControlsRef.current!.setPosition(
+      annotation.cameraPosition.x,
+      annotation.cameraPosition.y,
+      annotation.cameraPosition.z,
+      true
+    );
+    cameraControlsRef.current!.setTarget(
+      annotation.cameraTarget.x,
+      annotation.cameraTarget.y,
+      annotation.cameraTarget.z,
+      true
+    );
   }
 
   function home(instant?: boolean, padding?: number) {
@@ -195,22 +201,14 @@ function Scene({
 
       const intersects: Intersection<Object3D<Event>>[] = raycaster.intersectObjects(scene.children, true);
 
-      // get current camera position
-      const cameraPosition: Vector3 = new Vector3();
-      cameraControlsRef.current!.getPosition(cameraPosition);
-
-      // get cuerrent camera target
-      const cameraTarget: Vector3 = new Vector3();
-      cameraControlsRef.current!.getTarget(cameraTarget);
-
       if (intersects.length > 0) {
         setAnnotations([
           ...annotations,
           {
             position: intersects[0].point,
             normal: intersects[0].face?.normal!,
-            cameraPosition,
-            cameraTarget
+            cameraPosition: cameraPositionRef.current,
+            cameraTarget: cameraTargetRef.current,
           },
         ]);
       }
@@ -218,7 +216,7 @@ function Scene({
 
     const handleAnnotationClick = (e: any) => {
       zoomToAnnotation(e.detail);
-    }
+    };
 
     function isFacingCamera(position: Vector3, normal: Vector3): boolean {
       const cameraDirection: Vector3 = camera.position.clone().normalize().sub(position.clone().normalize());
@@ -305,6 +303,27 @@ function Scene({
     );
   }
 
+  function onCameraChange(e: any) {
+    if (e.type !== 'update') {
+      return;
+    }
+
+    // get current camera position
+    const cameraPosition: Vector3 = new Vector3();
+    cameraControlsRef.current!.getPosition(cameraPosition);
+    cameraPositionRef.current = cameraPosition;
+
+    // get current camera target
+    const cameraTarget: Vector3 = new Vector3();
+    cameraControlsRef.current!.getTarget(cameraTarget);
+    cameraTargetRef.current = cameraTarget;
+
+    triggerEvent(CAMERA_UPDATE, {
+      cameraPosition,
+      cameraTarget,
+    });
+  }
+
   return (
     <>
       {/* <PerspectiveCamera position={[0, 0, 2]} near={0.01} /> */}
@@ -317,7 +336,13 @@ function Scene({
           <PerspectiveCamera position={[0, 0, 2]} fov={50} near={0.01} />
         </>
       )}
-      <CameraControls ref={cameraControlsRef} minDistance={minDistance} />
+      <CameraControls
+        ref={cameraControlsRef}
+        minDistance={minDistance}
+        onChange={(e: any) => {
+          onCameraChange(e);
+        }}
+      />
       <ambientLight intensity={ambientLightIntensity} />
       <Bounds lineVisible={boundsEnabled}>
         <Suspense fallback={<Loader />}>
