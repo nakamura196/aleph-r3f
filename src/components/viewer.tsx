@@ -15,7 +15,7 @@ import { BoxHelper, Group, Intersection, Object3D, Vector3 } from 'three';
 import useStore from '@/Store';
 import { ViewerProps as ViewerProps, Annotation, SrcObj } from '@/types';
 import useDoubleClick from '@/lib/hooks/use-double-click';
-import { triggerAnnotationClickEvent, triggerDoubleClickEvent, triggerHomeClickEvent } from '@/lib/utils';
+import { triggerEvent } from '@/lib/utils';
 import { ANNO_CLICK, DBL_CLICK, HOME_CLICK } from '@/types/Events';
 
 function Scene({
@@ -94,6 +94,7 @@ function Scene({
     setSrcs(srcs);
   }, [src]);
 
+  // when loaded or camera type changed, zoom to object(s) instantaneously
   useEffect(() => {
     setTimeout(() => {
       if (!loading) {
@@ -175,18 +176,16 @@ function Scene({
 
     // register/unregister double click event handlers
     useEffect(() => {
-      // @ts-ignore
       window.addEventListener(DBL_CLICK, handleDoubleClickEvent);
       window.addEventListener(ANNO_CLICK, handleAnnotationClick);
 
       return () => {
-        // @ts-ignore
         window.removeEventListener(DBL_CLICK, handleDoubleClickEvent);
         window.removeEventListener(ANNO_CLICK, handleAnnotationClick);
       };
     }, []);
 
-    // create annotation
+    // create annotation on double click
     const handleDoubleClickEvent = () => {
       if (!annotateOnDoubleClickEnabled) {
         return;
@@ -208,7 +207,6 @@ function Scene({
         setAnnotations([
           ...annotations,
           {
-            // label: `${annotations.length + 1}`,
             position: intersects[0].point,
             normal: intersects[0].face?.normal!,
             cameraPosition,
@@ -293,10 +291,10 @@ function Scene({
                     onClick={(e) => {
                       if (isFacingCamera(anno.position, anno.normal)) {
                         // console.log(`clicked ${idx}`);
-                        triggerAnnotationClickEvent(anno);
+                        triggerEvent(ANNO_CLICK, anno);
                       }
                     }}>
-                    <span className="label">{anno.label ? anno.label : idx + 1}</span>
+                    <span className="label">{idx + 1}</span>
                   </div>
                 </div>
               </Html>
@@ -339,14 +337,14 @@ function Scene({
 const Viewer = (props: ViewerProps, ref: ((instance: unknown) => void) | RefObject<unknown> | null | undefined) => {
   useImperativeHandle(ref, () => ({
     home: () => {
-      triggerHomeClickEvent();
+      triggerEvent(HOME_CLICK);
     },
   }));
 
   return (
     <Canvas
       onDoubleClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        triggerDoubleClickEvent(e);
+        triggerEvent(DBL_CLICK, e);
       }}>
       <Scene {...props} />
     </Canvas>
