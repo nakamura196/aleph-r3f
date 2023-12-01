@@ -314,6 +314,7 @@ function Scene({ environment = 'apartment', minDistance = 0, onLoad, src, upVect
         </>
       ) : (
         <>
+          {/* @ts-ignore */}
           <PerspectiveCamera position={[0, 0, 2]} fov={50} near={0.01} />
         </>
       )}

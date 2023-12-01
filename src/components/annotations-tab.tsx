@@ -6,6 +6,7 @@ import useKeyPress from '@/lib/hooks/use-key-press';
 import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
 import useStore from '@/Store';
 import clsx from 'clsx';
+import { Vector3 } from 'three';
 
 function AnnotationsTab() {
   // type ErrorType = 'label';
@@ -23,8 +24,8 @@ function AnnotationsTab() {
   const dragItemRef = useRef<number | null>(null);
   const dragOverItemRef = useRef<number | null>(null);
 
-  const cameraPositionRef = useRef<THREE.Vector3>();
-  const cameraTargetRef = useRef<THREE.Vector3>();
+  const cameraPositionRef = useRef<Vector3>();
+  const cameraTargetRef = useRef<Vector3>();
 
   useKeyPress('Escape', () => {
     setEditIdx(null);
