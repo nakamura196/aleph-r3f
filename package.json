@@ -29,8 +29,9 @@
     }
   },
   "scripts": {
+    "dev": "vite",
     "start": "vite",
-    "build": "node ./scripts/build.mjs",
+    "build": "tsc && vite build",
     "prepublishOnly": "node ./scripts/build.mjs && node scripts/validate.mjs",
     "test": "vitest",
     "ts-lint": "tsc --incremental --watch"
