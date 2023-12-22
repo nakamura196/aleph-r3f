@@ -1,4 +1,5 @@
 import '@/viewer.css';
+import '../index.css';
 import React, { RefObject, Suspense, forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { GLTF } from '@/components/gltf';

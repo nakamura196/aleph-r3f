@@ -1,3 +1,4 @@
+import '../index.css';
 import { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { MapPin, Settings } from 'lucide-react';
