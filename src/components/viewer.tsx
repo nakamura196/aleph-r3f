@@ -21,11 +21,16 @@ import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
 import useTimeout from '@/lib/hooks/use-timeout';
 import useInterval from '@/lib/hooks/use-interval';
 
-function Scene({ environment = 'apartment', minDistance = 0, onLoad, src, upVector = [0, 1, 0] }: ViewerProps) {
+function Scene({ onLoad, src }: ViewerProps) {
   const boundsRef = useRef<Group | null>(null);
   const cameraControlsRef = useRef<CameraControls | null>(null);
   const cameraPositionRef = useRef<Vector3>(new Vector3());
   const cameraTargetRef = useRef<Vector3>(new Vector3());
+  const YUP: [number, number, number] = [0, 1, 0];
+  // const ZUP: [number, number, number] = [0, 0, -1];
+  const upVector = YUP;
+  const environment = 'apartment';
+  const minDistance = 0;
 
   const { scene, camera, pointer, raycaster } = useThree();
 
