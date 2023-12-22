@@ -18,4 +18,19 @@ export default defineConfig({
   server: {
     port: 3008,
   },
+  build: {
+    lib: {
+      entry: path.resolve('src', 'src/components/viewer.tsx'),
+      name: 'aleph-r3f',
+      fileName: (format) => `aleph-r3f.${format}.js`,
+    },
+    rollupOptions: {
+      external: ['react', 'react-dom'],
+      output: {
+        globals: {
+          react: 'React',
+        },
+      },
+    },
+  },
 });

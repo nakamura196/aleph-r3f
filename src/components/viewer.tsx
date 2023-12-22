@@ -307,7 +307,6 @@ function Scene({ environment = 'apartment', minDistance = 0, onLoad, src, upVect
 
   return (
     <>
-      {/* <PerspectiveCamera position={[0, 0, 2]} near={0.01} /> */}
       {orthographicEnabled ? (
         <>
           {/* @ts-ignore */}
