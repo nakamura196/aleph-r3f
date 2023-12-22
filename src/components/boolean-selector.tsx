@@ -1,15 +1,19 @@
 'use client';
 
-import * as React from 'react';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 
-export function BooleanSelector({ label, description, value, onChange }: {
-    label: string;
-    description: string;
-    value: boolean;
-    onChange: (checked: boolean) => void;
+export function BooleanSelector({
+  label,
+  description,
+  value,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  value: boolean;
+  onChange: (checked: boolean) => void;
 }) {
   return (
     <div className="grid gap-4 pt-4">

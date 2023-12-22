@@ -1,36 +1,32 @@
-import path from 'path';
-import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react-swc';
+import dts from 'vite-plugin-dts';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), dts()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': resolve(__dirname, './src'),
     },
-  },
-  test: {
-    include: ['**/*.{test,tests,spec}.{js,mjs,cjs,ts,tsx,mts,cts}'],
-    environment: 'jsdom',
-    globals: true,
-    setupFiles: './src/setupTests.ts',
-  },
-  server: {
-    port: 3008,
   },
   build: {
     lib: {
-      entry: path.resolve('src', 'src/components/viewer.tsx'),
-      name: 'aleph-r3f',
-      fileName: (format) => `aleph-r3f.${format}.js`,
+      entry: resolve(__dirname, 'index.ts'),
+      name: 'Aleph',
+      fileName: (format) => `index.${format}.js`,
     },
+    cssCodeSplit: false,
     rollupOptions: {
       external: ['react', 'react-dom'],
       output: {
         globals: {
           react: 'React',
+          'react-dom': 'ReactDOM',
         },
       },
     },
+    sourcemap: true,
+    emptyOutDir: true,
   },
 });

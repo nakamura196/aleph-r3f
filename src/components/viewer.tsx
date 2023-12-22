@@ -11,7 +11,7 @@ import {
   useHelper,
   useProgress,
 } from '@react-three/drei';
-import { BoxHelper, Group, Intersection, Object3D, Vector3 } from 'three';
+import { BoxHelper, Group, Intersection, Object3D, Object3DEventMap, Vector3 } from 'three';
 import useStore from '@/Store';
 import { ViewerProps as ViewerProps, Annotation, SrcObj } from '@/types';
 import useDoubleClick from '@/lib/hooks/use-double-click';
@@ -158,7 +158,8 @@ function Scene({ environment = 'apartment', minDistance = 0, onLoad, src, upVect
   }
 
   function Loader() {
-    const { active, progress, errors, item, loaded, total } = useProgress();
+    // const { active, progress, errors, item, loaded, total } = useProgress();
+    const { progress } = useProgress();
     if (progress === 100) {
       setTimeout(() => {
         // home(true);
@@ -185,7 +186,7 @@ function Scene({ environment = 'apartment', minDistance = 0, onLoad, src, upVect
 
       raycaster.setFromCamera(pointer, camera);
 
-      const intersects: Intersection<Object3D<Event>>[] = raycaster.intersectObjects(scene.children, true);
+      const intersects: Intersection<Object3D<Object3DEventMap>>[] = raycaster.intersectObjects(scene.children, true);
 
       if (intersects.length > 0) {
         setAnnotations([
@@ -258,7 +259,7 @@ function Scene({ environment = 'apartment', minDistance = 0, onLoad, src, upVect
 
     return (
       <>
-        {annotations.map((anno, idx) => {
+        {annotations.map((anno: Annotation, idx: number) => {
           return (
             <React.Fragment key={idx}>
               {arrowHelpersEnabled && <arrowHelper args={[anno.normal, anno.position, 0.05, 0xffffff]} />}
@@ -271,7 +272,7 @@ function Scene({ environment = 'apartment', minDistance = 0, onLoad, src, upVect
                 <div id={`anno-${idx}`} className="annotation">
                   <div
                     className="circle"
-                    onClick={(e) => {
+                    onClick={(_e) => {
                       if (isFacingCamera(anno.position, anno.normal)) {
                         triggerAnnoClick(anno);
                       }

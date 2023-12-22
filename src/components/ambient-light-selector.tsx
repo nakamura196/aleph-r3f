@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { Label } from './ui/label';
 import { Slider } from './ui/slider';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card';

@@ -1,23 +1,21 @@
-import './globals.css';
-import React, { useRef, useState } from 'react';
-import ReactDOM from 'react-dom/client';
-import { Viewer } from './index';
-import { button, folder, useControls } from 'leva';
+import './App.css';
+import { useRef, useState } from 'react';
+import { Viewer, ControlPanel } from './components';
+// import { button, folder, useControls } from 'leva';
 import { Src } from './types/Src';
-import { Environment } from './types/Environment';
-import { ControlPanel } from './components/control-panel';
+// import { Environment } from './types/Environment';
 import { ViewerRef } from './types';
 
-const Wrapper = () => {
+function App() {
   const viewerRef = useRef<ViewerRef>(null);
   const YUP: [number, number, number] = [0, 1, 0];
-  const ZUP: [number, number, number] = [0, 0, -1];
+  // const ZUP: [number, number, number] = [0, 0, -1];
 
   // const [annotations, setAnnotations] = useState<Annotation[]>([]);
   // const [ambientLightIntensity, setAmbientLightIntensity] = useState(0);
   // const [annotateOnDoubleClickEnabled, setAnnotateOnDoubleClickEnabled] = useState(false);
   // const [boundingBoxEnabled, setBoundingBoxEnabled] = useState(false);
-  const [upVector, setUpVector] = useState<[number, number, number]>(YUP);
+  const [upVector, _setUpVector] = useState<[number, number, number]>(YUP);
 
   const srcs: Src[] = [
     'https://modelviewer.dev/shared-assets/models/glTF-Sample-Models/2.0/FlightHelmet/glTF/FlightHelmet.gltf',
@@ -179,6 +177,8 @@ const Wrapper = () => {
       </div>
     </div>
   );
-};
+}
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(<Wrapper />);
+export default App;
+
+// ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(<Wrapper />);

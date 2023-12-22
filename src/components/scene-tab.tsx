@@ -1,4 +1,3 @@
-import React from 'react';
 import { AmbientLightSelector } from './ambient-light-selector';
 import { AxesSelector } from './axes-selector';
 import { BoundsSelector } from './bounds-selector';
