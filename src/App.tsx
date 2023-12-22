@@ -1,5 +1,5 @@
 import './App.css';
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { Viewer, ControlPanel } from './components';
 // import { button, folder, useControls } from 'leva';
 import { Src } from './types/Src';
@@ -8,14 +8,6 @@ import { ViewerRef } from './types';
 
 function App() {
   const viewerRef = useRef<ViewerRef>(null);
-  const YUP: [number, number, number] = [0, 1, 0];
-  // const ZUP: [number, number, number] = [0, 0, -1];
-
-  // const [annotations, setAnnotations] = useState<Annotation[]>([]);
-  // const [ambientLightIntensity, setAmbientLightIntensity] = useState(0);
-  // const [annotateOnDoubleClickEnabled, setAnnotateOnDoubleClickEnabled] = useState(false);
-  // const [boundingBoxEnabled, setBoundingBoxEnabled] = useState(false);
-  const [upVector, _setUpVector] = useState<[number, number, number]>(YUP);
 
   const srcs: Src[] = [
     'https://modelviewer.dev/shared-assets/models/glTF-Sample-Models/2.0/FlightHelmet/glTF/FlightHelmet.gltf',
@@ -141,38 +133,15 @@ function App() {
   return (
     <div id="container">
       <div id="control-panel">
-        <ControlPanel
-        // onBoundsEnabledChange={(enabled: boolean) => {
-        //   setBoundingBoxEnabled(enabled);
-        // }}
-        // onTabChange={(tab: TabName) => {
-        //   switch (tab) {
-        //     case 'scene':
-        //       setAnnotateOnDoubleClickEnabled(false);
-        //       break;
-        //     case 'annotations':
-        //       setAnnotateOnDoubleClickEnabled(true);
-        //       break;
-        //   }
-        // }}
-        // onHome={() => {
-        //   viewerRef.current?.home();
-        // }}
-        ></ControlPanel>
+        <ControlPanel></ControlPanel>
       </div>
       <div id="viewer">
         <Viewer
           ref={viewerRef}
           src={srcs[2]}
-          // arrowHelpers={arrowHelpers}
           onLoad={() => {
             console.log('model(s) loaded');
           }}
-          // grid={grid}
-          // axes={axes}
-          // environment={environment as Environment}
-          // orthographic={orthographic}
-          upVector={upVector}
         />
       </div>
     </div>
@@ -180,5 +149,3 @@ function App() {
 }
 
 export default App;
-
-// ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(<Wrapper />);

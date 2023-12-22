@@ -21,9 +21,7 @@ export function BooleanSelector({
         <HoverCardTrigger asChild>
           <div className="grid gap-4">
             <div className="flex items-center justify-between">
-              <Label htmlFor="ambient-light" className="text-white">
-                {label}
-              </Label>
+              <Label className="text-white">{label}</Label>
             </div>
             <div className="grid gap-4">
               <Switch
