@@ -29,4 +29,7 @@ export default defineConfig({
     sourcemap: true,
     emptyOutDir: true,
   },
+  server: {
+    port: 3000,
+  },
 });
