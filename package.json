@@ -4,7 +4,6 @@
   "version": "0.0.15",
   "repository": "git@github.com:aleph-viewer/aleph-r3f.git",
   "license": "MIT",
-  "type": "module",
   "main": "dist/index.umd.js",
   "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
