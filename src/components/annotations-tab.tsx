@@ -235,7 +235,7 @@ function AnnotationsTab() {
           );
         })
       ) : (
-        <div className="text-white text-center">Double-click on an object to create an annotation.</div>
+        <div className="text-white text-center">Double-click on an object to create an annotation</div>
       )}
     </div>
   );
