@@ -7,6 +7,11 @@ export function AxesSelector() {
   const { axesEnabled, setAxesEnabled } = useStore();
 
   return (
-    <BooleanSelector label="Axes" description="Enabled/disable axes." value={axesEnabled} onChange={setAxesEnabled} />
+    <BooleanSelector
+      label="Axes"
+      description="Enabled/disable scene axes."
+      value={axesEnabled}
+      onChange={setAxesEnabled}
+    />
   );
 }

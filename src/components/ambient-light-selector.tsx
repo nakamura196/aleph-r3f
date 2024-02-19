@@ -18,7 +18,7 @@ export function AmbientLightSelector() {
                 Ambient Light
               </Label>
               <span className="text-white w-12 rounded-md border border-transparent px-2 py-0.5 text-right text-sm text-muted-foreground hover:border-border">
-                {ambientLightIntensity}
+                {/* {ambientLightIntensity} */}
               </span>
             </div>
             <Slider

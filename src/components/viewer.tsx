@@ -26,9 +26,9 @@ function Scene({ onLoad, src }: ViewerProps) {
   const cameraControlsRef = useRef<CameraControls | null>(null);
   const cameraPositionRef = useRef<Vector3>(new Vector3());
   const cameraTargetRef = useRef<Vector3>(new Vector3());
-  const YUP: [number, number, number] = [0, 1, 0];
+  // const YUP: [number, number, number] = [0, 1, 0];
   // const ZUP: [number, number, number] = [0, 0, -1];
-  const upVector = YUP;
+  // const upVector = [0, 1, 0];
   const environment = 'apartment';
   const minDistance = 0;
 
@@ -51,20 +51,12 @@ function Scene({ onLoad, src }: ViewerProps) {
     setLoading,
     setSrcs,
     srcs,
+    upVector,
   } = useStore();
 
   // set the camera up vector
   camera.up.copy(new Vector3(upVector[0], upVector[1], upVector[2]));
   cameraControlsRef.current?.updateCameraUp();
-
-  // const fov = (camera as any).getFocalLength();
-  // console.log('fov', fov);
-
-  // if (orthographicEnabled) {
-  //   (camera as THREE.PerspectiveCamera).setFocalLength(180);
-  // } else {
-  //   (camera as THREE.PerspectiveCamera).setFocalLength(50);
-  // }
 
   // src changed
   useEffect(() => {

@@ -13,6 +13,7 @@ type State = {
   loading: boolean;
   orthographicEnabled: boolean;
   srcs: SrcObj[];
+  upVector: [number, number, number];
   setAmbientLightIntensity: (ambientLightIntensity: number) => void;
   setAnnotateOnDoubleClickEnabled: (annotateOnDoubleClickEnabled: boolean) => void;
   setAnnotations: (annotations: Annotation[]) => void;
@@ -23,6 +24,7 @@ type State = {
   setLoading: (loading: boolean) => void;
   setOrthographicEnabled: (orthographicEnabled: boolean) => void;
   setSrcs: (srcs: SrcObj[]) => void;
+  setUpVector: (upVector: [number, number, number]) => void;
 };
 
 const useStore = create<State>((set) => ({
@@ -36,6 +38,7 @@ const useStore = create<State>((set) => ({
   loading: true,
   orthographicEnabled: false,
   srcs: [],
+  upVector: [0, 1, 0],
 
   setAmbientLightIntensity: (ambientLightIntensity: number) =>
     set({
@@ -86,6 +89,11 @@ const useStore = create<State>((set) => ({
     set({
       srcs,
       loading: true,
+    }),
+
+  setUpVector: (upVector: [number, number, number]) =>
+    set({
+      upVector,
     }),
 }));
 
