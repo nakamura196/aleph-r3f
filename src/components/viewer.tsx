@@ -25,9 +25,9 @@ function Scene({ onLoad, src }: ViewerProps) {
   const boundsRef = useRef<Group | null>(null);
 
   const cameraRefs: CameraRefs = {
-    cameraControls: useRef<CameraControls | null>(null),
-    cameraPosition: useRef<Vector3>(new Vector3()),
-    cameraTarget: useRef<Vector3>(new Vector3()),
+    controls: useRef<CameraControls | null>(null),
+    position: useRef<Vector3>(new Vector3()),
+    target: useRef<Vector3>(new Vector3()),
   };
 
   const environment = 'apartment';
@@ -51,7 +51,7 @@ function Scene({ onLoad, src }: ViewerProps) {
 
   // set the camera up vector
   camera.up.copy(new Vector3(upVector[0], upVector[1], upVector[2]));
-  cameraRefs.cameraControls.current?.updateCameraUp();
+  cameraRefs.controls.current?.updateCameraUp();
 
   // src changed
   useEffect(() => {
@@ -94,7 +94,7 @@ function Scene({ onLoad, src }: ViewerProps) {
   useEventListener(HOME_CLICK, handleHomeClickEvent);
 
   function zoomToObject(object: Object3D, instant?: boolean, padding: number = 0.1) {
-    cameraRefs.cameraControls.current!.fitToBox(object, !instant, {
+    cameraRefs.controls.current!.fitToBox(object, !instant, {
       cover: false,
       paddingLeft: padding,
       paddingRight: padding,
@@ -156,13 +156,13 @@ function Scene({ onLoad, src }: ViewerProps) {
 
     // get current camera position
     const cameraPosition: Vector3 = new Vector3();
-    cameraRefs.cameraControls.current!.getPosition(cameraPosition);
-    cameraRefs.cameraPosition.current = cameraPosition;
+    cameraRefs.controls.current!.getPosition(cameraPosition);
+    cameraRefs.position.current = cameraPosition;
 
     // get current camera target
     const cameraTarget: Vector3 = new Vector3();
-    cameraRefs.cameraControls.current!.getTarget(cameraTarget);
-    cameraRefs.cameraTarget.current = cameraTarget;
+    cameraRefs.controls.current!.getTarget(cameraTarget);
+    cameraRefs.target.current = cameraTarget;
 
     triggerCameraUpdateEvent({ cameraPosition, cameraTarget });
   }
@@ -186,7 +186,7 @@ function Scene({ onLoad, src }: ViewerProps) {
           <PerspectiveCamera position={[0, 0, 2]} fov={50} near={0.01} />
         </>
       )}
-      <CameraControls ref={cameraRefs.cameraControls} minDistance={minDistance} onChange={onCameraChange} />
+      <CameraControls ref={cameraRefs.controls} minDistance={minDistance} onChange={onCameraChange} />
       <ambientLight intensity={ambientLightIntensity} />
       <Bounds lineVisible={boundsEnabled}>
         <Suspense fallback={<Loader />}>

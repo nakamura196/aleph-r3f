@@ -10,13 +10,13 @@ import { Html } from '@react-three/drei';
 
 export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
   function zoomToAnnotation(annotation: Annotation) {
-    cameraRefs.cameraControls.current!.setPosition(
+    cameraRefs.controls.current!.setPosition(
       annotation.cameraPosition.x,
       annotation.cameraPosition.y,
       annotation.cameraPosition.z,
       true
     );
-    cameraRefs.cameraControls.current!.setTarget(
+    cameraRefs.controls.current!.setTarget(
       annotation.cameraTarget.x,
       annotation.cameraTarget.y,
       annotation.cameraTarget.z,
@@ -51,8 +51,8 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
         {
           position: intersects[0].point,
           normal: intersects[0].face?.normal!,
-          cameraPosition: cameraRefs.cameraPosition.current!,
-          cameraTarget: cameraRefs.cameraTarget.current!,
+          cameraPosition: cameraRefs.position.current!,
+          cameraTarget: cameraRefs.target.current!,
         },
       ]);
     }
