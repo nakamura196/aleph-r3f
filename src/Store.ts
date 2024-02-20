@@ -1,28 +1,29 @@
 import { create } from 'zustand';
-import { Annotation, SrcObj, Mode } from './types/';
+import { Annotation, SrcObj, Mode, Measurement } from './types/';
 // import { mountStoreDevtool } from 'simple-zustand-devtools';
 
 type State = {
   ambientLightIntensity: number;
-  annotateOnDoubleClickEnabled: boolean;
+  // annotateOnDoubleClickEnabled: boolean;
   annotations: Annotation[];
-  arrowHelpersEnabled: boolean;
+  // arrowHelpersEnabled: boolean;
   axesEnabled: boolean;
   boundsEnabled: boolean;
   gridEnabled: boolean;
   loading: boolean;
+  measurements: Measurement[];
   mode: Mode;
   orthographicEnabled: boolean;
   srcs: SrcObj[];
   upVector: [number, number, number];
   setAmbientLightIntensity: (ambientLightIntensity: number) => void;
-  setAnnotateOnDoubleClickEnabled: (annotateOnDoubleClickEnabled: boolean) => void;
   setAnnotations: (annotations: Annotation[]) => void;
-  setArrowHelpersEnabled: (arrowHelpers: boolean) => void;
+  // setArrowHelpersEnabled: (arrowHelpers: boolean) => void;
   setAxesEnabled: (axesEnabled: boolean) => void;
   setBoundsEnabled: (boundsEnabled: boolean) => void;
   setGridEnabled: (gridEnabled: boolean) => void;
   setLoading: (loading: boolean) => void;
+  setMeasurements: (measurements: Measurement[]) => void;
   setMode: (mode: Mode) => void;
   setOrthographicEnabled: (orthographicEnabled: boolean) => void;
   setSrcs: (srcs: SrcObj[]) => void;
@@ -31,13 +32,13 @@ type State = {
 
 const useStore = create<State>((set) => ({
   ambientLightIntensity: 0,
-  annotateOnDoubleClickEnabled: false,
   annotations: [],
-  arrowHelpersEnabled: false,
+  // arrowHelpersEnabled: false,
   axesEnabled: false,
   boundsEnabled: false,
   gridEnabled: false,
   loading: true,
+  measurements: [],
   mode: 'scene',
   orthographicEnabled: false,
   srcs: [],
@@ -48,20 +49,15 @@ const useStore = create<State>((set) => ({
       ambientLightIntensity,
     }),
 
-  setAnnotateOnDoubleClickEnabled: (annotateOnDoubleClickEnabled: boolean) =>
-    set({
-      annotateOnDoubleClickEnabled,
-    }),
-
   setAnnotations: (annotations: Annotation[]) =>
     set({
       annotations,
     }),
 
-  setArrowHelpersEnabled: (arrowHelpersEnabled: boolean) =>
-    set({
-      arrowHelpersEnabled,
-    }),
+  // setArrowHelpersEnabled: (arrowHelpersEnabled: boolean) =>
+  //   set({
+  //     arrowHelpersEnabled,
+  //   }),
 
   setAxesEnabled: (axesEnabled: boolean) =>
     set({
@@ -83,10 +79,15 @@ const useStore = create<State>((set) => ({
       loading,
     }),
 
+  setMeasurements: (measurements: Measurement[]) =>
+    set({
+      measurements,
+    }),
+
   setMode: (mode: Mode) =>
     set({
       mode,
-      annotateOnDoubleClickEnabled: mode === 'annotation',
+      orthographicEnabled: mode === 'measurement',
     }),
 
   setOrthographicEnabled: (orthographicEnabled: boolean) =>

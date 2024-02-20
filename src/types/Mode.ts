@@ -1,1 +1,1 @@
-export type Mode = 'annotation' | 'scene';
+export type Mode = 'annotation' | 'measurement' | 'scene';

@@ -1,10 +1,11 @@
 import '../index.css';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { MapPin, Settings } from 'lucide-react';
+import { MapPin, Settings, Ruler } from 'lucide-react';
 import useStore from '@/Store';
-import AnnotationsTab from './annotations-tab';
+import AnnotationTab from './annotation-tab';
 import SceneTab from './scene-tab';
 import { Mode } from '@/types';
+import MeasurementTab from './measurement-tab';
 
 export function ControlPanel() {
   const { mode, setMode } = useStore();
@@ -16,21 +17,28 @@ export function ControlPanel() {
         onValueChange={(value: string) => {
           setMode(value as Mode);
         }}>
-        <TabsList className="grid w-full grid-cols-2 gap-2">
-          <TabsTrigger value="scene">
+        <TabsList className="grid w-full grid-cols-3 gap-2">
+          <TabsTrigger value="scene" title="Scene">
             <span className="sr-only">Scene</span>
             <Settings />
           </TabsTrigger>
-          <TabsTrigger value="annotation">
-            <span className="sr-only">Annotations</span>
+          <TabsTrigger value="annotation" title="Annotation">
+            <span className="sr-only">Annotation</span>
             <MapPin />
+          </TabsTrigger>
+          <TabsTrigger value="measurement" title="Measurement">
+            <span className="sr-only">Measurement</span>
+            <Ruler />
           </TabsTrigger>
         </TabsList>
         <TabsContent value="scene">
           <SceneTab />
         </TabsContent>
         <TabsContent value="annotation">
-          <AnnotationsTab />
+          <AnnotationTab />
+        </TabsContent>
+        <TabsContent value="measurement">
+          <MeasurementTab />
         </TabsContent>
       </Tabs>
     </div>

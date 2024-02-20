@@ -12,49 +12,37 @@ import {
   useHelper,
   useProgress,
 } from '@react-three/drei';
-import { BoxHelper, Group, Intersection, Object3D, Object3DEventMap, Vector3 } from 'three';
+import { BoxHelper, Group, Object3D, Vector3 } from 'three';
 import useStore from '@/Store';
-import {
-  ViewerProps as ViewerProps,
-  Annotation,
-  SrcObj,
-  ANNO_CLICK,
-  CAMERA_UPDATE,
-  DBL_CLICK,
-  HOME_CLICK,
-} from '@/types';
+import { ViewerProps as ViewerProps, SrcObj, CAMERA_UPDATE, DBL_CLICK, HOME_CLICK, Mode, CameraRefs } from '@/types';
 import useDoubleClick from '@/lib/hooks/use-double-click';
 import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
 import useTimeout from '@/lib/hooks/use-timeout';
-import useInterval from '@/lib/hooks/use-interval';
+import { AnnotationTools } from './annotation-tools';
+import MeasurementTools from './measurement-tools';
 
 function Scene({ onLoad, src }: ViewerProps) {
   const boundsRef = useRef<Group | null>(null);
-  const cameraControlsRef = useRef<CameraControls | null>(null);
-  const cameraPositionRef = useRef<Vector3>(new Vector3());
-  const cameraTargetRef = useRef<Vector3>(new Vector3());
-  // const YUP: [number, number, number] = [0, 1, 0];
-  // const ZUP: [number, number, number] = [0, 0, -1];
-  // const upVector = [0, 1, 0];
+
+  const cameraRefs: CameraRefs = {
+    cameraControls: useRef<CameraControls | null>(null),
+    cameraPosition: useRef<Vector3>(new Vector3()),
+    cameraTarget: useRef<Vector3>(new Vector3()),
+  };
+
   const environment = 'apartment';
   const minDistance = 0;
 
-  const { scene, camera, pointer, raycaster } = useThree();
-
-  // if a dot product is less than this, then the normal is facing away from the camera
-  const DOT_PRODUCT_THRESHOLD = Math.PI * -0.1;
+  const { camera } = useThree();
 
   const {
     ambientLightIntensity,
-    annotateOnDoubleClickEnabled,
-    annotations,
-    arrowHelpersEnabled,
     axesEnabled,
     boundsEnabled,
     gridEnabled,
     loading,
+    mode,
     orthographicEnabled,
-    setAnnotations,
     setLoading,
     setSrcs,
     srcs,
@@ -63,7 +51,7 @@ function Scene({ onLoad, src }: ViewerProps) {
 
   // set the camera up vector
   camera.up.copy(new Vector3(upVector[0], upVector[1], upVector[2]));
-  cameraControlsRef.current?.updateCameraUp();
+  cameraRefs.cameraControls.current?.updateCameraUp();
 
   // src changed
   useEffect(() => {
@@ -106,28 +94,13 @@ function Scene({ onLoad, src }: ViewerProps) {
   useEventListener(HOME_CLICK, handleHomeClickEvent);
 
   function zoomToObject(object: Object3D, instant?: boolean, padding: number = 0.1) {
-    cameraControlsRef.current!.fitToBox(object, !instant, {
+    cameraRefs.cameraControls.current!.fitToBox(object, !instant, {
       cover: false,
       paddingLeft: padding,
       paddingRight: padding,
       paddingBottom: padding,
       paddingTop: padding,
     });
-  }
-
-  function zoomToAnnotation(annotation: Annotation) {
-    cameraControlsRef.current!.setPosition(
-      annotation.cameraPosition.x,
-      annotation.cameraPosition.y,
-      annotation.cameraPosition.z,
-      true
-    );
-    cameraControlsRef.current!.setTarget(
-      annotation.cameraTarget.x,
-      annotation.cameraTarget.y,
-      annotation.cameraTarget.z,
-      true
-    );
   }
 
   function home(instant?: boolean, padding?: number) {
@@ -143,7 +116,7 @@ function Scene({ onLoad, src }: ViewerProps) {
     useHelper(boundsLineRef, BoxHelper, 'white');
 
     const handleDoubleClickEvent = (e: any) => {
-      if (!annotateOnDoubleClickEnabled) {
+      if (mode === 'scene') {
         e.stopPropagation();
         if (e.delta <= 2) {
           zoomToObject(e.object);
@@ -176,121 +149,6 @@ function Scene({ onLoad, src }: ViewerProps) {
     return <Html wrapperClass="loading">{Math.ceil(progress)} %</Html>;
   }
 
-  function Annotations() {
-    const lastAnnoLength = useRef<number>(0);
-
-    let annotationsFacingCameraCheckMS: number = 100;
-
-    // create annotation on double click
-    const handleDoubleClickEvent = () => {
-      if (!annotateOnDoubleClickEnabled) {
-        return;
-      }
-
-      raycaster.setFromCamera(pointer, camera);
-
-      const intersects: Intersection<Object3D<Object3DEventMap>>[] = raycaster.intersectObjects(scene.children, true);
-
-      if (intersects.length > 0) {
-        setAnnotations([
-          ...annotations,
-          {
-            position: intersects[0].point,
-            normal: intersects[0].face?.normal!,
-            cameraPosition: cameraPositionRef.current,
-            cameraTarget: cameraTargetRef.current,
-          },
-        ]);
-      }
-    };
-
-    const handleAnnotationClick = (e: any) => {
-      zoomToAnnotation(e.detail);
-    };
-
-    useEventListener(DBL_CLICK, handleDoubleClickEvent);
-    useEventListener(ANNO_CLICK, handleAnnotationClick);
-    const triggerAnnoClick = useEventTrigger(ANNO_CLICK);
-
-    function isFacingCamera(position: Vector3, normal: Vector3): boolean {
-      const cameraDirection: Vector3 = camera.position.clone().normalize().sub(position.clone().normalize());
-      const dotProduct: number = cameraDirection.dot(normal);
-
-      if (dotProduct < DOT_PRODUCT_THRESHOLD) {
-        return false;
-      }
-
-      return true;
-    }
-
-    function checkAnnotationsFacingCamera() {
-      // loop through all annotations and check if their normals
-      // are facing towards or away from the camera
-
-      const annosChanged = lastAnnoLength.current !== annotations.length;
-
-      // if the number of annotations has changed, then we need to
-      // check the normals immediately
-      if (annosChanged) {
-        annotationsFacingCameraCheckMS = 1;
-      } else {
-        annotationsFacingCameraCheckMS = 10;
-      }
-
-      annotations.forEach((anno: Annotation, idx: number) => {
-        const annoEl: HTMLElement = document.getElementById(`anno-${idx}`)!;
-
-        if (annosChanged) {
-          annoEl.classList.add('no-fade');
-        } else {
-          annoEl.classList.remove('no-fade');
-        }
-
-        if (isFacingCamera(anno.position, anno.normal)) {
-          annoEl.classList.remove('facing-away');
-        } else {
-          annoEl.classList.add('facing-away');
-        }
-      });
-
-      lastAnnoLength.current = annotations.length;
-    }
-
-    useInterval(() => {
-      checkAnnotationsFacingCamera();
-    }, annotationsFacingCameraCheckMS);
-
-    return (
-      <>
-        {annotations.map((anno: Annotation, idx: number) => {
-          return (
-            <React.Fragment key={idx}>
-              {arrowHelpersEnabled && <arrowHelper args={[anno.normal, anno.position, 0.05, 0xffffff]} />}
-              <Html
-                position={anno.position}
-                style={{
-                  width: 0,
-                  height: 0,
-                }}>
-                <div id={`anno-${idx}`} className="annotation">
-                  <div
-                    className="circle"
-                    onClick={(_e) => {
-                      if (isFacingCamera(anno.position, anno.normal)) {
-                        triggerAnnoClick(anno);
-                      }
-                    }}>
-                    <span className="label">{idx + 1}</span>
-                  </div>
-                </div>
-              </Html>
-            </React.Fragment>
-          );
-        })}
-      </>
-    );
-  }
-
   function onCameraChange(e: any) {
     if (e.type !== 'update') {
       return;
@@ -298,16 +156,22 @@ function Scene({ onLoad, src }: ViewerProps) {
 
     // get current camera position
     const cameraPosition: Vector3 = new Vector3();
-    cameraControlsRef.current!.getPosition(cameraPosition);
-    cameraPositionRef.current = cameraPosition;
+    cameraRefs.cameraControls.current!.getPosition(cameraPosition);
+    cameraRefs.cameraPosition.current = cameraPosition;
 
     // get current camera target
     const cameraTarget: Vector3 = new Vector3();
-    cameraControlsRef.current!.getTarget(cameraTarget);
-    cameraTargetRef.current = cameraTarget;
+    cameraRefs.cameraControls.current!.getTarget(cameraTarget);
+    cameraRefs.cameraTarget.current = cameraTarget;
 
     triggerCameraUpdateEvent({ cameraPosition, cameraTarget });
   }
+
+  const Tools: { [key in Mode]: React.ReactElement } = {
+    annotation: <AnnotationTools cameraRefs={cameraRefs} />,
+    measurement: <MeasurementTools cameraRefs={cameraRefs} />,
+    scene: <></>,
+  };
 
   return (
     <>
@@ -322,7 +186,7 @@ function Scene({ onLoad, src }: ViewerProps) {
           <PerspectiveCamera position={[0, 0, 2]} fov={50} near={0.01} />
         </>
       )}
-      <CameraControls ref={cameraControlsRef} minDistance={minDistance} onChange={onCameraChange} />
+      <CameraControls ref={cameraRefs.cameraControls} minDistance={minDistance} onChange={onCameraChange} />
       <ambientLight intensity={ambientLightIntensity} />
       <Bounds lineVisible={boundsEnabled}>
         <Suspense fallback={<Loader />}>
@@ -332,7 +196,7 @@ function Scene({ onLoad, src }: ViewerProps) {
         </Suspense>
       </Bounds>
       <Environment preset={environment} />
-      <Annotations />
+      {Tools[mode]}
       {gridEnabled && <gridHelper args={[100, 100]} />}
       {axesEnabled && <axesHelper args={[5]} />}
     </>
