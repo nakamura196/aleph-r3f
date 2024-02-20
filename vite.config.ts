@@ -40,25 +40,6 @@ export default defineConfig({
         sourcemap: true,
         emptyOutDir: true,
       },
-  // build: {
-  //   lib: {
-  //     entry: resolve(__dirname, 'index.ts'),
-  //     name: 'Aleph',
-  //     fileName: (format) => `index.${format}.js`,
-  //   },
-  //   cssCodeSplit: false,
-  //   rollupOptions: {
-  //     external: ['react', 'react-dom'],
-  //     output: {
-  //       globals: {
-  //         react: 'React',
-  //         'react-dom': 'ReactDOM',
-  //       },
-  //     },
-  //   },
-  //   sourcemap: true,
-  //   emptyOutDir: true,
-  // },
   server: {
     port: 3000,
   },
