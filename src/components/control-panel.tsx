@@ -14,7 +14,6 @@ export function ControlPanel() {
       <Tabs
         value={mode}
         onValueChange={(value: string) => {
-          console.log('value', value);
           setMode(value as Mode);
         }}>
         <TabsList className="grid w-full grid-cols-2 gap-2">
