@@ -1,6 +1,5 @@
 import React, { FormEvent, useRef, useState } from 'react';
-import { Annotation } from '@/types';
-import { ANNO_CLICK, CAMERA_UPDATE } from '@/types/Events';
+import { Annotation, ANNO_CLICK, CAMERA_UPDATE } from '@/types';
 import { Button } from './ui/button';
 import useKeyPress from '@/lib/hooks/use-key-press';
 import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';

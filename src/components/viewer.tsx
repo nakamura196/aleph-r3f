@@ -14,9 +14,16 @@ import {
 } from '@react-three/drei';
 import { BoxHelper, Group, Intersection, Object3D, Object3DEventMap, Vector3 } from 'three';
 import useStore from '@/Store';
-import { ViewerProps as ViewerProps, Annotation, SrcObj } from '@/types';
+import {
+  ViewerProps as ViewerProps,
+  Annotation,
+  SrcObj,
+  ANNO_CLICK,
+  CAMERA_UPDATE,
+  DBL_CLICK,
+  HOME_CLICK,
+} from '@/types';
 import useDoubleClick from '@/lib/hooks/use-double-click';
-import { ANNO_CLICK, CAMERA_UPDATE, DBL_CLICK, HOME_CLICK } from '@/types/Events';
 import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
 import useTimeout from '@/lib/hooks/use-timeout';
 import useInterval from '@/lib/hooks/use-interval';
@@ -156,11 +163,9 @@ function Scene({ onLoad, src }: ViewerProps) {
   }
 
   function Loader() {
-    // const { active, progress, errors, item, loaded, total } = useProgress();
     const { progress } = useProgress();
     if (progress === 100) {
       setTimeout(() => {
-        // home(true);
         if (onLoad) {
           onLoad();
           setLoading(false);

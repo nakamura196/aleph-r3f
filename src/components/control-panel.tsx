@@ -1,51 +1,28 @@
 import '../index.css';
-import { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { MapPin, Settings } from 'lucide-react';
 import useStore from '@/Store';
 import AnnotationsTab from './annotations-tab';
 import SceneTab from './scene-tab';
+import { Mode } from '@/types';
 
 export function ControlPanel() {
-  const { setAnnotateOnDoubleClickEnabled } = useStore();
-
-  type Tab = 'scene' | 'annotations';
-
-  const [tab, setTab] = useState<Tab>('scene');
-
-  // useKeyPress('s', () => {
-  //   setTab('scene');
-  // });
-
-  // useKeyPress('a', () => {
-  //   setTab('annotations');
-  // });
-
-  useEffect(() => {
-    // set global state
-    switch (tab) {
-      case 'scene':
-        setAnnotateOnDoubleClickEnabled(false);
-        break;
-      case 'annotations':
-        setAnnotateOnDoubleClickEnabled(true);
-        break;
-    }
-  }, [tab]);
+  const { mode, setMode } = useStore();
 
   return (
     <div className="p-4">
       <Tabs
-        value={tab}
+        value={mode}
         onValueChange={(value: string) => {
-          setTab(value as Tab);
+          console.log('value', value);
+          setMode(value as Mode);
         }}>
         <TabsList className="grid w-full grid-cols-2 gap-2">
           <TabsTrigger value="scene">
             <span className="sr-only">Scene</span>
             <Settings />
           </TabsTrigger>
-          <TabsTrigger value="annotations">
+          <TabsTrigger value="annotation">
             <span className="sr-only">Annotations</span>
             <MapPin />
           </TabsTrigger>
@@ -53,7 +30,7 @@ export function ControlPanel() {
         <TabsContent value="scene">
           <SceneTab />
         </TabsContent>
-        <TabsContent value="annotations">
+        <TabsContent value="annotation">
           <AnnotationsTab />
         </TabsContent>
       </Tabs>

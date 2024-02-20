@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Annotation, SrcObj } from './types/';
+import { Annotation, SrcObj, Mode } from './types/';
 // import { mountStoreDevtool } from 'simple-zustand-devtools';
 
 type State = {
@@ -11,6 +11,7 @@ type State = {
   boundsEnabled: boolean;
   gridEnabled: boolean;
   loading: boolean;
+  mode: Mode;
   orthographicEnabled: boolean;
   srcs: SrcObj[];
   upVector: [number, number, number];
@@ -22,6 +23,7 @@ type State = {
   setBoundsEnabled: (boundsEnabled: boolean) => void;
   setGridEnabled: (gridEnabled: boolean) => void;
   setLoading: (loading: boolean) => void;
+  setMode: (mode: Mode) => void;
   setOrthographicEnabled: (orthographicEnabled: boolean) => void;
   setSrcs: (srcs: SrcObj[]) => void;
   setUpVector: (upVector: [number, number, number]) => void;
@@ -36,6 +38,7 @@ const useStore = create<State>((set) => ({
   boundsEnabled: false,
   gridEnabled: false,
   loading: true,
+  mode: 'scene',
   orthographicEnabled: false,
   srcs: [],
   upVector: [0, 1, 0],
@@ -78,6 +81,12 @@ const useStore = create<State>((set) => ({
   setLoading: (loading: boolean) =>
     set({
       loading,
+    }),
+
+  setMode: (mode: Mode) =>
+    set({
+      mode,
+      annotateOnDoubleClickEnabled: mode === 'annotation',
     }),
 
   setOrthographicEnabled: (orthographicEnabled: boolean) =>
