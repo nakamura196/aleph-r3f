@@ -4,13 +4,13 @@ import React from 'react';
 import { CameraControls, Html } from '@react-three/drei';
 import { useEventListener } from '@/lib/hooks/use-event';
 import { useThree } from '@react-three/fiber';
-import { Camera, Object3D, Vector3 } from 'three';
+import { Camera, Matrix4, Object3D, Vector3 } from 'three';
 import { useDrag, Vector2 } from '@use-gesture/react';
 
 export function MeasurementTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
   const { measurements, setMeasurements, cameraControlsEnabled, setCameraControlsEnabled } = useStore();
 
-  const { camera, pointer } = useThree();
+  const { camera, pointer, size, raycaster } = useThree();
 
   // create annotation on double click
   const handleDoubleClickEvent = () => {
@@ -18,6 +18,8 @@ export function MeasurementTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
     // v.set(pointer.x, pointer.y);
 
     setCameraControlsEnabled(false);
+
+    console.log('double click', [pointer.x, pointer.y]);
 
     setMeasurements([
       ...measurements,
@@ -52,17 +54,16 @@ export function MeasurementTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
     onDrag: (index: number, position: Vector2) => void;
   };
 
-  // function Coords(el: Object3D, camera: Camera, size: { width: number; height: number }) {
-  //   const v1 = new Vector3();
-  //   const objectPos = v1.setFromMatrixPosition(el.matrixWorld);
-  //   objectPos.project(camera);
-  //   const widthHalf = size.width / 2;
-  //   const heightHalf = size.height / 2;
-  //   return [
-  //     measurement.position[0] * widthHalf + widthHalf,
-  //     -(measurement.position[1] * heightHalf) + heightHalf,
-  //   ];
-  // }
+  function sceneToScreenCoords(el: Object3D, coords: [number, number]) {
+    const x = coords[0];
+    const y = coords[1];
+    const v1 = new Vector3();
+    const objectPos = v1.setFromMatrixPosition(el.matrixWorld);
+    objectPos.project(camera);
+    const widthHalf = size.width / 2;
+    const heightHalf = size.height / 2;
+    return [x * widthHalf + widthHalf, -(y * heightHalf) + heightHalf];
+  }
 
   const MeasurementPoint: React.FC<MeasurementPointProps> = ({ index, measurement, onDrag }) => {
     const bind = useDrag((state) => {
@@ -81,16 +82,8 @@ export function MeasurementTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
 
     return (
       <Html
-        calculatePosition={(el: Object3D, camera: Camera, size: { width: number; height: number }) => {
-          const v1 = new Vector3();
-          const objectPos = v1.setFromMatrixPosition(el.matrixWorld);
-          objectPos.project(camera);
-          const widthHalf = size.width / 2;
-          const heightHalf = size.height / 2;
-          return [
-            measurement.position[0] * widthHalf + widthHalf,
-            -(measurement.position[1] * heightHalf) + heightHalf,
-          ];
+        calculatePosition={(el: Object3D) => {
+          return sceneToScreenCoords(el, measurement.position);
         }}
         style={{
           width: 0,
@@ -100,8 +93,41 @@ export function MeasurementTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
           {...bind()}
           id={`anno-${index}`}
           className="annotation"
-          onMouseDown={handleMeasurementMouseDown}
-          onMouseUp={handleMeasurementMouseUp}
+          onMouseDown={(event: React.MouseEvent) => {}}
+          onMouseUp={(event: React.MouseEvent) => {
+            const measurement = measurements[index];
+
+            console.log('measurement position', measurement.position);
+
+            // raycaster.setFromCamera(pointer, camera);
+
+            // const intersects = raycaster.intersectObject(camera, false);
+
+            // console.log('intersects', intersects);
+
+            const upcoords = [pointer.x, pointer.y];
+
+            console.log('upcoords', upcoords);
+
+            // setMeasurements(
+            //   measurements.map((measurement, idx) => {
+            //     if (idx === index) {
+            //       return {
+            //         position: [pointer.x, pointer.y],
+            //         // normal: intersects[0].face?.normal!,
+            //         // cameraPosition: cameraRefs.position.current!,
+            //         // cameraTarget: cameraRefs.target.current!,
+            //       };
+            //     } else {
+            //       return measurement;
+            //     }
+            //   })
+            // );
+
+            // console.log('screenToSceneCoords', screenToSceneCoords([pointer.x, pointer.y]));
+
+            // console.log('mouse', mouse);
+          }}
           style={{
             touchAction: 'none',
           }}>
@@ -121,10 +147,12 @@ export function MeasurementTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
           index={idx}
           measurement={measurement}
           onDrag={(index: number, position: Vector2) => {
-            console.log('dragging', index, position);
+            // const sceneCoords = screenToSceneCoords(position);
+            // console.log('dragging', index, sceneCoords);
+            // console.log('measurements', measurements);
             // const newMeasurements = [...measurements];
-            // newMeasurements[index].position[0] = position[0];
-            // newMeasurements[index].position[1] = position[1];
+            // newMeasurements[index].position[0] = pointer.x;
+            // newMeasurements[index].position[1] = pointer.y;
             // setMeasurements(newMeasurements);
           }}
         />
