@@ -9,6 +9,7 @@ type State = {
   // arrowHelpersEnabled: boolean;
   axesEnabled: boolean;
   boundsEnabled: boolean;
+  cameraControlsEnabled: boolean;
   gridEnabled: boolean;
   loading: boolean;
   measurements: Measurement[];
@@ -21,6 +22,7 @@ type State = {
   // setArrowHelpersEnabled: (arrowHelpers: boolean) => void;
   setAxesEnabled: (axesEnabled: boolean) => void;
   setBoundsEnabled: (boundsEnabled: boolean) => void;
+  setCameraControlsEnabled: (cameraControlsEnabled: boolean) => void;
   setGridEnabled: (gridEnabled: boolean) => void;
   setLoading: (loading: boolean) => void;
   setMeasurements: (measurements: Measurement[]) => void;
@@ -36,6 +38,7 @@ const useStore = create<State>((set) => ({
   // arrowHelpersEnabled: false,
   axesEnabled: false,
   boundsEnabled: false,
+  cameraControlsEnabled: true,
   gridEnabled: false,
   loading: true,
   measurements: [],
@@ -67,6 +70,11 @@ const useStore = create<State>((set) => ({
   setBoundsEnabled: (boundsEnabled: boolean) =>
     set({
       boundsEnabled,
+    }),
+
+  setCameraControlsEnabled: (cameraControlsEnabled: boolean) =>
+    set({
+      cameraControlsEnabled,
     }),
 
   setGridEnabled: (gridEnabled: boolean) =>

@@ -39,6 +39,7 @@ function Scene({ onLoad, src }: ViewerProps) {
     ambientLightIntensity,
     axesEnabled,
     boundsEnabled,
+    cameraControlsEnabled,
     gridEnabled,
     loading,
     mode,
@@ -190,7 +191,12 @@ function Scene({ onLoad, src }: ViewerProps) {
           <PerspectiveCamera position={[0, 0, 2]} fov={50} near={0.01} />
         </>
       )}
-      <CameraControls ref={cameraRefs.controls} minDistance={minDistance} onChange={onCameraChange} />
+      <CameraControls
+        ref={cameraRefs.controls}
+        minDistance={minDistance}
+        onChange={onCameraChange}
+        enabled={cameraControlsEnabled}
+      />
       <ambientLight intensity={ambientLightIntensity} />
       <Bounds lineVisible={boundsEnabled}>
         <Suspense fallback={<Loader />}>
