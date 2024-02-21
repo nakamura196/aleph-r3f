@@ -1,5 +1,5 @@
-import { Vector3 } from 'three';
+import { Vector2 } from 'three';
 
 export type Measurement = {
-  position: Vector3;
+  position: Vector2;
 };

@@ -37,10 +37,6 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
 
   // create annotation on double click
   const handleDoubleClickEvent = () => {
-    // if (!annotateOnDoubleClickEnabled) {
-    //   return;
-    // }
-
     raycaster.setFromCamera(pointer, camera);
 
     const intersects: Intersection<Object3D<Object3DEventMap>>[] = raycaster.intersectObjects(scene.children, true);

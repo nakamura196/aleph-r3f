@@ -235,7 +235,7 @@ function AnnotationTab() {
           );
         })
       ) : (
-        <div className="text-center">
+        <div className="text-center text-white">
           Double-click on an object
           <br /> to create an annotation
         </div>

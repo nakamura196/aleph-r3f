@@ -115,6 +115,7 @@ function Scene({ onLoad, src }: ViewerProps) {
     // @ts-ignore
     useHelper(boundsLineRef, BoxHelper, 'white');
 
+    // zoom to object on double click in scene mode
     const handleDoubleClickEvent = (e: any) => {
       if (mode === 'scene') {
         e.stopPropagation();
@@ -124,8 +125,11 @@ function Scene({ onLoad, src }: ViewerProps) {
       }
     };
 
+    // zoom to fit bounds on double click on background
     const handleOnPointerMissed = useDoubleClick(() => {
-      home();
+      if (mode === 'scene' || mode === 'annotation') {
+        home();
+      }
     });
 
     return (
