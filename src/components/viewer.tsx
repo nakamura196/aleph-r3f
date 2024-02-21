@@ -174,7 +174,7 @@ function Scene({ onLoad, src }: ViewerProps) {
 
   const Tools: { [key in Mode]: React.ReactElement } = {
     annotation: <AnnotationTools cameraRefs={cameraRefs} />,
-    measurement: <MeasurementTools cameraRefs={cameraRefs} />,
+    measurement: <MeasurementTools />,
     scene: <></>,
   };
 

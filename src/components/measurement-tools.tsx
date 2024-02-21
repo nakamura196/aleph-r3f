@@ -1,16 +1,17 @@
 import useStore from '@/Store';
-import { CameraRefs, DBL_CLICK, Measurement } from '@/types';
+import { DBL_CLICK, Measurement } from '@/types';
 import React from 'react';
-import { CameraControls, Html } from '@react-three/drei';
+import { Html } from '@react-three/drei';
 import { useEventListener } from '@/lib/hooks/use-event';
 import { useThree } from '@react-three/fiber';
-import { Camera, Matrix4, Object3D, Vector3 } from 'three';
+import { Object3D, Vector3 } from 'three';
 import { useDrag, Vector2 } from '@use-gesture/react';
 
-export function MeasurementTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
+// export function MeasurementTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
+export function MeasurementTools() {
   const { measurements, setMeasurements, cameraControlsEnabled, setCameraControlsEnabled } = useStore();
 
-  const { camera, pointer, size, raycaster } = useThree();
+  const { camera, pointer, size } = useThree();
 
   // create annotation on double click
   const handleDoubleClickEvent = () => {
@@ -34,19 +35,19 @@ export function MeasurementTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
 
   useEventListener(DBL_CLICK, handleDoubleClickEvent);
 
-  const handleMeasurementMouseDown = (_e: any) => {
-    // console.log('mousedown', e);
-    // setTimeout(() => {
-    //   setCameraControlsEnabled(false);
-    // }, 1);
-  };
+  // const handleMeasurementMouseDown = (_e: any) => {
+  //   // console.log('mousedown', e);
+  //   // setTimeout(() => {
+  //   //   setCameraControlsEnabled(false);
+  //   // }, 1);
+  // };
 
-  const handleMeasurementMouseUp = (_e: any) => {
-    // console.log('mouseup', e);
-    // setTimeout(() => {
-    //   setCameraControlsEnabled(true);
-    // }, 1);
-  };
+  // const handleMeasurementMouseUp = (_e: any) => {
+  //   // console.log('mouseup', e);
+  //   // setTimeout(() => {
+  //   //   setCameraControlsEnabled(true);
+  //   // }, 1);
+  // };
 
   type MeasurementPointProps = {
     index: number;
@@ -93,8 +94,8 @@ export function MeasurementTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
           {...bind()}
           id={`anno-${index}`}
           className="annotation"
-          onMouseDown={(event: React.MouseEvent) => {}}
-          onMouseUp={(event: React.MouseEvent) => {
+          onMouseDown={(_event: React.MouseEvent) => {}}
+          onMouseUp={(_event: React.MouseEvent) => {
             const measurement = measurements[index];
 
             console.log('measurement position', measurement.position);
@@ -146,7 +147,7 @@ export function MeasurementTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
           key={idx}
           index={idx}
           measurement={measurement}
-          onDrag={(index: number, position: Vector2) => {
+          onDrag={(_index: number, _position: Vector2) => {
             // const sceneCoords = screenToSceneCoords(position);
             // console.log('dragging', index, sceneCoords);
             // console.log('measurements', measurements);
