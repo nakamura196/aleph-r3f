@@ -22,6 +22,11 @@
   }
 }
 
+/* canvas.dragging {
+  cursor: grabbing;
+  border: 4px solid red;
+} */
+
 /* The container that holds the circle */
 .annotation {
   position: relative;
@@ -30,6 +35,7 @@
   align-items: center;
   width: 0px;
   height: 0px;
+  cursor: grabbing;
 }
 
 /* The circle */

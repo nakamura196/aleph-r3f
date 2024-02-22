@@ -1,11 +1,11 @@
 import useStore from '@/Store';
-import { DBL_CLICK, Measurement } from '@/types';
+import { DBL_CLICK, DRAGGING_MEASUREMENT, DROPPED_MEASUREMENT, Measurement } from '@/types';
 import React from 'react';
 import { Html } from '@react-three/drei';
-import { useEventListener } from '@/lib/hooks/use-event';
+import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
 import { useThree } from '@react-three/fiber';
 import { Object3D, Vector3 } from 'three';
-import { useDrag, Vector2 } from '@use-gesture/react';
+import { useDrag } from '@use-gesture/react';
 
 // export function MeasurementTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
 export function MeasurementTools() {
@@ -15,45 +15,17 @@ export function MeasurementTools() {
 
   // create annotation on double click
   const handleDoubleClickEvent = () => {
-    // const v = new Vector2();
-    // v.set(pointer.x, pointer.y);
-
     setCameraControlsEnabled(false);
-
-    console.log('double click', [pointer.x, pointer.y]);
 
     setMeasurements([
       ...measurements,
       {
         position: [pointer.x, pointer.y],
-        // normal: intersects[0].face?.normal!,
-        // cameraPosition: cameraRefs.position.current!,
-        // cameraTarget: cameraRefs.target.current!,
       },
     ]);
   };
 
   useEventListener(DBL_CLICK, handleDoubleClickEvent);
-
-  // const handleMeasurementMouseDown = (_e: any) => {
-  //   // console.log('mousedown', e);
-  //   // setTimeout(() => {
-  //   //   setCameraControlsEnabled(false);
-  //   // }, 1);
-  // };
-
-  // const handleMeasurementMouseUp = (_e: any) => {
-  //   // console.log('mouseup', e);
-  //   // setTimeout(() => {
-  //   //   setCameraControlsEnabled(true);
-  //   // }, 1);
-  // };
-
-  type MeasurementPointProps = {
-    index: number;
-    measurement: Measurement;
-    onDrag: (index: number, position: Vector2) => void;
-  };
 
   function sceneToScreenCoords(el: Object3D, coords: [number, number]) {
     const x = coords[0];
@@ -66,29 +38,37 @@ export function MeasurementTools() {
     return [x * widthHalf + widthHalf, -(y * heightHalf) + heightHalf];
   }
 
-  const MeasurementPoint: React.FC<MeasurementPointProps> = ({ index, measurement, onDrag }) => {
+  const MeasurementPoint: React.FC<{
+    index: number;
+    measurement: Measurement;
+  }> = ({ index, measurement }) => {
+    const triggerDraggingMeasurementEvent = useEventTrigger(DRAGGING_MEASUREMENT);
+    const triggerDroppedMeasurementEvent = useEventTrigger(DROPPED_MEASUREMENT);
+
     const bind = useDrag((state) => {
       if (cameraControlsEnabled) {
         return;
       }
 
-      const div: any = state.currentTarget;
+      const div = state.currentTarget as HTMLDivElement;
 
       // set div position from offset
       div.style.left = `${state.offset[0]}px`;
       div.style.top = `${state.offset[1]}px`;
 
-      onDrag(index, state.xy);
+      triggerDraggingMeasurementEvent();
     });
 
     return (
       <Html
+        className="measurement-point"
         calculatePosition={(el: Object3D) => {
           return sceneToScreenCoords(el, measurement.position);
         }}
         style={{
           width: 0,
           height: 0,
+          zIndex: 10,
         }}>
         <div
           {...bind()}
@@ -98,7 +78,7 @@ export function MeasurementTools() {
             if (cameraControlsEnabled) {
               return;
             }
-            // hide the parent element
+            // hide the measurement point otherwise the pointer coords will be off
             const div = event.currentTarget as HTMLDivElement;
             div.style.display = 'none';
           }}
@@ -114,6 +94,7 @@ export function MeasurementTools() {
               measurements.map((measurement, idx) => {
                 if (idx === index) {
                   return {
+                    ...measurement,
                     position: upcoords,
                   };
                 } else {
@@ -122,8 +103,11 @@ export function MeasurementTools() {
               })
             );
 
+            // show the measurement point
             const div = event.currentTarget as HTMLDivElement;
             div.style.display = 'block';
+
+            triggerDroppedMeasurementEvent();
           }}
           style={{
             touchAction: 'none',
@@ -136,24 +120,88 @@ export function MeasurementTools() {
     );
   };
 
+  function MeasurementPoints() {
+    return (
+      <>
+        {measurements.map((measurement, idx) => (
+          <MeasurementPoint key={idx} index={idx} measurement={measurement} />
+        ))}
+      </>
+    );
+  }
+
+  function MeasurementConnections() {
+    // get all measurement point divs with classname measurement-point
+    const measurementPointDivs = document.getElementsByClassName('measurement-point');
+
+    // get all of the measurement point div positions as an array
+    const measurementPointPositions = Array.from(measurementPointDivs).map((div: any) => {
+      // get the transform translate values from the div
+      const transform = div.parentNode.style.transform;
+      // the transform value looks like this: translate3d(600px, 383px, 0px) scale(1)
+      // get the translate values from the transform string
+      const regex = /translate3d\((\d+(?:\.\d+)?)px,\s*(\d+(?:\.\d+)?)px,/;
+      const match = transform.match(regex);
+
+      if (match) {
+        const x = parseInt(match[1], 10);
+        const y = parseInt(match[2], 10);
+        return [x, y];
+      }
+
+      return [undefined, undefined];
+    });
+
+    // draw an svg line between each measurement point
+    return (
+      <Html
+        calculatePosition={() => {
+          return [0, 0];
+        }}
+        style={{
+          width: '100vw',
+          height: '100vh',
+          zIndex: 0,
+        }}>
+        <svg width="100vw" height="100vh">
+          {measurementPointPositions.map((position, index) => {
+            const nextPosition = measurementPointPositions[index + 1];
+            if (nextPosition) {
+              return (
+                <line
+                  key={index}
+                  x1={position[0]}
+                  y1={position[1]}
+                  x2={nextPosition[0]}
+                  y2={nextPosition[1]}
+                  stroke="red"
+                />
+              );
+            }
+            return null;
+          })}
+        </svg>
+      </Html>
+    );
+
+    // return (
+    //   <>
+    //     {measurements.map((measurement, idx) => {
+    //       if (idx + 1 < measurements.length) {
+    //         return (
+    //           <MeasurementConnection key={idx} measurement={measurement} nextMeasurement={measurements[idx + 1]} />
+    //         );
+    //       }
+    //       return null;
+    //     })}
+    //   </>
+    // );
+  }
+
   return (
     <>
-      {measurements.map((measurement, idx) => (
-        <MeasurementPoint
-          key={idx}
-          index={idx}
-          measurement={measurement}
-          onDrag={(_index: number, _position: Vector2) => {
-            // const sceneCoords = screenToSceneCoords(position);
-            // console.log('dragging', index, sceneCoords);
-            // console.log('measurements', measurements);
-            // const newMeasurements = [...measurements];
-            // newMeasurements[index].position[0] = pointer.x;
-            // newMeasurements[index].position[1] = pointer.y;
-            // setMeasurements(newMeasurements);
-          }}
-        />
-      ))}
+      <MeasurementConnections />
+      <MeasurementPoints />
     </>
   );
 }

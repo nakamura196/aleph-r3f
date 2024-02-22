@@ -14,7 +14,17 @@ import {
 } from '@react-three/drei';
 import { BoxHelper, Group, Object3D, Vector3 } from 'three';
 import useStore from '@/Store';
-import { ViewerProps as ViewerProps, SrcObj, CAMERA_UPDATE, DBL_CLICK, HOME_CLICK, Mode, CameraRefs } from '@/types';
+import {
+  ViewerProps as ViewerProps,
+  SrcObj,
+  CAMERA_UPDATE,
+  DBL_CLICK,
+  HOME_CLICK,
+  Mode,
+  CameraRefs,
+  DRAGGING_MEASUREMENT,
+  DROPPED_MEASUREMENT,
+} from '@/types';
 import useDoubleClick from '@/lib/hooks/use-double-click';
 import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
 import useTimeout from '@/lib/hooks/use-timeout';
@@ -214,6 +224,8 @@ function Scene({ onLoad, src }: ViewerProps) {
 }
 
 const Viewer = (props: ViewerProps, ref: ((instance: unknown) => void) | RefObject<unknown> | null | undefined) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
   const triggerDoubleClickEvent = useEventTrigger(DBL_CLICK);
   const triggerHomeClickEvent = useEventTrigger(HOME_CLICK);
 
@@ -223,8 +235,17 @@ const Viewer = (props: ViewerProps, ref: ((instance: unknown) => void) | RefObje
     },
   }));
 
+  // useEventListener(DRAGGING_MEASUREMENT, () => {
+  //   canvasRef.current?.classList.add('dragging');
+  // });
+
+  // useEventListener(DROPPED_MEASUREMENT, () => {
+  //   canvasRef.current?.classList.remove('dragging');
+  // });
+
   return (
     <Canvas
+      ref={canvasRef}
       onDoubleClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         triggerDoubleClickEvent(e);
       }}>
