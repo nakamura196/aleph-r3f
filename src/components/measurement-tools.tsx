@@ -94,40 +94,36 @@ export function MeasurementTools() {
           {...bind()}
           id={`anno-${index}`}
           className="annotation"
-          onMouseDown={(_event: React.MouseEvent) => {}}
-          onMouseUp={(_event: React.MouseEvent) => {
-            const measurement = measurements[index];
+          onMouseDown={(event: React.MouseEvent) => {
+            if (cameraControlsEnabled) {
+              return;
+            }
+            // hide the parent element
+            const div = event.currentTarget as HTMLDivElement;
+            div.style.display = 'none';
+          }}
+          onMouseUp={(event: React.MouseEvent) => {
+            if (cameraControlsEnabled) {
+              return;
+            }
 
-            console.log('measurement position', measurement.position);
+            // why do you need to subtract 0.5 from x? anyway, it works!
+            const upcoords: [number, number] = [pointer.x - 0.5, pointer.y];
 
-            // raycaster.setFromCamera(pointer, camera);
+            setMeasurements(
+              measurements.map((measurement, idx) => {
+                if (idx === index) {
+                  return {
+                    position: upcoords,
+                  };
+                } else {
+                  return measurement;
+                }
+              })
+            );
 
-            // const intersects = raycaster.intersectObject(camera, false);
-
-            // console.log('intersects', intersects);
-
-            const upcoords = [pointer.x, pointer.y];
-
-            console.log('upcoords', upcoords);
-
-            // setMeasurements(
-            //   measurements.map((measurement, idx) => {
-            //     if (idx === index) {
-            //       return {
-            //         position: [pointer.x, pointer.y],
-            //         // normal: intersects[0].face?.normal!,
-            //         // cameraPosition: cameraRefs.position.current!,
-            //         // cameraTarget: cameraRefs.target.current!,
-            //       };
-            //     } else {
-            //       return measurement;
-            //     }
-            //   })
-            // );
-
-            // console.log('screenToSceneCoords', screenToSceneCoords([pointer.x, pointer.y]));
-
-            // console.log('mouse', mouse);
+            const div = event.currentTarget as HTMLDivElement;
+            div.style.display = 'block';
           }}
           style={{
             touchAction: 'none',
