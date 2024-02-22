@@ -1,6 +1,6 @@
 import useStore from '@/Store';
 import { DBL_CLICK, DRAGGING_MEASUREMENT, DROPPED_MEASUREMENT, Measurement } from '@/types';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Html } from '@react-three/drei';
 import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
 import { useThree } from '@react-three/fiber';
@@ -10,6 +10,44 @@ import { useDrag } from '@use-gesture/react';
 // export function MeasurementTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
 export function MeasurementTools() {
   const { measurements, setMeasurements, cameraControlsEnabled, setCameraControlsEnabled } = useStore();
+
+  const measurementPointAbsPositionsRef = useRef<[number, number][]>([]);
+
+  const prevMeasurementsRef = useRef(measurements);
+
+  useEffect(() => {
+    setTimeout(() => {
+      const measurementPointDivs = document.getElementsByClassName('measurement-point');
+      const measurementPointPositions: [number, number][] = Array.from(measurementPointDivs).map((div: any) => {
+        const transform = div.parentNode.style.transform;
+        const regex = /translate3d\((\d+(?:\.\d+)?)px,\s*(\d+(?:\.\d+)?)px,/;
+        const match = transform.match(regex);
+
+        if (match) {
+          const x = parseFloat(match[1]);
+          const y = parseFloat(match[2]);
+          return [x, y];
+        }
+
+        return [0, 0];
+      });
+
+      measurementPointAbsPositionsRef.current = measurementPointPositions;
+
+      const newMeasurements = measurements.map((measurement, idx) => {
+        return {
+          ...measurement,
+          absPosition: measurementPointPositions[idx],
+        };
+      });
+
+      // Only update measurements if they have changed
+      if (JSON.stringify(newMeasurements) !== JSON.stringify(prevMeasurementsRef.current)) {
+        setMeasurements(newMeasurements);
+        prevMeasurementsRef.current = newMeasurements;
+      }
+    }, 1);
+  }, [measurements]);
 
   const { camera, pointer, size } = useThree();
 
@@ -72,7 +110,7 @@ export function MeasurementTools() {
         }}>
         <div
           {...bind()}
-          id={`anno-${index}`}
+          id={`measurement-${index}`}
           className="annotation"
           onMouseDown={(event: React.MouseEvent) => {
             if (cameraControlsEnabled) {
@@ -131,27 +169,6 @@ export function MeasurementTools() {
   }
 
   function MeasurementConnections() {
-    // get all measurement point divs with classname measurement-point
-    const measurementPointDivs = document.getElementsByClassName('measurement-point');
-
-    // get all of the measurement point div positions as an array
-    const measurementPointPositions = Array.from(measurementPointDivs).map((div: any) => {
-      // get the transform translate values from the div
-      const transform = div.parentNode.style.transform;
-      // the transform value looks like this: translate3d(600px, 383px, 0px) scale(1)
-      // get the translate values from the transform string
-      const regex = /translate3d\((\d+(?:\.\d+)?)px,\s*(\d+(?:\.\d+)?)px,/;
-      const match = transform.match(regex);
-
-      if (match) {
-        const x = parseInt(match[1], 10);
-        const y = parseInt(match[2], 10);
-        return [x, y];
-      }
-
-      return [undefined, undefined];
-    });
-
     // draw an svg line between each measurement point
     return (
       <Html
@@ -164,8 +181,8 @@ export function MeasurementTools() {
           zIndex: 0,
         }}>
         <svg width="100vw" height="100vh">
-          {measurementPointPositions.map((position, index) => {
-            const nextPosition = measurementPointPositions[index + 1];
+          {measurementPointAbsPositionsRef.current.map((position, index) => {
+            const nextPosition = measurementPointAbsPositionsRef.current[index + 1];
             if (nextPosition) {
               return (
                 <line
@@ -174,7 +191,8 @@ export function MeasurementTools() {
                   y1={position[1]}
                   x2={nextPosition[0]}
                   y2={nextPosition[1]}
-                  stroke="red"
+                  stroke="white"
+                  strokeWidth="4"
                 />
               );
             }
