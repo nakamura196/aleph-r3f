@@ -20,8 +20,13 @@ import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
 import useTimeout from '@/lib/hooks/use-timeout';
 import { AnnotationTools } from './annotation-tools';
 import MeasurementTools from './measurement-tools';
+// import { Globals } from '@react-spring/shared';
 
 function Scene({ onLoad, src }: ViewerProps) {
+  // Globals.assign({
+  //   frameLoop: 'always',
+  // });
+
   const boundsRef = useRef<Group | null>(null);
 
   const cameraRefs: CameraRefs = {
