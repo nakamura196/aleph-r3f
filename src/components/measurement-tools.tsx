@@ -6,6 +6,7 @@ import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
 import { useThree } from '@react-three/fiber';
 import { Object3D, Vector3 } from 'three';
 import { useDrag } from '@use-gesture/react';
+import { areObjectsIdentical } from '@/lib/utils';
 
 // export function MeasurementTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
 export function MeasurementTools() {
@@ -16,6 +17,7 @@ export function MeasurementTools() {
   const prevMeasurementsRef = useRef(measurements);
 
   useEffect(() => {
+    // need to wait a tick for the measurement points to be rendered
     setTimeout(() => {
       const measurementPointDivs = document.getElementsByClassName('measurement-point');
       const measurementPointPositions: [number, number][] = Array.from(measurementPointDivs).map((div: any) => {
@@ -41,8 +43,8 @@ export function MeasurementTools() {
         };
       });
 
-      // Only update measurements if they have changed
-      if (JSON.stringify(newMeasurements) !== JSON.stringify(prevMeasurementsRef.current)) {
+      // Only update measurements if they have changed, otherwise it will cause an infinite loop
+      if (!areObjectsIdentical(newMeasurements, prevMeasurementsRef.current)) {
         setMeasurements(newMeasurements);
         prevMeasurementsRef.current = newMeasurements;
       }
@@ -168,6 +170,57 @@ export function MeasurementTools() {
     );
   }
 
+  function RulerLine({
+    position,
+    nextPosition,
+    width = 2,
+    ticksCount = 10,
+  }: {
+    position: [number, number];
+    nextPosition: [number, number];
+    width?: number;
+    ticksCount?: number;
+  }) {
+    const dx = nextPosition[0] - position[0];
+    const dy = nextPosition[1] - position[1];
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const angle = Math.atan2(dy, dx);
+    const tickSpacing = distance / ticksCount;
+    const tickLength = width;
+
+    const ticks = Array.from({ length: ticksCount }, (_, i) => {
+      const x = position[0] + i * tickSpacing * Math.cos(angle);
+      const y = position[1] + i * tickSpacing * Math.sin(angle) - tickLength / 2; // adjust the y-coordinate
+      const xEnd = x + tickLength * Math.sin(angle);
+      const yEnd = y - tickLength * Math.cos(angle);
+      return { x1: x, y1: y, x2: xEnd, y2: yEnd };
+    });
+
+    const avgX = (position[0] + nextPosition[0]) / 2;
+    const avgY = (position[1] + nextPosition[1]) / 2;
+
+    return (
+      <svg>
+        <line
+          x1={position[0]}
+          y1={position[1]}
+          x2={nextPosition[0]}
+          y2={nextPosition[1]}
+          stroke="white"
+          strokeWidth={width}
+        />
+        {ticks.map((tick, index) => (
+          <line key={index} x1={tick.x1} y1={tick.y1} x2={tick.x2} y2={tick.y2} stroke="black" strokeWidth="1" />
+        ))}
+        <foreignObject x={avgX - 35} y={avgY - 35} width="70" height="32">
+          <div style={{ backgroundColor: 'white', padding: '2px', textAlign: 'center' }}>
+            <span style={{ color: 'black', fontSize: '16px' }}>{distance.toFixed(2)}</span>
+          </div>
+        </foreignObject>
+      </svg>
+    );
+  }
+
   function MeasurementConnections() {
     // draw an svg line between each measurement point
     return (
@@ -184,17 +237,18 @@ export function MeasurementTools() {
           {measurementPointAbsPositionsRef.current.map((position, index) => {
             const nextPosition = measurementPointAbsPositionsRef.current[index + 1];
             if (nextPosition) {
-              return (
-                <line
-                  key={index}
-                  x1={position[0]}
-                  y1={position[1]}
-                  x2={nextPosition[0]}
-                  y2={nextPosition[1]}
-                  stroke="white"
-                  strokeWidth="4"
-                />
-              );
+              return <RulerLine key={index} position={position} nextPosition={nextPosition} />;
+              // return (
+              //   <line
+              //     key={index}
+              //     x1={position[0]}
+              //     y1={position[1]}
+              //     x2={nextPosition[0]}
+              //     y2={nextPosition[1]}
+              //     stroke="white"
+              //     strokeWidth="4"
+              //   />
+              // );
             }
             return null;
           })}
