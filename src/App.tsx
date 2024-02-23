@@ -10,7 +10,7 @@ function App() {
   const viewerRef = useRef<ViewerRef>(null);
 
   const srcs: Src[] = [
-    'https://modelviewer.dev/shared-assets/models/glTF-Sample-Models/2.0/FlightHelmet/glTF/FlightHelmet.gltf',
+    'https://modelviewer.dev/assets/boom_2_.glb',
     {
       url: 'https://modelviewer.dev/assets/SketchfabModels/ThorAndTheMidgardSerpent.glb',
       label: 'Thor',

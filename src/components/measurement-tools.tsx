@@ -164,6 +164,11 @@ export function MeasurementTools() {
               cy={measurement.position[1]}
               className="measurement-point"
               r="8"
+              onMouseDown={(_e: React.MouseEvent<SVGElement>) => {
+                if (cameraControlsEnabled) {
+                  return;
+                }
+              }}
               onMouseUp={(e: React.MouseEvent<SVGElement>) => {
                 if (cameraControlsEnabled) {
                   return;
