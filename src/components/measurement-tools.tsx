@@ -1,79 +1,21 @@
 import useStore from '@/Store';
 import { DRAGGING_MEASUREMENT, DROPPED_MEASUREMENT, Measurement } from '@/types';
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { Html } from '@react-three/drei';
 import { useEventTrigger } from '@/lib/hooks/use-event';
 import { useDrag } from '@use-gesture/react';
-import { areObjectsIdentical } from '@/lib/utils';
 
 // export function MeasurementTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
 export function MeasurementTools() {
   const { measurements, setMeasurements, cameraControlsEnabled, setCameraControlsEnabled } = useStore();
 
-  const measurementPointAbsPositionsRef = useRef<[number, number][]>([]);
+  function RulerLine({ idx0, idx1, width = 2 }: { idx0: number; idx1: number; width?: number }) {
+    const position = measurements[idx0]?.position;
+    const nextPosition = measurements[idx1]?.position;
 
-  const prevMeasurementsRef = useRef(measurements);
-
-  useEffect(() => {
-    // need to wait a tick for the measurement points to be rendered
-    setTimeout(() => {
-      const measurementPointDivs = document.getElementsByClassName('measurement-point');
-      const measurementPointPositions: [number, number][] = Array.from(measurementPointDivs).map((div: any) => {
-        const transform = div.parentNode.style.transform;
-        const regex = /translate3d\((\d+(?:\.\d+)?)px,\s*(\d+(?:\.\d+)?)px,/;
-        const match = transform.match(regex);
-
-        if (match) {
-          const x = parseFloat(match[1]);
-          const y = parseFloat(match[2]);
-          return [x, y];
-        }
-
-        return [0, 0];
-      });
-
-      measurementPointAbsPositionsRef.current = measurementPointPositions;
-
-      const newMeasurements = measurements.map((measurement, idx) => {
-        return {
-          ...measurement,
-          absPosition: measurementPointPositions[idx],
-        };
-      });
-
-      // Only update measurements if they have changed, otherwise it will cause an infinite loop
-      if (!areObjectsIdentical(newMeasurements, prevMeasurementsRef.current)) {
-        setMeasurements(newMeasurements);
-        prevMeasurementsRef.current = newMeasurements;
-      }
-    }, 1);
-  }, [measurements]);
-
-  function RulerLine({
-    position,
-    nextPosition,
-    width = 2,
-    ticksCount = 10,
-  }: {
-    position: [number, number];
-    nextPosition: [number, number];
-    width?: number;
-    ticksCount?: number;
-  }) {
     const dx = nextPosition[0] - position[0];
     const dy = nextPosition[1] - position[1];
     const distance = Math.sqrt(dx * dx + dy * dy);
-    const angle = Math.atan2(dy, dx);
-    const tickSpacing = distance / ticksCount;
-    const tickLength = width;
-
-    const ticks = Array.from({ length: ticksCount }, (_, i) => {
-      const x = position[0] + i * tickSpacing * Math.cos(angle);
-      const y = position[1] + i * tickSpacing * Math.sin(angle) - tickLength / 2; // adjust the y-coordinate
-      const xEnd = x + tickLength * Math.sin(angle);
-      const yEnd = y - tickLength * Math.cos(angle);
-      return { x1: x, y1: y, x2: xEnd, y2: yEnd };
-    });
 
     const avgX = (position[0] + nextPosition[0]) / 2;
     const avgY = (position[1] + nextPosition[1]) / 2;
@@ -81,26 +23,27 @@ export function MeasurementTools() {
     return (
       <svg>
         <line
+          className="ruler-line"
+          data-idx0={idx0}
+          data-idx1={idx1}
           x1={position[0]}
           y1={position[1]}
           x2={nextPosition[0]}
           y2={nextPosition[1]}
           stroke="white"
           strokeWidth={width}
+          strokeDasharray="4 2"
         />
-        {ticks.map((tick, index) => (
-          <line key={index} x1={tick.x1} y1={tick.y1} x2={tick.x2} y2={tick.y2} stroke="black" strokeWidth="1" />
-        ))}
-        <foreignObject x={avgX - 35} y={avgY - 35} width="70" height="32">
-          <div style={{ backgroundColor: 'white', padding: '2px', textAlign: 'center' }}>
-            <span style={{ color: 'black', fontSize: '16px' }}>{distance.toFixed(2)}</span>
+        <foreignObject className="measurement-label" x={avgX - 35} y={avgY - 35}>
+          <div>
+            <span>{distance.toFixed(2)}</span>
           </div>
         </foreignObject>
       </svg>
     );
   }
 
-  function MeasurementConnections() {
+  function Measurements() {
     const triggerDraggingMeasurementEvent = useEventTrigger(DRAGGING_MEASUREMENT);
     const triggerDroppedMeasurementEvent = useEventTrigger(DROPPED_MEASUREMENT);
 
@@ -114,7 +57,7 @@ export function MeasurementTools() {
       const el = state.currentTarget as SVGElement;
 
       // get the element's index from the data-index attribute
-      // const index = parseInt(el.getAttribute('data-index')!);
+      const idx = parseInt(el.getAttribute('data-idx')!);
 
       let x;
       let y;
@@ -132,6 +75,31 @@ export function MeasurementTools() {
       // set element position without updating state (that happens on MouseUp event)
       el.setAttribute('cx', String(x));
       el.setAttribute('cy', String(y));
+
+      // update all connecting lines
+      const lineEls = document.getElementsByClassName('ruler-line');
+
+      // for each lineEl, update the x1, y1, x2, y2 attributes using the data-idx0 and data-idx1 attributes
+      for (let i = 0; i < lineEls.length; i++) {
+        const lineEl = lineEls[i] as SVGLineElement;
+        const idx0 = Number(lineEl.getAttribute('data-idx0'));
+        const idx1 = Number(lineEl.getAttribute('data-idx1'));
+
+        if (idx0 === idx) {
+          lineEl.setAttribute('x1', String(x));
+          lineEl.setAttribute('y1', String(y));
+        } else if (idx1 === idx) {
+          lineEl.setAttribute('x2', String(x));
+          lineEl.setAttribute('y2', String(y));
+        }
+      }
+
+      // hide all measurement-labels
+      const labelEls = document.getElementsByClassName('measurement-label');
+      for (let i = 0; i < labelEls.length; i++) {
+        const labelEl = labelEls[i] as SVGForeignObjectElement;
+        labelEl.classList.add('hidden');
+      }
 
       // memo the initial position
       if (!state.memo) {
@@ -179,10 +147,10 @@ export function MeasurementTools() {
             ]);
           }}>
           {/* draw connections */}
-          {measurements.map((measurement: Measurement, index: number) => {
-            const nextPosition = measurements[index + 1]?.position;
-            if (nextPosition) {
-              return <RulerLine key={index} position={measurement.position} nextPosition={nextPosition} />;
+          {measurements.map((_measurement: Measurement, index: number) => {
+            // const nextPosition = measurements[index + 1]?.position;
+            if (index < measurements.length - 1) {
+              return <RulerLine key={index} idx0={index} idx1={index + 1} />;
             }
             return null;
           })}
@@ -191,11 +159,11 @@ export function MeasurementTools() {
             <circle
               {...bind()}
               key={index}
-              data-index={index}
+              data-idx={index}
               cx={measurement.position[0]}
               cy={measurement.position[1]}
+              className="measurement-point"
               r="8"
-              fill="white"
               onMouseUp={(e: React.MouseEvent<SVGElement>) => {
                 if (cameraControlsEnabled) {
                   return;
@@ -227,7 +195,7 @@ export function MeasurementTools() {
 
   return (
     <>
-      <MeasurementConnections />
+      <Measurements />
     </>
   );
 }

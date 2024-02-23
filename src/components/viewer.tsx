@@ -235,13 +235,18 @@ const Viewer = (props: ViewerProps, ref: ((instance: unknown) => void) | RefObje
     },
   }));
 
-  // useEventListener(DRAGGING_MEASUREMENT, () => {
-  //   canvasRef.current?.classList.add('dragging');
-  // });
+  useEventListener(DRAGGING_MEASUREMENT, () => {
+    // add dragging class to body
+    document.body.classList.add('dragging');
 
-  // useEventListener(DROPPED_MEASUREMENT, () => {
-  //   canvasRef.current?.classList.remove('dragging');
-  // });
+    // canvasRef.current?.classList.add('dragging');
+  });
+
+  useEventListener(DROPPED_MEASUREMENT, () => {
+    document.body.classList.remove('dragging');
+
+    // canvasRef.current?.classList.remove('dragging');
+  });
 
   return (
     <Canvas

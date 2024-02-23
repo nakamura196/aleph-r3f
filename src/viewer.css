@@ -22,10 +22,9 @@
   }
 }
 
-/* canvas.dragging {
+body.dragging {
   cursor: grabbing;
-  border: 4px solid red;
-} */
+}
 
 /* The container that holds the circle */
 .annotation {
@@ -85,4 +84,32 @@
 
 .annotation.no-fade .circle {
   transition: opacity 0s;
+}
+
+.measurement-point {
+  fill: white;
+}
+
+.measurement-point:hover {
+  fill: cornflowerblue;
+}
+
+.measurement-label {
+  width: 70px;
+  height: 32px;
+}
+
+.measurement-label.hidden {
+  display: none;
+}
+
+.measurement-label > div {
+  background-color: white;
+  padding: 2px;
+  text-align: center;
+}
+
+.measurement-label > div > span {
+  color: 'black';
+  font-size: 16px;
 }
