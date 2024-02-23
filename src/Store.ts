@@ -95,7 +95,8 @@ const useStore = create<State>((set) => ({
   setMode: (mode: Mode) =>
     set({
       mode,
-      orthographicEnabled: mode === 'measurement',
+      cameraControlsEnabled: true, // default to cameraControlsEnabled for all modes
+      orthographicEnabled: mode === 'measurement', // enable orthographic camera for measurement mode only
     }),
 
   setOrthographicEnabled: (orthographicEnabled: boolean) =>
