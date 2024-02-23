@@ -1,10 +1,8 @@
 import useStore from '@/Store';
-import { DBL_CLICK, DRAGGING_MEASUREMENT, DROPPED_MEASUREMENT, Measurement } from '@/types';
+import { DRAGGING_MEASUREMENT, DROPPED_MEASUREMENT, Measurement } from '@/types';
 import React, { useEffect, useRef } from 'react';
 import { Html } from '@react-three/drei';
-import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
-import { useThree } from '@react-three/fiber';
-import { Object3D, Vector3 } from 'three';
+import { useEventTrigger } from '@/lib/hooks/use-event';
 import { useDrag } from '@use-gesture/react';
 import { areObjectsIdentical } from '@/lib/utils';
 
@@ -50,125 +48,6 @@ export function MeasurementTools() {
       }
     }, 1);
   }, [measurements]);
-
-  const { camera, pointer, size } = useThree();
-
-  // create annotation on double click
-  const handleDoubleClickEvent = () => {
-    setCameraControlsEnabled(false);
-
-    setMeasurements([
-      ...measurements,
-      {
-        position: [pointer.x, pointer.y],
-      },
-    ]);
-  };
-
-  useEventListener(DBL_CLICK, handleDoubleClickEvent);
-
-  function sceneToScreenCoords(el: Object3D, coords: [number, number]) {
-    const x = coords[0];
-    const y = coords[1];
-    const v1 = new Vector3();
-    const objectPos = v1.setFromMatrixPosition(el.matrixWorld);
-    objectPos.project(camera);
-    const widthHalf = size.width / 2;
-    const heightHalf = size.height / 2;
-    return [x * widthHalf + widthHalf, -(y * heightHalf) + heightHalf];
-  }
-
-  const MeasurementPoint: React.FC<{
-    index: number;
-    measurement: Measurement;
-  }> = ({ index, measurement }) => {
-    const triggerDraggingMeasurementEvent = useEventTrigger(DRAGGING_MEASUREMENT);
-    const triggerDroppedMeasurementEvent = useEventTrigger(DROPPED_MEASUREMENT);
-
-    const bind = useDrag((state) => {
-      if (cameraControlsEnabled) {
-        return;
-      }
-
-      const div = state.currentTarget as HTMLDivElement;
-
-      // set div position from offset
-      div.style.left = `${state.offset[0]}px`;
-      div.style.top = `${state.offset[1]}px`;
-
-      triggerDraggingMeasurementEvent();
-    });
-
-    return (
-      <Html
-        className="measurement-point"
-        calculatePosition={(el: Object3D) => {
-          return sceneToScreenCoords(el, measurement.position);
-        }}
-        style={{
-          width: 0,
-          height: 0,
-          zIndex: 10,
-        }}>
-        <div
-          {...bind()}
-          id={`measurement-${index}`}
-          className="annotation"
-          onMouseDown={(event: React.MouseEvent) => {
-            if (cameraControlsEnabled) {
-              return;
-            }
-            // hide the measurement point otherwise the pointer coords will be off
-            const div = event.currentTarget as HTMLDivElement;
-            div.style.display = 'none';
-          }}
-          onMouseUp={(event: React.MouseEvent) => {
-            if (cameraControlsEnabled) {
-              return;
-            }
-
-            // why do you need to subtract 0.5 from x? anyway, it works!
-            const upcoords: [number, number] = [pointer.x - 0.5, pointer.y];
-
-            setMeasurements(
-              measurements.map((measurement, idx) => {
-                if (idx === index) {
-                  return {
-                    ...measurement,
-                    position: upcoords,
-                  };
-                } else {
-                  return measurement;
-                }
-              })
-            );
-
-            // show the measurement point
-            const div = event.currentTarget as HTMLDivElement;
-            div.style.display = 'block';
-
-            triggerDroppedMeasurementEvent();
-          }}
-          style={{
-            touchAction: 'none',
-          }}>
-          <div className="circle">
-            <span className="label">{index + 1}</span>
-          </div>
-        </div>
-      </Html>
-    );
-  };
-
-  function MeasurementPoints() {
-    return (
-      <>
-        {measurements.map((measurement, idx) => (
-          <MeasurementPoint key={idx} index={idx} measurement={measurement} />
-        ))}
-      </>
-    );
-  }
 
   function RulerLine({
     position,
@@ -222,7 +101,58 @@ export function MeasurementTools() {
   }
 
   function MeasurementConnections() {
-    // draw an svg line between each measurement point
+    const triggerDraggingMeasurementEvent = useEventTrigger(DRAGGING_MEASUREMENT);
+    const triggerDroppedMeasurementEvent = useEventTrigger(DROPPED_MEASUREMENT);
+
+    const bind = useDrag((state) => {
+      if (cameraControlsEnabled) {
+        return;
+      }
+
+      triggerDraggingMeasurementEvent();
+
+      const el = state.currentTarget as SVGElement;
+
+      // get the element's index from the data-index attribute
+      // const index = parseInt(el.getAttribute('data-index')!);
+
+      let x;
+      let y;
+
+      if (!state.memo) {
+        // just started dragging. use the initial position
+        x = Number(el.getAttribute('cx'));
+        y = Number(el.getAttribute('cy'));
+      } else {
+        // continued dragging. use the memo'd initial position plus the movement
+        x = state.memo[0] + state.movement[0];
+        y = state.memo[1] + state.movement[1];
+      }
+
+      // set element position without updating state (that happens on MouseUp event)
+      el.setAttribute('cx', String(x));
+      el.setAttribute('cy', String(y));
+
+      // memo the initial position
+      if (!state.memo) {
+        return [x, y];
+      } else {
+        return state.memo;
+      }
+    });
+
+    function getSVGMousePosition(e: React.MouseEvent<SVGElement>): [number, number] {
+      const parentNode = e.currentTarget.parentNode as HTMLElement;
+
+      // get parentNode offset
+      const rect = parentNode.getBoundingClientRect();
+
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      return [x, y];
+    }
+
     return (
       <Html
         calculatePosition={() => {
@@ -233,47 +163,71 @@ export function MeasurementTools() {
           height: '100vh',
           zIndex: 0,
         }}>
-        <svg width="100vw" height="100vh">
-          {measurementPointAbsPositionsRef.current.map((position, index) => {
-            const nextPosition = measurementPointAbsPositionsRef.current[index + 1];
+        <svg
+          width="100vw"
+          height="100vh"
+          onDoubleClick={(e: React.MouseEvent<SVGElement>) => {
+            setCameraControlsEnabled(false);
+
+            const mousePos: [number, number] = getSVGMousePosition(e);
+
+            setMeasurements([
+              ...measurements,
+              {
+                position: mousePos,
+              },
+            ]);
+          }}>
+          {/* draw connections */}
+          {measurements.map((measurement: Measurement, index: number) => {
+            const nextPosition = measurements[index + 1]?.position;
             if (nextPosition) {
-              return <RulerLine key={index} position={position} nextPosition={nextPosition} />;
-              // return (
-              //   <line
-              //     key={index}
-              //     x1={position[0]}
-              //     y1={position[1]}
-              //     x2={nextPosition[0]}
-              //     y2={nextPosition[1]}
-              //     stroke="white"
-              //     strokeWidth="4"
-              //   />
-              // );
+              return <RulerLine key={index} position={measurement.position} nextPosition={nextPosition} />;
             }
             return null;
           })}
+          {/* draw points */}
+          {measurements.map((measurement: Measurement, index: number) => (
+            <circle
+              {...bind()}
+              key={index}
+              data-index={index}
+              cx={measurement.position[0]}
+              cy={measurement.position[1]}
+              r="8"
+              fill="white"
+              onMouseUp={(e: React.MouseEvent<SVGElement>) => {
+                if (cameraControlsEnabled) {
+                  return;
+                }
+
+                const mousePos: [number, number] = getSVGMousePosition(e);
+
+                setMeasurements(
+                  measurements.map((measurement, idx) => {
+                    if (idx === index) {
+                      return {
+                        ...measurement,
+                        position: mousePos,
+                      };
+                    } else {
+                      return measurement;
+                    }
+                  })
+                );
+
+                triggerDroppedMeasurementEvent();
+              }}
+            />
+          ))}
         </svg>
       </Html>
     );
-
-    // return (
-    //   <>
-    //     {measurements.map((measurement, idx) => {
-    //       if (idx + 1 < measurements.length) {
-    //         return (
-    //           <MeasurementConnection key={idx} measurement={measurement} nextMeasurement={measurements[idx + 1]} />
-    //         );
-    //       }
-    //       return null;
-    //     })}
-    //   </>
-    // );
   }
 
   return (
     <>
       <MeasurementConnections />
-      <MeasurementPoints />
     </>
   );
 }
