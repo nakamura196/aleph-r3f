@@ -88,6 +88,7 @@ body.dragging {
 
 .measurement-point {
   fill: white;
+  touch-action: none;
 }
 
 .measurement-point:hover {
@@ -95,8 +96,8 @@ body.dragging {
 }
 
 .measurement-label {
-  width: 70px;
-  height: 32px;
+  width: 60px;
+  height: 30px;
 }
 
 .measurement-label.hidden {
@@ -107,9 +108,19 @@ body.dragging {
   background-color: white;
   padding: 2px;
   text-align: center;
+  color: black;
+  font-size: small;
 }
 
-.measurement-label > div > span {
-  color: 'black';
-  font-size: 16px;
+.angle-label {
+  width: 60px;
+  height: 30px;
+}
+
+.angle-label > div {
+  background-color: white;
+  padding: 2px;
+  text-align: center;
+  color: black;
+  font-size: small;
 }

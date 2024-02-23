@@ -48,10 +48,8 @@ export function MeasurementTools() {
           strokeWidth={width}
           strokeDasharray="4 2"
         />
-        <foreignObject className="measurement-label" x={avgX - 35} y={avgY - 35}>
-          <div>
-            <span>{worldDistance.toFixed(2)}</span>
-          </div>
+        <foreignObject className="measurement-label" x={avgX - 30} y={avgY - 15}>
+          <div>{worldDistance.toFixed(2)}</div>
         </foreignObject>
       </svg>
     );
@@ -109,9 +107,16 @@ export function MeasurementTools() {
       }
 
       // hide all measurement-labels
-      const labelEls = document.getElementsByClassName('measurement-label');
-      for (let i = 0; i < labelEls.length; i++) {
-        const labelEl = labelEls[i] as SVGForeignObjectElement;
+      const measurementLabelEls = document.getElementsByClassName('measurement-label');
+      for (let i = 0; i < measurementLabelEls.length; i++) {
+        const labelEl = measurementLabelEls[i] as SVGForeignObjectElement;
+        labelEl.classList.add('hidden');
+      }
+
+      // hide all angle-labels
+      const angleLabelEls = document.getElementsByClassName('angle-label');
+      for (let i = 0; i < angleLabelEls.length; i++) {
+        const labelEl = angleLabelEls[i] as SVGForeignObjectElement;
         labelEl.classList.add('hidden');
       }
 
@@ -133,6 +138,106 @@ export function MeasurementTools() {
       const y = e.clientY - rect.top;
 
       return [x, y];
+    }
+
+    function calculateAngle(line1: any, line2: any) {
+      // Calculate direction vectors
+      const dir1 = { x: line1.x1 - line1.x2, y: line1.y1 - line1.y2 };
+      const dir2 = { x: line2.x2 - line2.x1, y: line2.y2 - line2.y1 };
+
+      // Calculate the dot product
+      const dotProduct = dir1.x * dir2.x + dir1.y * dir2.y;
+
+      // Calculate the magnitudes of the vectors
+      const mag1 = Math.sqrt(dir1.x * dir1.x + dir1.y * dir1.y);
+      const mag2 = Math.sqrt(dir2.x * dir2.x + dir2.y * dir2.y);
+
+      // Calculate the cosine of the angle
+      const cosTheta = dotProduct / (mag1 * mag2);
+
+      // Calculate the angle in radians
+      let angleRadians = Math.acos(cosTheta);
+
+      // Convert to degrees
+      let angleDegrees = angleRadians * (180 / Math.PI);
+
+      // Ensure the angle is not more than 180
+      if (angleDegrees > 180) {
+        angleDegrees = 360 - angleDegrees;
+      }
+
+      return angleDegrees;
+    }
+
+    function Angle({ line1, line2 }: { line1: any; line2: any }) {
+      // Calculate the angle
+      const angle = calculateAngle(line1, line2);
+
+      // Calculate the direction vectors of the lines
+      const dir1 = { x: line1.x1 - line1.x2, y: line1.y1 - line1.y2 };
+      const dir2 = { x: line2.x2 - line2.x1, y: line2.y2 - line2.y1 };
+
+      // Normalize the direction vectors
+      const magnitude1 = Math.sqrt(dir1.x * dir1.x + dir1.y * dir1.y);
+      const magnitude2 = Math.sqrt(dir2.x * dir2.x + dir2.y * dir2.y);
+      const normDir1 = { x: dir1.x / magnitude1, y: dir1.y / magnitude1 };
+      const normDir2 = { x: dir2.x / magnitude2, y: dir2.y / magnitude2 };
+
+      // Calculate the midpoint of the normalized direction vectors
+      const midDir = { x: (normDir1.x + normDir2.x) / 2, y: (normDir1.y + normDir2.y) / 2 };
+
+      // Calculate the magnitude of the midpoint direction
+      const midMagnitude = Math.sqrt(midDir.x * midDir.x + midDir.y * midDir.y);
+
+      // Normalize the midpoint direction
+      const normalizedMidDir = {
+        x: midDir.x / midMagnitude,
+        y: midDir.y / midMagnitude,
+      };
+
+      // Define the offset distance
+      const offsetDistance = 50;
+
+      // Calculate the position for the text
+      const textPosition = {
+        x: (line1.x2 + line2.x1) / 2 + normalizedMidDir.x * offsetDistance,
+        y: (line1.y2 + line2.y1) / 2 + normalizedMidDir.y * offsetDistance,
+      };
+
+      //     // Calculate the radius of the semicircle
+      //     const radius = offsetDistance;
+
+      //     // Calculate the start and end points of the semicircle
+      //     const semicircleStart = {
+      //       x: line1.x2 - normalizedMidDir.x * radius,
+      //       y: line1.y2 - normalizedMidDir.y * radius,
+      //     };
+      //     const semicircleEnd = {
+      //       x: line2.x1 + normalizedMidDir.x * radius,
+      //       y: line2.y1 + normalizedMidDir.y * radius,
+      //     };
+
+      //     // Define the path for the semicircle
+      //     const semicirclePath = `
+      //   M ${semicircleStart.x} ${semicircleStart.y}
+      //   A ${radius} ${radius} 0 0 1 ${semicircleEnd.x} ${semicircleEnd.y}
+      //   Z
+      // `;
+
+      return (
+        <>
+          {/* <line x1={line1.x1} y1={line1.y1} x2={line1.x2} y2={line1.y2} stroke="red" />
+          <line x1={line2.x1} y1={line2.y1} x2={line2.x2} y2={line2.y2} stroke="red" /> */}
+          {/* <circle cx={textPosition.x} cy={textPosition.y} r="5" fill="red" /> */}
+          {/* <path d={semicirclePath} fill="red" stroke="red" /> */}
+          <foreignObject className="angle-label" x={textPosition.x - 30} y={textPosition.y - 15}>
+            <div>{angle.toFixed(2)}°</div>
+          </foreignObject>
+          {/* <text x={textPosition.x - offsetDistance / 2} y={textPosition.y + 5} fill="white">
+            {angle.toFixed(2)}°
+          </text> */}
+        </>
+      );
     }
 
     return (
@@ -167,6 +272,30 @@ export function MeasurementTools() {
               return <RulerLine key={index} idx0={index} idx1={index + 1} />;
             }
             return null;
+          })}
+          {/* draw angles */}
+          {measurements.map((_measurement: Measurement, index: number) => {
+            if (index < measurements.length - 1) {
+              const line1 = {
+                x1: measurements[index].position[0],
+                y1: measurements[index].position[1],
+                x2: measurements[index + 1].position[0],
+                y2: measurements[index + 1].position[1],
+              };
+              const line2 =
+                index < measurements.length - 2
+                  ? {
+                      x1: measurements[index + 1].position[0],
+                      y1: measurements[index + 1].position[1],
+                      x2: measurements[index + 2].position[0],
+                      y2: measurements[index + 2].position[1],
+                    }
+                  : null;
+
+              if (line2) {
+                return <Angle key={index} line1={line1} line2={line2} />;
+              }
+            }
           })}
           {/* draw points */}
           {measurements.map((measurement: Measurement, index: number) => (
