@@ -35,7 +35,19 @@ export function MeasurementTools() {
     const avgY = (position[1] + nextPosition[1]) / 2;
 
     return (
-      <svg>
+      <>
+        <line
+          className="ruler-line"
+          data-idx0={idx0}
+          data-idx1={idx1}
+          x1={position[0]}
+          y1={position[1]}
+          x2={nextPosition[0]}
+          y2={nextPosition[1]}
+          stroke="black"
+          strokeWidth={width}
+          strokeDasharray="5,5"
+        />
         <line
           className="ruler-line"
           data-idx0={idx0}
@@ -46,12 +58,13 @@ export function MeasurementTools() {
           y2={nextPosition[1]}
           stroke="white"
           strokeWidth={width}
-          strokeDasharray="4 2"
+          strokeDasharray="5,5"
+          strokeDashoffset="5"
         />
         <foreignObject className="measurement-label" x={avgX - 30} y={avgY - 15}>
           <div>{worldDistance.toFixed(2)}</div>
         </foreignObject>
-      </svg>
+      </>
     );
   }
 

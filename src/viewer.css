@@ -98,6 +98,7 @@ body.dragging {
 .measurement-label {
   width: 60px;
   height: 30px;
+  user-select: none;
 }
 
 .measurement-label.hidden {

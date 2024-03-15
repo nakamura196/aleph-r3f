@@ -15,6 +15,10 @@ function App() {
       url: 'https://modelviewer.dev/assets/SketchfabModels/ThorAndTheMidgardSerpent.glb',
       label: 'Thor',
     },
+    {
+      url: 'https://cdn.glitch.global/afd88411-0206-477e-b65f-3d1f201de994/measurement_cube.glb?v=1710500461208',
+      label: 'Measurement Cube',
+    },
     [
       {
         url: 'https://modelviewer.dev/assets/ShopifyModels/Mixer.glb',
