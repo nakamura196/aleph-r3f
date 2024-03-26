@@ -19,7 +19,7 @@ import {
   SrcObj,
   CAMERA_UPDATE,
   DBL_CLICK,
-  HOME_CLICK,
+  RECENTER_CLICK,
   Mode,
   CameraRefs,
   DRAGGING_MEASUREMENT,
@@ -102,7 +102,7 @@ function Scene({ onLoad, src }: ViewerProps) {
     home();
   };
 
-  useEventListener(HOME_CLICK, handleHomeClickEvent);
+  useEventListener(RECENTER_CLICK, handleHomeClickEvent);
 
   function zoomToObject(object: Object3D, instant?: boolean, padding: number = 0.1) {
     cameraRefs.controls.current!.fitToBox(object, !instant, {
@@ -227,7 +227,7 @@ const Viewer = (props: ViewerProps, ref: ((instance: unknown) => void) | RefObje
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const triggerDoubleClickEvent = useEventTrigger(DBL_CLICK);
-  const triggerHomeClickEvent = useEventTrigger(HOME_CLICK);
+  const triggerHomeClickEvent = useEventTrigger(RECENTER_CLICK);
 
   useImperativeHandle(ref, () => ({
     home: () => {
