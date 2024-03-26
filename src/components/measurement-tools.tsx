@@ -1,16 +1,44 @@
 import useStore from '@/Store';
 import { DRAGGING_MEASUREMENT, DROPPED_MEASUREMENT, Measurement } from '@/types';
-import React from 'react';
+import React, { useRef } from 'react';
 import { Html } from '@react-three/drei';
 import { useEventTrigger } from '@/lib/hooks/use-event';
 import { useDrag } from '@use-gesture/react';
 import { useThree } from '@react-three/fiber';
+import { cn } from '@/lib/utils';
+import useKeyPress from '@/lib/hooks/use-key-press';
 
 export function MeasurementTools() {
   const { measurements, setMeasurements, cameraControlsEnabled, setCameraControlsEnabled, measurementUnits } =
     useStore();
 
   const { camera } = useThree();
+
+  useKeyPress('Delete', () => {
+    // delete measurement
+    if (selectedMeasurementRef.current !== null) {
+      setMeasurements(measurements.filter((_measurement, index) => index !== selectedMeasurementRef.current));
+    }
+    setSelectedMeasurement(null);
+  });
+
+  const selectedMeasurementRef = useRef<number | null>(null);
+
+  function setSelectedMeasurement(index: number | null) {
+    selectedMeasurementRef.current = index;
+
+    // find the selected measurement point and update class
+    const measurementPointEls = document.getElementsByClassName('measurement-point');
+
+    for (let i = 0; i < measurementPointEls.length; i++) {
+      const pointEl = measurementPointEls[i] as SVGElement;
+      pointEl.classList.remove('selected');
+
+      if (index !== null && i === index) {
+        pointEl.classList.add('selected');
+      }
+    }
+  }
 
   function RulerLine({ idx0, idx1, width = 2 }: { idx0: number; idx1: number; width?: number }) {
     const position = measurements[idx0]?.position;
@@ -279,6 +307,8 @@ export function MeasurementTools() {
                 position: mousePos,
               },
             ]);
+
+            setSelectedMeasurement(measurements.length);
           }}>
           {/* draw connections */}
           {measurements.map((_measurement: Measurement, index: number) => {
@@ -320,17 +350,23 @@ export function MeasurementTools() {
               data-idx={index}
               cx={measurement.position[0]}
               cy={measurement.position[1]}
-              className="measurement-point"
+              className={cn('measurement-point', {
+                selected: selectedMeasurementRef.current === index,
+              })}
               r="8"
               onMouseDown={(_e: React.MouseEvent<SVGElement>) => {
                 if (cameraControlsEnabled) {
                   return;
                 }
+
+                setSelectedMeasurement(index);
               }}
               onMouseUp={(e: React.MouseEvent<SVGElement>) => {
                 if (cameraControlsEnabled) {
                   return;
                 }
+
+                // setSelectedMeasurement(null);
 
                 const mousePos: [number, number] = getSVGMousePosition(e);
 

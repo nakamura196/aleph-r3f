@@ -96,6 +96,10 @@ body.dragging {
   fill: cornflowerblue;
 }
 
+.measurement-point.selected {
+  fill: cornflowerblue;
+}
+
 .measurement-label {
   width: 80px;
   height: 30px;

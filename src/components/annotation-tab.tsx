@@ -4,9 +4,9 @@ import { Button } from './ui/button';
 import useKeyPress from '@/lib/hooks/use-key-press';
 import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
 import useStore from '@/Store';
-import clsx from 'clsx';
 import { Vector3 } from 'three';
 import { Tab } from './tab';
+import { cn } from '@/lib/utils';
 
 function AnnotationTab() {
   // type ErrorType = 'label';
@@ -98,7 +98,7 @@ function AnnotationTab() {
           return (
             <div
               key={idx}
-              className={clsx('flex items-center justify-between', {
+              className={cn('flex items-center justify-between', {
                 'cursor-move': editIdx === null,
               })}
               draggable={editIdx === null}

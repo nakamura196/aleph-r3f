@@ -8,7 +8,7 @@ import { RECENTER_CLICK } from '@/types';
 import useStore from '@/Store';
 
 function MeasurementTab() {
-  const { setCameraControlsEnabled } = useStore();
+  const { setCameraControlsEnabled, selectedMeasurement } = useStore();
   const triggerRecenterClickEvent = useEventTrigger(RECENTER_CLICK);
   return (
     <Tab>
@@ -23,6 +23,7 @@ function MeasurementTab() {
         }}>
         Recenter
       </Button>
+      {selectedMeasurement}
     </Tab>
   );
 }
