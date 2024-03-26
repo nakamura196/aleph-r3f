@@ -57,28 +57,9 @@ function AnnotationTab() {
     setAnnotations(copyListItems);
   };
 
-  // Form validation
-  // const [errors, setErrors] = useState<Errors>({});
-
-  // const handleValidation = () => {
-  //   let tempErrors: Errors = {};
-  //   let isValid = true;
-
-  //   if (label!.length <= 0) {
-  //     tempErrors['label'] = true;
-  //     isValid = false;
-  //   }
-
-  //   setErrors({ ...tempErrors });
-  //   return isValid;
-  // };
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // let isValidForm = handleValidation();
-
-    // if (isValidForm) { // using inline validation for now
     const copyListItems = [...annotations];
     const updatedItem = {
       ...copyListItems[editIdx as number],
@@ -96,7 +77,6 @@ function AnnotationTab() {
     setLabel('');
     setDescription('');
     setEditIdx(null);
-    // }
   };
 
   function deleteAnnotation(idx: number) {
@@ -107,6 +87,7 @@ function AnnotationTab() {
 
     if (window.confirm(message)) {
       setAnnotations(annotations.filter((_, i) => i !== idx));
+      setEditIdx(null);
     }
   }
 
@@ -151,7 +132,7 @@ function AnnotationTab() {
                     />
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="default" type="submit">
+                    <Button className="p-2 h-8" variant="outline" type="submit">
                       <svg
                         className="h-4 w-4"
                         fill="none"
@@ -185,6 +166,7 @@ function AnnotationTab() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
+                      className="p-2 h-8"
                       variant="outline"
                       onClick={() => {
                         setEditIdx(idx);
@@ -209,6 +191,7 @@ function AnnotationTab() {
                       </svg>
                     </Button>
                     <Button
+                      className="p-2 h-8"
                       variant="destructive"
                       onClick={() => {
                         deleteAnnotation(idx);

@@ -142,7 +142,7 @@ function App() {
       <div id="viewer">
         <Viewer
           ref={viewerRef}
-          src={srcs[2]}
+          src={srcs[3]}
           onLoad={() => {
             console.log('model(s) loaded');
           }}

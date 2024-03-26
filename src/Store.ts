@@ -13,6 +13,7 @@ type State = {
   gridEnabled: boolean;
   loading: boolean;
   measurements: Measurement[];
+  measurementUnits: 'm' | 'mm';
   mode: Mode;
   orthographicEnabled: boolean;
   srcs: SrcObj[];
@@ -26,6 +27,7 @@ type State = {
   setGridEnabled: (gridEnabled: boolean) => void;
   setLoading: (loading: boolean) => void;
   setMeasurements: (measurements: Measurement[]) => void;
+  setMeasurementUnits: (measurementUnits: 'm' | 'mm') => void;
   setMode: (mode: Mode) => void;
   setOrthographicEnabled: (orthographicEnabled: boolean) => void;
   setSrcs: (srcs: SrcObj[]) => void;
@@ -42,6 +44,7 @@ const useStore = create<State>((set) => ({
   gridEnabled: false,
   loading: true,
   measurements: [],
+  measurementUnits: 'm',
   mode: 'scene',
   orthographicEnabled: false,
   srcs: [],
@@ -90,6 +93,11 @@ const useStore = create<State>((set) => ({
   setMeasurements: (measurements: Measurement[]) =>
     set({
       measurements,
+    }),
+
+  setMeasurementUnits: (measurementUnits: 'm' | 'mm') =>
+    set({
+      measurementUnits,
     }),
 
   setMode: (mode: Mode) =>

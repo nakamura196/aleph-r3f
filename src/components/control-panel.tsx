@@ -11,22 +11,22 @@ export function ControlPanel() {
   const { mode, setMode } = useStore();
 
   return (
-    <div className="p-4">
+    <div>
       <Tabs
         value={mode}
         onValueChange={(value: string) => {
           setMode(value as Mode);
         }}>
-        <TabsList className="grid w-full grid-cols-3 gap-2">
-          <TabsTrigger value="scene" title="Scene">
+        <TabsList className="grid w-full grid-cols-3 p-0">
+          <TabsTrigger value="scene" title="Scene" className="h-10">
             <span className="sr-only">Scene</span>
             <Settings />
           </TabsTrigger>
-          <TabsTrigger value="annotation" title="Annotation">
+          <TabsTrigger value="annotation" title="Annotation" className="h-10">
             <span className="sr-only">Annotation</span>
             <MapPin />
           </TabsTrigger>
-          <TabsTrigger value="measurement" title="Measurement">
+          <TabsTrigger value="measurement" title="Measurement" className="h-10">
             <span className="sr-only">Measurement</span>
             <Ruler />
           </TabsTrigger>

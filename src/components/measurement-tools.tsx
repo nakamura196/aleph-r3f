@@ -6,19 +6,11 @@ import { useEventTrigger } from '@/lib/hooks/use-event';
 import { useDrag } from '@use-gesture/react';
 import { useThree } from '@react-three/fiber';
 
-// export function MeasurementTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
 export function MeasurementTools() {
-  const { measurements, setMeasurements, cameraControlsEnabled, setCameraControlsEnabled } = useStore();
+  const { measurements, setMeasurements, cameraControlsEnabled, setCameraControlsEnabled, measurementUnits } =
+    useStore();
 
   const { camera } = useThree();
-
-  function screenToWorldDistance(screenDistance: number) {
-    const orthographicCamera = camera as THREE.OrthographicCamera;
-    const frustumHeight = Math.abs(orthographicCamera.top - orthographicCamera.bottom);
-    const frustumWidth = frustumHeight * (window.innerWidth / window.innerHeight);
-    const worldUnitsPerPixel = frustumWidth / window.innerWidth;
-    return screenDistance * worldUnitsPerPixel;
-  }
 
   function RulerLine({ idx0, idx1, width = 2 }: { idx0: number; idx1: number; width?: number }) {
     const position = measurements[idx0]?.position;
@@ -27,9 +19,16 @@ export function MeasurementTools() {
     const dx = nextPosition[0] - position[0];
     const dy = nextPosition[1] - position[1];
     const distance = Math.sqrt(dx * dx + dy * dy);
+    let worldDistance = distance / camera.zoom;
 
-    // get the distance in 3d scene units
-    const worldDistance = screenToWorldDistance(distance);
+    if (measurementUnits === 'mm') {
+      worldDistance *= 1000;
+      // round to two decimal places
+      worldDistance = Math.round(worldDistance);
+    } else {
+      // round to two decimal places
+      worldDistance = parseFloat(worldDistance.toFixed(2));
+    }
 
     const avgX = (position[0] + nextPosition[0]) / 2;
     const avgY = (position[1] + nextPosition[1]) / 2;
@@ -62,7 +61,10 @@ export function MeasurementTools() {
           strokeDashoffset="5"
         />
         <foreignObject className="measurement-label" x={avgX - 30} y={avgY - 15}>
-          <div>{worldDistance.toFixed(2)}</div>
+          <div>
+            {worldDistance}
+            {measurementUnits}
+          </div>
         </foreignObject>
       </>
     );
