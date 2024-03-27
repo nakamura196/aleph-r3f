@@ -3,7 +3,7 @@ import { AxesSelector } from './axes-selector';
 import { BoundsSelector } from './bounds-selector';
 import { GridSelector } from './grid-selector';
 import { Tab } from './tab';
-// import { OrthographicSelector } from './orthographic-selector';
+import { OrthographicSelector } from './orthographic-selector';
 import { UpVectorSelector } from './upvector-selector';
 
 function SceneTab() {
@@ -11,7 +11,7 @@ function SceneTab() {
     <Tab>
       <AmbientLightSelector />
       <UpVectorSelector />
-      {/* <OrthographicSelector /> */}
+      <OrthographicSelector />
       <BoundsSelector />
       <GridSelector />
       <AxesSelector />

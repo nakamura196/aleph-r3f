@@ -19,7 +19,7 @@ export function MeasurementTools() {
     if (selectedMeasurementRef.current !== null) {
       setMeasurements(measurements.filter((_measurement, index) => index !== selectedMeasurementRef.current));
     }
-    setSelectedMeasurement(null);
+    setSelectedMeasurement(measurements.length ? measurements.length - 2 : null);
   });
 
   const selectedMeasurementRef = useRef<number | null>(null);

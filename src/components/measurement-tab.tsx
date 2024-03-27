@@ -4,22 +4,30 @@ import { LockCameraControlsSelector } from './lock-camera-controls-selector';
 import { MeasurementUnitsSelector } from './measurement-units-selector';
 import { Tab } from './tab';
 import { Button } from './ui/button';
-import { RECENTER_CLICK } from '@/types';
+import { RECENTER } from '@/types';
 import useStore from '@/Store';
+import { Instructions } from './instructions';
+import useKeyPress from '@/lib/hooks/use-key-press';
 
 function MeasurementTab() {
-  const { setCameraControlsEnabled } = useStore();
-  const triggerRecenterClickEvent = useEventTrigger(RECENTER_CLICK);
+  const { cameraControlsEnabled, setCameraControlsEnabled } = useStore();
+  const triggerRecenterEvent = useEventTrigger(RECENTER);
+
+  useKeyPress('l', () => {
+    setCameraControlsEnabled(!cameraControlsEnabled);
+  });
+
   return (
     <Tab>
+      <Instructions>Double click on the scene to create measurements.</Instructions>
       <LockCameraControlsSelector />
       <MeasurementUnitsSelector />
       <Button
-        className="text-white"
+        className="text-white mt-6"
         variant={'secondary'}
         onClick={() => {
           setCameraControlsEnabled(true);
-          triggerRecenterClickEvent();
+          triggerRecenterEvent();
         }}>
         Recenter
       </Button>

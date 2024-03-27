@@ -19,11 +19,11 @@ import {
   SrcObj,
   CAMERA_UPDATE,
   DBL_CLICK,
-  RECENTER_CLICK,
   Mode,
   CameraRefs,
   DRAGGING_MEASUREMENT,
   DROPPED_MEASUREMENT,
+  RECENTER,
 } from '@/types';
 import useDoubleClick from '@/lib/hooks/use-double-click';
 import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
@@ -89,7 +89,7 @@ function Scene({ onLoad, src }: ViewerProps) {
   useTimeout(
     () => {
       if (!loading) {
-        home(true);
+        recenter(true);
       }
     },
     1,
@@ -98,11 +98,11 @@ function Scene({ onLoad, src }: ViewerProps) {
 
   const triggerCameraUpdateEvent = useEventTrigger(CAMERA_UPDATE);
 
-  const handleHomeClickEvent = () => {
-    home();
+  const handleRecenterEvent = () => {
+    recenter();
   };
 
-  useEventListener(RECENTER_CLICK, handleHomeClickEvent);
+  useEventListener(RECENTER, handleRecenterEvent);
 
   function zoomToObject(object: Object3D, instant?: boolean, padding: number = 0.1) {
     cameraRefs.controls.current!.fitToBox(object, !instant, {
@@ -114,7 +114,7 @@ function Scene({ onLoad, src }: ViewerProps) {
     });
   }
 
-  function home(instant?: boolean, padding?: number) {
+  function recenter(instant?: boolean, padding?: number) {
     if (boundsRef.current) {
       zoomToObject(boundsRef.current, instant, padding);
     }
@@ -139,7 +139,7 @@ function Scene({ onLoad, src }: ViewerProps) {
     // zoom to fit bounds on double click on background
     const handleOnPointerMissed = useDoubleClick(() => {
       if (mode === 'scene' || mode === 'annotation') {
-        home();
+        recenter();
       }
     });
 
@@ -188,22 +188,23 @@ function Scene({ onLoad, src }: ViewerProps) {
     scene: <></>,
   };
 
+  const cameraRef = useRef<any>(null);
+
   return (
     <>
       {orthographicEnabled ? (
         <>
-          {/* @ts-ignore */}
-          <OrthographicCamera makeDefault position={[0, 0, 2]} near={0} zoom={200} />
+          <OrthographicCamera ref={cameraRef} makeDefault position={[0, 0, 2]} />
         </>
       ) : (
         <>
-          {/* @ts-ignore */}
-          <PerspectiveCamera position={[0, 0, 2]} fov={50} near={0.01} />
+          <PerspectiveCamera ref={cameraRef} />
         </>
       )}
       <CameraControls
         ref={cameraRefs.controls}
-        minDistance={minDistance}
+        // camera={cameraRef.current}
+        minDistance={0.1}
         onChange={onCameraChange}
         enabled={cameraControlsEnabled}
       />
@@ -227,11 +228,11 @@ const Viewer = (props: ViewerProps, ref: ((instance: unknown) => void) | RefObje
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const triggerDoubleClickEvent = useEventTrigger(DBL_CLICK);
-  const triggerHomeClickEvent = useEventTrigger(RECENTER_CLICK);
+  const triggerRecenterEvent = useEventTrigger(RECENTER);
 
   useImperativeHandle(ref, () => ({
-    home: () => {
-      triggerHomeClickEvent();
+    recenter: () => {
+      triggerRecenterEvent();
     },
   }));
 

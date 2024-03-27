@@ -6,5 +6,5 @@ export type ViewerProps = {
 };
 
 export type ViewerRef = {
-  home: () => void;
+  recenter: () => void;
 };

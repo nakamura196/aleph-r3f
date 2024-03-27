@@ -11,7 +11,9 @@ export function OrthographicSelector() {
       label="Orthographic Camera"
       description="Enabled/disable orthographic camera."
       value={orthographicEnabled}
-      onChange={setOrthographicEnabled}
+      onChange={(value: boolean) => {
+        setOrthographicEnabled(value);
+      }}
     />
   );
 }
