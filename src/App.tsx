@@ -25,10 +25,10 @@ function App() {
           requiredStatement:
             '© 2021, Shopify. <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC BY 4.0 International</a> <br/> - Shopify for Everthing',
         },
-        Mosquito: {
+        'Mosquito in Amber': {
           url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/MosquitoInAmber/glTF-Binary/MosquitoInAmber.glb',
           requiredStatement:
-            '© 2018, Sketchfab. <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC BY 4.0 International</a> <br/> - Loic Norgeot for Model <br/><br/> © 2019, Sketchfab. CC BY 4.0 International <br/> - Sketchfab for Real-time refraction',
+            '© 2018, Sketchfab. <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC BY 4.0 International</a> <br/> - Loic Norgeot for Model <br/> - Sketchfab for Real-time refraction',
         },
         'Thor and the Midgard Serpent': {
           url: 'https://modelviewer.dev/assets/SketchfabModels/ThorAndTheMidgardSerpent.glb',
