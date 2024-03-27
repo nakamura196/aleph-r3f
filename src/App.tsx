@@ -1,12 +1,11 @@
 import './App.css';
-import { useEffect, useRef, useState } from 'react';
-import { Viewer, ControlPanel } from './components';
+import { useEffect, useRef } from 'react';
 import { useControls } from 'leva';
-import { SrcObj } from './types/Src';
-import { ViewerRef } from './types';
+import { normalizeSrc, ViewerRef, SrcObj, Viewer, ControlPanel } from '../index';
 
 function App() {
   const viewerRef = useRef<ViewerRef>(null);
+  const loadedUrlsRef = useRef<string[]>([]);
 
   // https://github.com/KhronosGroup/glTF-Sample-Assets/blob/main/Models/Models-showcase.md
   const [{ src }, _setLevaControls] = useControls(() => ({
@@ -61,6 +60,16 @@ function App() {
     // }),
   }));
 
+  useEffect(() => {
+    const normalizedSrc = normalizeSrc(src);
+    // if the src is already loaded, recenter the camera
+    if (normalizedSrc.every((src) => loadedUrlsRef.current.includes(src.url))) {
+      setTimeout(() => {
+        viewerRef.current?.recenter();
+      }, 100);
+    }
+  }, [src]);
+
   return (
     <div id="container">
       <div id="control-panel">
@@ -70,8 +79,10 @@ function App() {
         <Viewer
           ref={viewerRef}
           src={src}
-          onLoad={() => {
-            // console.log('model(s) loaded');
+          onLoad={(srcs: SrcObj[]) => {
+            console.log(`model${srcs.length > 1 ? 's' : ''} loaded`, srcs);
+            // add loaded urls to array of already loaded urls
+            loadedUrlsRef.current = [...loadedUrlsRef.current, ...srcs.map((src) => src.url)];
           }}
         />
       </div>

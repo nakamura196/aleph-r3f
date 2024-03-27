@@ -30,6 +30,7 @@ import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
 import useTimeout from '@/lib/hooks/use-timeout';
 import { AnnotationTools } from './annotation-tools';
 import MeasurementTools from './measurement-tools';
+import { normalizeSrc } from '@/lib/utils';
 
 function Scene({ onLoad, src }: ViewerProps) {
   const boundsRef = useRef<Group | null>(null);
@@ -54,6 +55,7 @@ function Scene({ onLoad, src }: ViewerProps) {
     loading,
     mode,
     orthographicEnabled,
+    setAnnotations,
     setLoading,
     setSrcs,
     srcs,
@@ -66,23 +68,9 @@ function Scene({ onLoad, src }: ViewerProps) {
 
   // src changed
   useEffect(() => {
-    const srcs: SrcObj[] = [];
-
-    // is the src a string or an array of ModelSrc objects?
-    // if it's a string, create a ModelSrc object from it
-    if (typeof src === 'string') {
-      srcs.push({
-        url: src as string,
-      });
-    } else if (Array.isArray(src)) {
-      // if it's an array, then it's already a ModelSrc object
-      srcs.push(...(src as SrcObj[]));
-    } else {
-      // if it's not a string or an array, then it's a single ModelSrc object
-      srcs.push(src as SrcObj);
-    }
-
+    const srcs: SrcObj[] = normalizeSrc(src);
     setSrcs(srcs);
+    setAnnotations([]);
   }, [src]);
 
   // when loaded or camera type changed, zoom to object(s) instantaneously
@@ -155,7 +143,7 @@ function Scene({ onLoad, src }: ViewerProps) {
     if (progress === 100) {
       setTimeout(() => {
         if (onLoad) {
-          onLoad();
+          onLoad(srcs);
           setLoading(false);
         }
       }, 1);

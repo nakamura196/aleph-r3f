@@ -1,7 +1,7 @@
 import { SrcObj } from './index';
 
 export type ViewerProps = {
-  onLoad?: () => void;
+  onLoad?: (src: SrcObj[]) => void;
   src: string | SrcObj | SrcObj[];
 };
 
