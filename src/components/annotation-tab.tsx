@@ -8,15 +8,8 @@ import { Vector3 } from 'three';
 import { Tab } from './tab';
 import { cn } from '@/lib/utils';
 import { Instructions } from './instructions';
-import { OrthographicSelector } from './orthographic-selector';
 
 function AnnotationTab() {
-  // type ErrorType = 'label';
-
-  // type Errors = {
-  //   [key in ErrorType]?: boolean;
-  // };
-
   const { annotations, setAnnotations } = useStore();
 
   const [editIdx, setEditIdx] = useState<number | null>(null);
@@ -95,8 +88,8 @@ function AnnotationTab() {
 
   return (
     <Tab>
-      <OrthographicSelector />
-      <div className="mt-4">
+      {/* <OrthographicSelector /> */}
+      <div>
         {annotations.length ? (
           annotations.map((anno: Annotation, idx) => {
             return (
@@ -222,7 +215,7 @@ function AnnotationTab() {
             );
           })
         ) : (
-          <Instructions>Double-click on an object to create an annotation.</Instructions>
+          <Instructions>Double-click to create an annotation.</Instructions>
         )}
       </div>
     </Tab>

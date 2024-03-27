@@ -1,3 +1,7 @@
+:root {
+  --hover-color: #9c9fa2;
+}
+
 .loading {
   white-space: nowrap;
   color: #fff;
@@ -58,8 +62,8 @@ body.dragging {
 }
 
 .annotation .circle:hover {
-  color: cornflowerblue;
-  border: 1px solid cornflowerblue;
+  color: var(--hover-color);
+  border: 1px solid var(--hover-color);
 }
 
 /* The label */
@@ -93,11 +97,11 @@ body.dragging {
 }
 
 .measurement-point:hover {
-  fill: cornflowerblue;
+  fill: var(--hover-color);
 }
 
 .measurement-point.selected {
-  fill: cornflowerblue;
+  fill: var(--hover-color);
 }
 
 .measurement-label {

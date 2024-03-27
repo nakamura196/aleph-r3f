@@ -19,7 +19,7 @@ function MeasurementTab() {
 
   return (
     <Tab>
-      <Instructions>Double click on the scene to create measurements.</Instructions>
+      <Instructions>Double-click to create measurements.</Instructions>
       <LockCameraControlsSelector />
       <MeasurementUnitsSelector />
       <Button

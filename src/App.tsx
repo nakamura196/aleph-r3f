@@ -1,5 +1,5 @@
 import './App.css';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Viewer, ControlPanel } from './components';
 import { useControls } from 'leva';
 import { SrcObj } from './types/Src';
@@ -56,6 +56,9 @@ function App() {
         // 'Frog (Draco) URL': 'https://aleph-gltf-models.netlify.app/Frog.glb',
       },
     },
+    // Recenter: button((_get) => {
+    //   viewerRef.current?.recenter();
+    // }),
   }));
 
   return (

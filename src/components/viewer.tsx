@@ -41,9 +41,9 @@ function Scene({ onLoad, src }: ViewerProps) {
   };
 
   const environment = 'apartment';
-  const minDistance = 0;
+  const minDistance = 0.1;
 
-  const { camera } = useThree();
+  const { camera, gl } = useThree();
 
   const {
     ambientLightIntensity,
@@ -161,7 +161,24 @@ function Scene({ onLoad, src }: ViewerProps) {
       }, 1);
     }
 
-    return <Html wrapperClass="loading">{Math.ceil(progress)} %</Html>;
+    return (
+      <Html
+        wrapperClass="loading"
+        calculatePosition={() => {
+          return [gl.domElement.clientWidth / 2, gl.domElement.clientHeight / 2];
+        }}>
+        <div className="flex justify-center">
+          <div className="h-1 w-24 bg-black rounded-full overflow-hidden transform translate-x-[-50%]">
+            <div
+              className="h-full bg-white"
+              style={{
+                width: `${Math.ceil(progress)}%`,
+              }}
+            />
+          </div>
+        </div>
+      </Html>
+    );
   }
 
   function onCameraChange(e: any) {
@@ -188,23 +205,12 @@ function Scene({ onLoad, src }: ViewerProps) {
     scene: <></>,
   };
 
-  const cameraRef = useRef<any>(null);
-
   return (
     <>
-      {orthographicEnabled ? (
-        <>
-          <OrthographicCamera ref={cameraRef} makeDefault position={[0, 0, 2]} />
-        </>
-      ) : (
-        <>
-          <PerspectiveCamera ref={cameraRef} />
-        </>
-      )}
+      {orthographicEnabled ? <OrthographicCamera makeDefault position={[0, 0, 2]} /> : <PerspectiveCamera />}
       <CameraControls
         ref={cameraRefs.controls}
-        // camera={cameraRef.current}
-        minDistance={0.1}
+        minDistance={minDistance}
         onChange={onCameraChange}
         enabled={cameraControlsEnabled}
       />
@@ -239,24 +245,24 @@ const Viewer = (props: ViewerProps, ref: ((instance: unknown) => void) | RefObje
   useEventListener(DRAGGING_MEASUREMENT, () => {
     // add dragging class to body
     document.body.classList.add('dragging');
-
-    // canvasRef.current?.classList.add('dragging');
   });
 
   useEventListener(DROPPED_MEASUREMENT, () => {
+    // remove dragging class from body
     document.body.classList.remove('dragging');
-
-    // canvasRef.current?.classList.remove('dragging');
   });
 
   return (
-    <Canvas
-      ref={canvasRef}
-      onDoubleClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        triggerDoubleClickEvent(e);
-      }}>
-      <Scene {...props} />
-    </Canvas>
+    <>
+      <Canvas
+        ref={canvasRef}
+        camera={{ fov: 30 }}
+        onDoubleClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+          triggerDoubleClickEvent(e);
+        }}>
+        <Scene {...props} />
+      </Canvas>
+    </>
   );
 };
 
