@@ -7,7 +7,6 @@ export type SrcObj = {
   position?: Vector3;
   rotation?: Euler;
   scale?: Vector3;
-  rights?: string;
   requiredStatement?: string;
   url: string;
 };

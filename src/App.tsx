@@ -2,12 +2,15 @@ import './App.css';
 import { useEffect, useRef } from 'react';
 import { useControls } from 'leva';
 import { normalizeSrc, ViewerRef, SrcObj, Viewer, ControlPanel } from '../index';
+import { Toaster } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 
 function App() {
   const viewerRef = useRef<ViewerRef>(null);
   const loadedUrlsRef = useRef<string[]>([]);
 
   // https://github.com/KhronosGroup/glTF-Sample-Assets/blob/main/Models/Models-showcase.md
+  // https://github.com/google/model-viewer/tree/master/packages/modelviewer.dev/assets
   const [{ src }, _setLevaControls] = useControls(() => ({
     src: {
       options: {
@@ -17,14 +20,23 @@ function App() {
         // },
         'Flight Helmet':
           'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/FlightHelmet/glTF/FlightHelmet.gltf',
-        Shoe: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/MaterialsVariantsShoe/glTF-Binary/MaterialsVariantsShoe.glb',
-        Mosquito:
-          'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/MosquitoInAmber/glTF-Binary/MosquitoInAmber.glb',
-        Thor: {
+        Shoe: {
+          url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/MaterialsVariantsShoe/glTF-Binary/MaterialsVariantsShoe.glb',
+          requiredStatement:
+            '© 2021, Shopify. <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC BY 4.0 International</a> <br/> - Shopify for Everthing',
+        },
+        Mosquito: {
+          url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/MosquitoInAmber/glTF-Binary/MosquitoInAmber.glb',
+          requiredStatement:
+            '© 2018, Sketchfab. <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC BY 4.0 International</a> <br/> - Loic Norgeot for Model <br/><br/> © 2019, Sketchfab. CC BY 4.0 International <br/> - Sketchfab for Real-time refraction',
+        },
+        'Thor and the Midgard Serpent': {
           url: 'https://modelviewer.dev/assets/SketchfabModels/ThorAndTheMidgardSerpent.glb',
           position: [0, 0, 0],
           rotation: [0, 0, 0],
           scale: [1, 1, 1],
+          requiredStatement:
+            '© 2019, <a href="https://sketchfab.com/MrTheRich">Mr. The Rich</a>. <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC BY 4.0 International</a>',
         } as SrcObj,
         'Multiple Objects': [
           {
@@ -60,6 +72,7 @@ function App() {
     // }),
   }));
 
+  // src changed
   useEffect(() => {
     const normalizedSrc = normalizeSrc(src);
     // if the src is already loaded, recenter the camera
@@ -83,9 +96,17 @@ function App() {
             console.log(`model${srcs.length > 1 ? 's' : ''} loaded`, srcs);
             // add loaded urls to array of already loaded urls
             loadedUrlsRef.current = [...loadedUrlsRef.current, ...srcs.map((src) => src.url)];
+
+            // loop through each src and show the required statement if it exists
+            srcs
+              .filter((srcObj) => srcObj.requiredStatement)
+              .forEach((srcObj) => {
+                toast(srcObj.requiredStatement);
+              });
           }}
         />
       </div>
+      <Toaster />
     </div>
   );
 }
