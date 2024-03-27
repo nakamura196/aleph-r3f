@@ -7,29 +7,14 @@ import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
 import { ANNO_CLICK, Annotation, CameraRefs, DBL_CLICK } from '@/types';
 import React from 'react';
 import { Html } from '@react-three/drei';
+import { cn } from '@/lib/utils';
 
 export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
-  function zoomToAnnotation(annotation: Annotation) {
-    cameraRefs.controls.current!.setPosition(
-      annotation.cameraPosition.x,
-      annotation.cameraPosition.y,
-      annotation.cameraPosition.z,
-      true
-    );
-    cameraRefs.controls.current!.setTarget(
-      annotation.cameraTarget.x,
-      annotation.cameraTarget.y,
-      annotation.cameraTarget.z,
-      true
-    );
-  }
-
+  const { annotations, setAnnotations, selectedAnnotation, setSelectedAnnotation } = useStore();
   const { scene, camera, pointer, raycaster } = useThree();
 
   // if a dot product is less than this, then the normal is facing away from the camera
   const DOT_PRODUCT_THRESHOLD = Math.PI * -0.1;
-
-  const { annotations, setAnnotations } = useStore();
 
   const lastAnnoLength = useRef<number>(0);
 
@@ -51,8 +36,25 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
           cameraTarget: cameraRefs.target.current!,
         },
       ]);
+
+      setSelectedAnnotation(annotations.length);
     }
   };
+
+  function zoomToAnnotation(annotation: Annotation) {
+    cameraRefs.controls.current!.setPosition(
+      annotation.cameraPosition.x,
+      annotation.cameraPosition.y,
+      annotation.cameraPosition.z,
+      true
+    );
+    cameraRefs.controls.current!.setTarget(
+      annotation.cameraTarget.x,
+      annotation.cameraTarget.y,
+      annotation.cameraTarget.z,
+      true
+    );
+  }
 
   const handleAnnotationClick = (e: any) => {
     zoomToAnnotation(e.detail);
@@ -60,6 +62,7 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
 
   useEventListener(DBL_CLICK, handleDoubleClickEvent);
   useEventListener(ANNO_CLICK, handleAnnotationClick);
+
   const triggerAnnoClick = useEventTrigger(ANNO_CLICK);
 
   function isFacingCamera(position: Vector3, normal: Vector3): boolean {
@@ -116,23 +119,22 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
         return (
           <React.Fragment key={idx}>
             {/* {arrowHelpersEnabled && <arrowHelper args={[anno.normal, anno.position, 0.05, 0xffffff]} />} */}
-            <Html
-              position={anno.position}
-              style={{
-                width: 0,
-                height: 0,
-              }}>
+            <Html position={anno.position}>
               <div id={`anno-${idx}`} className="annotation">
                 <div
-                  className="circle"
+                  className={cn('circle', { selected: selectedAnnotation === idx })}
                   onClick={(_e) => {
                     if (isFacingCamera(anno.position, anno.normal)) {
+                      setSelectedAnnotation(idx);
                       triggerAnnoClick(anno);
                     }
                   }}>
                   <span className="label">{idx + 1}</span>
                 </div>
               </div>
+              {selectedAnnotation === idx && anno.label && (
+                <div className="bg-black/75 text-white text-sm ml-5 px-2 py-1 min-w-40 -mt-1">{anno.label}</div>
+              )}
             </Html>
           </React.Fragment>
         );

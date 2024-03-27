@@ -8,8 +8,8 @@ export function LockCameraControlsSelector() {
 
   return (
     <BooleanSelector
-      label="Lock Camera"
-      description="Locks/unlocks camera controls."
+      label="Lock Rotation"
+      description="Locks/unlocks camera controls to enable measurement."
       value={!cameraControlsEnabled}
       onChange={(value: boolean) => {
         setCameraControlsEnabled(!value);

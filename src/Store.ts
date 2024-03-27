@@ -4,9 +4,7 @@ import { Annotation, SrcObj, Mode, Measurement } from './types/';
 
 type State = {
   ambientLightIntensity: number;
-  // annotateOnDoubleClickEnabled: boolean;
   annotations: Annotation[];
-  // arrowHelpersEnabled: boolean;
   axesEnabled: boolean;
   boundsEnabled: boolean;
   cameraControlsEnabled: boolean;
@@ -16,11 +14,11 @@ type State = {
   measurementUnits: 'm' | 'mm';
   mode: Mode;
   orthographicEnabled: boolean;
+  selectedAnnotation: number | null;
   srcs: SrcObj[];
   upVector: [number, number, number];
   setAmbientLightIntensity: (ambientLightIntensity: number) => void;
   setAnnotations: (annotations: Annotation[]) => void;
-  // setArrowHelpersEnabled: (arrowHelpers: boolean) => void;
   setAxesEnabled: (axesEnabled: boolean) => void;
   setBoundsEnabled: (boundsEnabled: boolean) => void;
   setCameraControlsEnabled: (cameraControlsEnabled: boolean) => void;
@@ -30,6 +28,7 @@ type State = {
   setMeasurementUnits: (measurementUnits: 'm' | 'mm') => void;
   setMode: (mode: Mode) => void;
   setOrthographicEnabled: (orthographicEnabled: boolean) => void;
+  setSelectedAnnotation: (selectedAnnotation: number | null) => void;
   setSrcs: (srcs: SrcObj[]) => void;
   setUpVector: (upVector: [number, number, number]) => void;
 };
@@ -37,7 +36,6 @@ type State = {
 const useStore = create<State>((set) => ({
   ambientLightIntensity: 0,
   annotations: [],
-  // arrowHelpersEnabled: false,
   axesEnabled: false,
   boundsEnabled: false,
   cameraControlsEnabled: true,
@@ -47,6 +45,7 @@ const useStore = create<State>((set) => ({
   measurementUnits: 'm',
   mode: 'scene',
   orthographicEnabled: false,
+  selectedAnnotation: null,
   srcs: [],
   upVector: [0, 1, 0],
 
@@ -59,11 +58,6 @@ const useStore = create<State>((set) => ({
     set({
       annotations,
     }),
-
-  // setArrowHelpersEnabled: (arrowHelpersEnabled: boolean) =>
-  //   set({
-  //     arrowHelpersEnabled,
-  //   }),
 
   setAxesEnabled: (axesEnabled: boolean) =>
     set({
@@ -110,6 +104,11 @@ const useStore = create<State>((set) => ({
   setOrthographicEnabled: (orthographicEnabled: boolean) =>
     set({
       orthographicEnabled,
+    }),
+
+  setSelectedAnnotation: (selectedAnnotation: number | null) =>
+    set({
+      selectedAnnotation,
     }),
 
   setSrcs: (srcs: SrcObj[]) =>

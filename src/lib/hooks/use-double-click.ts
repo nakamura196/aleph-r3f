@@ -14,6 +14,10 @@ const useDoubleClick = (doubleClick: (e: MouseEvent) => void, timeout: number = 
 
   return useCallback(
     (event: any) => {
+      if (event.button !== 0) {
+        return;
+      }
+
       clearClickTimeout();
       if (event.detail % 2 === 0) {
         doubleClick(event);
