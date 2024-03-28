@@ -109,34 +109,19 @@ function AnnotationTab() {
                 data-idx={idx}>
                 {editIdx === idx && (
                   <form onSubmit={handleSubmit} className="flex items-end justify-between w-full py-2">
-                    {/* <div className="flex flex-row "> */}
-                    <input
-                      type="text"
-                      placeholder="Label"
-                      className="text-xs text-black w-full p-1 mr-2 h-8"
-                      defaultValue={anno.label}
-                      required
-                      maxLength={64}
-                      onChange={(e) => {
-                        setLabel(e.target.value);
-                      }}
-                    />
-                    <Button className="p-2 h-8" variant="outline" type="submit">
-                      <svg
-                        className="h-4 w-4"
-                        fill="none"
-                        height="24"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                        width="24"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    </Button>
-                    {/* <textarea
+                    <div className="flex flex-col w-full mr-2">
+                      <input
+                        type="text"
+                        placeholder="Label"
+                        className="text-xs text-black mb-1 p-1"
+                        defaultValue={anno.label}
+                        required
+                        maxLength={64}
+                        onChange={(e) => {
+                          setLabel(e.target.value);
+                        }}
+                      />
+                      <textarea
                         placeholder="Description"
                         className="text-xs p-1 break-words text-black h-12"
                         defaultValue={anno.description}
@@ -144,9 +129,9 @@ function AnnotationTab() {
                         onChange={(e) => {
                           setDescription(e.target.value);
                         }}
-                      /> */}
-                    {/* </div> */}
-                    {/* <div className="flex gap-2">
+                      />
+                    </div>
+                    <div className="flex gap-2">
                       <Button className="p-2 h-8" variant="outline" type="submit">
                         <svg
                           className="h-4 w-4"
@@ -162,7 +147,7 @@ function AnnotationTab() {
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                       </Button>
-                    </div> */}
+                    </div>
                   </form>
                 )}
                 {editIdx !== idx && (
