@@ -7,6 +7,6 @@ export function GridSelector() {
   const { gridEnabled, setGridEnabled } = useStore();
 
   return (
-    <BooleanSelector label="Grid" description="Enabled/disable grid." value={gridEnabled} onChange={setGridEnabled} />
+    <BooleanSelector label="Grid" description="Enable/disable grid." value={gridEnabled} onChange={setGridEnabled} />
   );
 }

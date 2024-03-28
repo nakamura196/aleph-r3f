@@ -9,7 +9,7 @@ export function OrthographicSelector() {
   return (
     <BooleanSelector
       label="Orthographic"
-      description="Enabled/disable orthographic camera (no perspective)."
+      description="Enable/disable orthographic camera (no perspective)."
       value={orthographicEnabled}
       onChange={(value: boolean) => {
         setOrthographicEnabled(value);

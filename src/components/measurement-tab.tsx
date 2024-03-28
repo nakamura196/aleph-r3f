@@ -7,16 +7,15 @@ import { Button } from './ui/button';
 import { RECENTER } from '@/types';
 import useStore from '@/Store';
 import { Instructions } from './instructions';
-import useKeyPress from '@/lib/hooks/use-key-press';
 import { useEffect } from 'react';
 
 function MeasurementTab() {
-  const { cameraControlsEnabled, setCameraControlsEnabled } = useStore();
+  const { setCameraControlsEnabled } = useStore();
   const triggerRecenterEvent = useEventTrigger(RECENTER);
 
-  useKeyPress('l', () => {
-    setCameraControlsEnabled(!cameraControlsEnabled);
-  });
+  // useKeyPress('l', () => {
+  //   setCameraControlsEnabled(!cameraControlsEnabled);
+  // });
 
   useEffect(() => {
     setTimeout(() => {

@@ -9,7 +9,7 @@ export function BoundsSelector() {
   return (
     <BooleanSelector
       label="Bounding Box"
-      description="Enabled/disable bounding box."
+      description="Enable/disable bounding box."
       value={boundsEnabled}
       onChange={setBoundsEnabled}
     />

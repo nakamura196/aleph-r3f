@@ -137,8 +137,14 @@ function Scene({ onLoad, src }: ViewerProps) {
         ref={boundsRef}
         onDoubleClick={handleDoubleClickEvent}
         onPointerMissed={(e: MouseEvent) => {
-          setSelectedAnnotation(null);
-          handleOnPointerMissed(e);
+          const tagName = (e.target as HTMLElement).tagName;
+          if (tagName === 'SPAN' || tagName === 'DIV') {
+            // clicking on an overlaid annotation label or description
+            return;
+          } else {
+            handleOnPointerMissed(e);
+            setSelectedAnnotation(null);
+          }
         }}>
         {lineVisible ? <group ref={boundsLineRef}>{children}</group> : children}
       </group>
