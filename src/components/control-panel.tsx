@@ -1,12 +1,11 @@
 import '../index.css';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { MapPin, Settings, Ruler, Terminal } from 'lucide-react';
+import { MapPin, Settings, Ruler } from 'lucide-react';
 import useStore from '@/Store';
 import AnnotationTab from './annotation-tab';
 import SceneTab from './scene-tab';
 import { Mode } from '@/types';
 import MeasurementTab from './measurement-tab';
-import ConsoleTab from './console-tab';
 
 export function ControlPanel() {
   const { mode, setMode } = useStore();
@@ -31,7 +30,6 @@ export function ControlPanel() {
           <Tab value="scene" title="Scene" icon={<Settings />} />
           <Tab value="annotation" title="Annotation" icon={<MapPin />} />
           <Tab value="measurement" title="Measurement" icon={<Ruler />} />
-          {/* <Tab value="console" title="Console" icon={<Terminal />} /> */}
         </TabsList>
         <TabsContent value="scene">
           <SceneTab />
@@ -42,9 +40,6 @@ export function ControlPanel() {
         <TabsContent value="measurement">
           <MeasurementTab />
         </TabsContent>
-        {/* <TabsContent value="console">
-          <ConsoleTab />
-        </TabsContent> */}
       </Tabs>
     </div>
   );

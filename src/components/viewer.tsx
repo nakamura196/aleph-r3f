@@ -57,6 +57,7 @@ function Scene({ onLoad, src }: ViewerProps) {
     orthographicEnabled,
     setAnnotations,
     setLoading,
+    setSelectedAnnotation,
     setSrcs,
     srcs,
     upVector,
@@ -132,7 +133,13 @@ function Scene({ onLoad, src }: ViewerProps) {
     });
 
     return (
-      <group ref={boundsRef} onDoubleClick={handleDoubleClickEvent} onPointerMissed={handleOnPointerMissed}>
+      <group
+        ref={boundsRef}
+        onDoubleClick={handleDoubleClickEvent}
+        onPointerMissed={(e: MouseEvent) => {
+          setSelectedAnnotation(null);
+          handleOnPointerMissed(e);
+        }}>
         {lineVisible ? <group ref={boundsLineRef}>{children}</group> : children}
       </group>
     );
