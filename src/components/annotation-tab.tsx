@@ -158,9 +158,10 @@ function AnnotationTab() {
                         triggerAnnoClickEvent(anno);
                         setSelectedAnnotation(idx);
                       }}>
-                      <h3 className="text-white font-medium text-sm md:text-md line-clamp-1 pr-1">{`${idx + 1}. ${
-                        anno.label || 'no label'
-                      }`}</h3>
+                      <h3
+                        className={cn('text-gray-400 font-medium text-sm md:text-md line-clamp-1 pr-1', {
+                          'text-white': selectedAnnotation === idx,
+                        })}>{`${idx + 1}. ${anno.label || 'no label'}`}</h3>
                       <p className="text-white text-xs text-zinc-400 dark:text-zinc-400 line-clamp-1 pr-1">
                         {anno.description}
                       </p>

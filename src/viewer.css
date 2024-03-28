@@ -63,9 +63,9 @@ body.dragging {
   border: 1px solid black;
 }
 
-.annotation .circle:hover {
+/* .annotation .circle:hover {
   border: 1px solid white;
-}
+} */
 
 /* The label */
 .annotation .circle .label {
