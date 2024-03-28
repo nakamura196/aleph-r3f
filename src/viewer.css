@@ -63,6 +63,27 @@ body.dragging {
   border: 1px solid black;
 }
 
+.annotation .text {
+  position: absolute;
+  left: 20px;
+  top: 0px;
+  background-color: rgba(0, 0, 0, 0.75);
+  color: white;
+  font-size: 0.875rem; /* equivalent to text-sm in Tailwind */
+  padding: 0.5rem 0.75rem; /* equivalent to py-2 px-3 in Tailwind */
+  min-width: 10rem; /* equivalent to min-w-40 in Tailwind */
+}
+
+.annotation .label {
+  font-weight: 500; /* equivalent to font-medium in Tailwind */
+}
+
+.annotation .description {
+  font-size: 0.75rem; /* equivalent to text-xs in Tailwind */
+  margin-top: 0.25rem; /* equivalent to mt-1 in Tailwind */
+  color: #abb6c6; /* equivalent to text-gray-300 in Tailwind */
+}
+
 /* .annotation .circle:hover {
   border: 1px solid white;
 } */
@@ -76,7 +97,7 @@ body.dragging {
   user-select: none;
 }
 
-.annotation.facing-away .circle {
+.annotation.facing-away {
   opacity: 20%;
   transition: opacity 0.25s ease-in-out;
   /* cursor: default; */

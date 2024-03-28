@@ -131,13 +131,13 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
                   }}>
                   <span className="label">{idx + 1}</span>
                 </div>
+                {selectedAnnotation === idx && anno.label && (
+                  <div className="text">
+                    <div className="label">{anno.label}</div>
+                    {anno.description && <div className="description">{anno.description}</div>}
+                  </div>
+                )}
               </div>
-              {selectedAnnotation === idx && anno.label && (
-                <div className="bg-black/75 text-white text-sm ml-5 px-3 py-2 min-w-40 -mt-1">
-                  <div className="font-medium">{anno.label}</div>
-                  {anno.description && <div className="text-xs mt-1 text-gray-300">{anno.description}</div>}
-                </div>
-              )}
             </Html>
           </React.Fragment>
         );
