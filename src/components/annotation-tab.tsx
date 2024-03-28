@@ -51,6 +51,7 @@ function AnnotationTab() {
     copyListItems.splice(dragOverItemRef.current as number, 0, dragItemContent);
     dragItemRef.current = null;
     setAnnotations(copyListItems);
+    setSelectedAnnotation(dragOverItemRef.current);
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
