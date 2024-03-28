@@ -119,7 +119,7 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
         return (
           <React.Fragment key={idx}>
             {/* {arrowHelpersEnabled && <arrowHelper args={[anno.normal, anno.position, 0.05, 0xffffff]} />} */}
-            <Html position={anno.position}>
+            <Html zIndexRange={[50, 0]} position={anno.position}>
               <div id={`anno-${idx}`} className="annotation">
                 <div
                   className={cn('circle', { selected: selectedAnnotation === idx })}

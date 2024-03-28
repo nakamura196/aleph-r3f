@@ -8,6 +8,7 @@ import { Vector3 } from 'three';
 import { Tab } from './tab';
 import { cn } from '@/lib/utils';
 import { Instructions } from './instructions';
+import { AnnotationsDialog } from './import-annotations-dialog';
 
 function AnnotationTab() {
   const { annotations, setAnnotations, selectedAnnotation, setSelectedAnnotation } = useStore();
@@ -226,6 +227,7 @@ function AnnotationTab() {
           <Instructions>Double-click to create an annotation.</Instructions>
         )}
       </div>
+      <AnnotationsDialog />
     </Tab>
   );
 }

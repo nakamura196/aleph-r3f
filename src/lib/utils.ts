@@ -1,6 +1,7 @@
 import { Src, SrcObj } from '@/types';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { Vector3 } from 'three';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -27,3 +28,26 @@ export function normalizeSrc(src: Src): SrcObj[] {
 
   return srcs;
 }
+
+export const copyText = (text: string) => {
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  document.execCommand('copy');
+  document.body.removeChild(textArea);
+};
+
+export const parseAnnotations = (value: any) => {
+  const parsed = JSON.parse(value);
+
+  parsed.forEach((anno: any) => {
+    anno.cameraPosition = new Vector3().fromArray(Object.values(anno.cameraPosition));
+    anno.cameraTarget = new Vector3().fromArray(Object.values(anno.cameraTarget));
+    anno.normal = new Vector3().fromArray(Object.values(anno.normal));
+    anno.position = new Vector3().fromArray(Object.values(anno.position));
+  });
+
+  return parsed;
+};
