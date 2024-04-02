@@ -24,6 +24,7 @@ import {
   DRAGGING_MEASUREMENT,
   DROPPED_MEASUREMENT,
   RECENTER,
+  CAMERA_CONTROLS_ENABLED,
 } from '@/types';
 import useDoubleClick from '@/lib/hooks/use-double-click';
 import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
@@ -50,7 +51,6 @@ function Scene({ onLoad, src }: ViewerProps) {
     ambientLightIntensity,
     axesEnabled,
     boundsEnabled,
-    cameraControlsEnabled,
     gridEnabled,
     loading,
     mode,
@@ -92,6 +92,12 @@ function Scene({ onLoad, src }: ViewerProps) {
   };
 
   useEventListener(RECENTER, handleRecenterEvent);
+
+  const handleCameraEnabledEvent = (e: any) => {
+    (cameraRefs.controls.current as any).enabled = e.detail;
+  };
+
+  useEventListener(CAMERA_CONTROLS_ENABLED, handleCameraEnabledEvent);
 
   function zoomToObject(object: Object3D, instant?: boolean, padding: number = 0.1) {
     cameraRefs.controls.current!.fitToBox(object, !instant, {
@@ -206,15 +212,12 @@ function Scene({ onLoad, src }: ViewerProps) {
     scene: <></>,
   };
 
+  // console.log('cameraRefs', cameraRefs.controls.current);
+
   return (
     <>
       {orthographicEnabled ? <OrthographicCamera makeDefault position={[0, 0, 2]} /> : <PerspectiveCamera />}
-      <CameraControls
-        ref={cameraRefs.controls}
-        minDistance={minDistance}
-        onChange={onCameraChange}
-        enabled={cameraControlsEnabled}
-      />
+      <CameraControls ref={cameraRefs.controls} minDistance={minDistance} onChange={onCameraChange} />
       <ambientLight intensity={ambientLightIntensity} />
       <Bounds lineVisible={boundsEnabled}>
         <Suspense fallback={<Loader />}>

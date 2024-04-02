@@ -7,7 +7,6 @@ type State = {
   annotations: Annotation[];
   axesEnabled: boolean;
   boundsEnabled: boolean;
-  cameraControlsEnabled: boolean;
   gridEnabled: boolean;
   loading: boolean;
   measurements: Measurement[];
@@ -21,7 +20,6 @@ type State = {
   setAnnotations: (annotations: Annotation[]) => void;
   setAxesEnabled: (axesEnabled: boolean) => void;
   setBoundsEnabled: (boundsEnabled: boolean) => void;
-  setCameraControlsEnabled: (cameraControlsEnabled: boolean) => void;
   setGridEnabled: (gridEnabled: boolean) => void;
   setLoading: (loading: boolean) => void;
   setMeasurements: (measurements: Measurement[]) => void;
@@ -38,7 +36,6 @@ const useStore = create<State>((set) => ({
   annotations: [],
   axesEnabled: false,
   boundsEnabled: false,
-  cameraControlsEnabled: true,
   gridEnabled: false,
   loading: true,
   measurements: [],
@@ -69,11 +66,6 @@ const useStore = create<State>((set) => ({
       boundsEnabled,
     }),
 
-  setCameraControlsEnabled: (cameraControlsEnabled: boolean) =>
-    set({
-      cameraControlsEnabled,
-    }),
-
   setGridEnabled: (gridEnabled: boolean) =>
     set({
       gridEnabled,
@@ -97,7 +89,6 @@ const useStore = create<State>((set) => ({
   setMode: (mode: Mode) =>
     set({
       mode,
-      cameraControlsEnabled: true, // default to cameraControlsEnabled for all modes
       orthographicEnabled: mode === 'measurement', // enable orthographic camera for measurement mode only
     }),
 

@@ -1,5 +1,5 @@
 import useStore from '@/Store';
-import { DRAGGING_MEASUREMENT, DROPPED_MEASUREMENT, Measurement } from '@/types';
+import { CAMERA_CONTROLS_ENABLED, DRAGGING_MEASUREMENT, DROPPED_MEASUREMENT, Measurement } from '@/types';
 import React, { useRef } from 'react';
 import { Html } from '@react-three/drei';
 import { useEventTrigger } from '@/lib/hooks/use-event';
@@ -9,8 +9,8 @@ import { cn } from '@/lib/utils';
 import useKeyPress from '@/lib/hooks/use-key-press';
 
 export function MeasurementTools() {
-  const { measurements, setMeasurements, cameraControlsEnabled, setCameraControlsEnabled, measurementUnits } =
-    useStore();
+  const { measurements, setMeasurements, measurementUnits } = useStore();
+  const triggerCameraControlsEnabledEvent = useEventTrigger(CAMERA_CONTROLS_ENABLED);
 
   const { camera } = useThree();
 
@@ -103,10 +103,6 @@ export function MeasurementTools() {
     const triggerDroppedMeasurementEvent = useEventTrigger(DROPPED_MEASUREMENT);
 
     const bind = useDrag((state) => {
-      if (cameraControlsEnabled) {
-        return;
-      }
-
       triggerDraggingMeasurementEvent();
 
       const el = state.currentTarget as SVGElement;
@@ -297,7 +293,7 @@ export function MeasurementTools() {
           width="100vw"
           height="100vh"
           onDoubleClick={(e: React.MouseEvent<SVGElement>) => {
-            setCameraControlsEnabled(false);
+            // setCameraControlsEnabled(false);
 
             const mousePos: [number, number] = getSVGMousePosition(e);
 
@@ -311,95 +307,82 @@ export function MeasurementTools() {
             setSelectedMeasurement(measurements.length);
           }}>
           {/* draw connections */}
-          {!cameraControlsEnabled &&
-            measurements.map((_measurement: Measurement, index: number) => {
-              // const nextPosition = measurements[index + 1]?.position;
-              if (index < measurements.length - 1) {
-                return <RulerLine key={index} idx0={index} idx1={index + 1} />;
-              }
-              return null;
-            })}
+          {measurements.map((_measurement: Measurement, index: number) => {
+            // const nextPosition = measurements[index + 1]?.position;
+            if (index < measurements.length - 1) {
+              return <RulerLine key={index} idx0={index} idx1={index + 1} />;
+            }
+            return null;
+          })}
           {/* draw angles */}
-          {!cameraControlsEnabled &&
-            measurements.map((_measurement: Measurement, index: number) => {
-              if (index < measurements.length - 1) {
-                const line1 = {
-                  x1: measurements[index].position[0],
-                  y1: measurements[index].position[1],
-                  x2: measurements[index + 1].position[0],
-                  y2: measurements[index + 1].position[1],
-                };
-                const line2 =
-                  index < measurements.length - 2
-                    ? {
-                        x1: measurements[index + 1].position[0],
-                        y1: measurements[index + 1].position[1],
-                        x2: measurements[index + 2].position[0],
-                        y2: measurements[index + 2].position[1],
-                      }
-                    : null;
+          {measurements.map((_measurement: Measurement, index: number) => {
+            if (index < measurements.length - 1) {
+              const line1 = {
+                x1: measurements[index].position[0],
+                y1: measurements[index].position[1],
+                x2: measurements[index + 1].position[0],
+                y2: measurements[index + 1].position[1],
+              };
+              const line2 =
+                index < measurements.length - 2
+                  ? {
+                      x1: measurements[index + 1].position[0],
+                      y1: measurements[index + 1].position[1],
+                      x2: measurements[index + 2].position[0],
+                      y2: measurements[index + 2].position[1],
+                    }
+                  : null;
 
-                if (line2) {
-                  return <Angle key={index} line1={line1} line2={line2} />;
-                }
+              if (line2) {
+                return <Angle key={index} line1={line1} line2={line2} />;
               }
-            })}
+            }
+          })}
           {/* draw points */}
-          {!cameraControlsEnabled &&
-            measurements.map((measurement: Measurement, index: number) => (
-              <circle
-                {...bind()}
-                key={index}
-                data-idx={index}
-                cx={measurement.position[0]}
-                cy={measurement.position[1]}
-                className={cn('measurement-point', {
-                  selected: selectedMeasurementRef.current === index,
-                })}
-                r="8"
-                onMouseDown={(_e: React.MouseEvent<SVGElement>) => {
-                  if (cameraControlsEnabled) {
-                    return;
-                  }
+          {measurements.map((measurement: Measurement, index: number) => (
+            <circle
+              {...bind()}
+              key={index}
+              data-idx={index}
+              cx={measurement.position[0]}
+              cy={measurement.position[1]}
+              className={cn('measurement-point', {
+                selected: selectedMeasurementRef.current === index,
+              })}
+              r="8"
+              onMouseDown={(_e: React.MouseEvent<SVGElement>) => {
+                triggerCameraControlsEnabledEvent(false);
 
-                  setSelectedMeasurement(index);
-                }}
-                onMouseUp={(e: React.MouseEvent<SVGElement>) => {
-                  if (cameraControlsEnabled) {
-                    return;
-                  }
+                setSelectedMeasurement(index);
+              }}
+              onMouseUp={(e: React.MouseEvent<SVGElement>) => {
+                triggerCameraControlsEnabledEvent(true);
 
-                  // setSelectedMeasurement(null);
+                const mousePos: [number, number] = getSVGMousePosition(e);
 
-                  const mousePos: [number, number] = getSVGMousePosition(e);
+                setMeasurements(
+                  measurements.map((measurement, idx) => {
+                    if (idx === index) {
+                      return {
+                        ...measurement,
+                        position: mousePos,
+                      };
+                    } else {
+                      return measurement;
+                    }
+                  })
+                );
 
-                  setMeasurements(
-                    measurements.map((measurement, idx) => {
-                      if (idx === index) {
-                        return {
-                          ...measurement,
-                          position: mousePos,
-                        };
-                      } else {
-                        return measurement;
-                      }
-                    })
-                  );
-
-                  triggerDroppedMeasurementEvent();
-                }}
-              />
-            ))}
+                triggerDroppedMeasurementEvent();
+              }}
+            />
+          ))}
         </svg>
       </Html>
     );
   }
 
-  return (
-    <>
-      <Measurements />
-    </>
-  );
+  return <Measurements />;
 }
 
 export default MeasurementTools;
