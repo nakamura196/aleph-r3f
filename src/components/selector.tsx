@@ -23,7 +23,7 @@ export function Selector({
             <div className="grid gap-4">{children}</div>
           </div>
         </HoverCardTrigger>
-        <HoverCardContent align="start" className="w-[260px] text-sm text-wrap" side="left">
+        <HoverCardContent align="start" className="w-[260px] text-sm text-wrap text-black" side="left">
           {description}
         </HoverCardContent>
       </HoverCard>
