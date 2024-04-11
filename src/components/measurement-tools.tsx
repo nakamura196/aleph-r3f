@@ -10,9 +10,15 @@ import useKeyPress from '@/lib/hooks/use-key-press';
 
 export function MeasurementTools() {
   const { measurements, setMeasurements, measurementUnits } = useStore();
+  const { camera } = useThree();
+
   const triggerCameraControlsEnabledEvent = useEventTrigger(CAMERA_CONTROLS_ENABLED);
 
-  const { camera } = useThree();
+  // const handleCameraSleepEvent = (e: any) => {
+  //   console.log('camera sleep event');
+  // };
+
+  // useEventListener(CAMERA_SLEEP, handleCameraSleepEvent);
 
   useKeyPress('Delete', () => {
     // delete measurement

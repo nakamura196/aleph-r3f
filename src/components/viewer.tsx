@@ -24,7 +24,6 @@ import {
   DRAGGING_MEASUREMENT,
   DROPPED_MEASUREMENT,
   RECENTER,
-  CAMERA_CONTROLS_ENABLED,
 } from '@/types';
 import useDoubleClick from '@/lib/hooks/use-double-click';
 import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
@@ -63,6 +62,9 @@ function Scene({ onLoad, src }: ViewerProps) {
     upVector,
   } = useStore();
 
+  const triggerCameraUpdateEvent = useEventTrigger(CAMERA_UPDATE);
+  // const triggerCameraSleepEvent = useEventTrigger(CAMERA_SLEEP);
+
   // set the camera up vector
   camera.up.copy(new Vector3(upVector[0], upVector[1], upVector[2]));
   cameraRefs.controls.current?.updateCameraUp();
@@ -85,19 +87,33 @@ function Scene({ onLoad, src }: ViewerProps) {
     [loading, orthographicEnabled]
   );
 
-  const triggerCameraUpdateEvent = useEventTrigger(CAMERA_UPDATE);
-
   const handleRecenterEvent = () => {
     recenter();
   };
 
   useEventListener(RECENTER, handleRecenterEvent);
 
-  const handleCameraEnabledEvent = (e: any) => {
-    (cameraRefs.controls.current as any).enabled = e.detail;
-  };
+  // const handleCameraEnabledEvent = (e: any) => {
+  //   (cameraRefs.controls.current as any).enabled = e.detail;
+  // };
 
-  useEventListener(CAMERA_CONTROLS_ENABLED, handleCameraEnabledEvent);
+  // useEventListener(CAMERA_CONTROLS_ENABLED, handleCameraEnabledEvent);
+
+  // const handleCameraSleepEvent = () => {
+  //   console.log('camera sleep');
+  //   triggerCameraSleepEvent();
+  // };
+
+  // useEffect(() => {
+  //   console.log('adding event listener');
+  //   // detect onsleep event
+  //   cameraRefs.controls.current?.addEventListener('rest', handleCameraSleepEvent);
+
+  //   return () => {
+  //     console.log('removing event listener');
+  //     cameraRefs.controls.current?.removeEventListener('rest', handleCameraSleepEvent);
+  //   };
+  // }, [orthographicEnabled]);
 
   function zoomToObject(object: Object3D, instant?: boolean, padding: number = 0.1) {
     cameraRefs.controls.current!.fitToBox(object, !instant, {
@@ -211,8 +227,6 @@ function Scene({ onLoad, src }: ViewerProps) {
     measurement: <MeasurementTools />,
     scene: <></>,
   };
-
-  // console.log('cameraRefs', cameraRefs.controls.current);
 
   return (
     <>

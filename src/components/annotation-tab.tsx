@@ -35,6 +35,12 @@ function AnnotationTab() {
   useEventListener(CAMERA_UPDATE, handleCameraUpdateEvent);
   const triggerAnnoClickEvent = useEventTrigger(ANNO_CLICK);
 
+  // const handleCameraSleepEvent = () => {
+  //   // console.log('camera sleep event');
+  // };
+
+  // useEventListener(CAMERA_SLEEP, handleCameraSleepEvent);
+
   const dragStart = (e: any) => {
     dragItemRef.current = parseInt(e.target.dataset.idx);
   };
