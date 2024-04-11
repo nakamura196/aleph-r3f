@@ -178,7 +178,7 @@ function AnnotationTab() {
                     <div className="flex items-center gap-2">
                       {/* edit button */}
                       <Button
-                        className="p-2 h-8"
+                        className="p-2 h-8 text-black"
                         variant="outline"
                         onClick={() => {
                           setEditIdx(idx);

@@ -23,7 +23,7 @@ export function OptionSelector({
         onValueChange={(value) => {
           onChange(value);
         }}>
-        <SelectTrigger className="w-full">
+        <SelectTrigger className="w-full text-black">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

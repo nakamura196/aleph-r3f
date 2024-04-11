@@ -24,6 +24,7 @@ import {
   DRAGGING_MEASUREMENT,
   DROPPED_MEASUREMENT,
   RECENTER,
+  CAMERA_CONTROLS_ENABLED,
 } from '@/types';
 import useDoubleClick from '@/lib/hooks/use-double-click';
 import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
@@ -93,11 +94,11 @@ function Scene({ onLoad, src }: ViewerProps) {
 
   useEventListener(RECENTER, handleRecenterEvent);
 
-  // const handleCameraEnabledEvent = (e: any) => {
-  //   (cameraRefs.controls.current as any).enabled = e.detail;
-  // };
+  const handleCameraEnabledEvent = (e: any) => {
+    (cameraRefs.controls.current as any).enabled = e.detail;
+  };
 
-  // useEventListener(CAMERA_CONTROLS_ENABLED, handleCameraEnabledEvent);
+  useEventListener(CAMERA_CONTROLS_ENABLED, handleCameraEnabledEvent);
 
   // const handleCameraSleepEvent = () => {
   //   console.log('camera sleep');
