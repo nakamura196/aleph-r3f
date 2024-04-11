@@ -34,7 +34,7 @@ body.dragging {
   align-items: center;
   width: 0px;
   height: 0px;
-  cursor: grabbing;
+  white-space: normal;
 }
 
 /* The circle */
@@ -104,7 +104,8 @@ body.dragging {
   /* pointer-events: none; */
 }
 
-.annotation.facing-away .circle .label {
+.annotation.facing-away .circle {
+  cursor: default;
   /* pointer-events: none; */
 }
 

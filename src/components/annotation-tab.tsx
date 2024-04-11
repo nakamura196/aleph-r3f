@@ -143,7 +143,7 @@ function AnnotationTab() {
                     <div className="flex gap-2">
                       <Button className="p-2 h-8" variant="outline" type="submit">
                         <svg
-                          className="h-4 w-4"
+                          className="h-4 w-4 text-black"
                           fill="none"
                           height="24"
                           stroke="currentColor"
@@ -168,12 +168,13 @@ function AnnotationTab() {
                         setSelectedAnnotation(idx);
                       }}>
                       <h3
-                        className={cn('text-gray-400 font-medium text-sm md:text-md line-clamp-1 pr-1', {
-                          'text-white': selectedAnnotation === idx,
-                        })}>{`${idx + 1}. ${anno.label || 'no label'}`}</h3>
-                      <p className="text-white text-xs text-zinc-400 dark:text-zinc-400 line-clamp-1 pr-1">
-                        {anno.description}
-                      </p>
+                        className={cn(
+                          'text-gray-400 font-medium text-sm md:text-md line-clamp-1 pr-1 whitespace-normal',
+                          {
+                            'text-white': selectedAnnotation === idx,
+                          }
+                        )}>{`${idx + 1}. ${anno.label || 'no label'}`}</h3>
+                      <p className="text-xs text-zinc-400 line-clamp-1 pr-1 whitespace-normal">{anno.description}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       {/* edit button */}

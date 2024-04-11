@@ -18,7 +18,7 @@ export function Selector({
         <HoverCardTrigger asChild>
           <div className="grid gap-4">
             <div className="flex items-center justify-between">
-              <Label className="text-white">{label}</Label>
+              <Label className="text-white whitespace-normal">{label}</Label>
             </div>
             <div className="grid gap-4">{children}</div>
           </div>
