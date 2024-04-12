@@ -42,9 +42,10 @@ function Scene({ onLoad, src }: ViewerProps) {
     target: useRef<Vector3>(new Vector3()),
   };
 
+  const cameraPosition = new Vector3();
+  const cameraTarget = new Vector3();
   const environment = 'apartment';
   const minDistance = 0.1;
-
   const { camera, gl } = useThree();
 
   const {
@@ -100,6 +101,8 @@ function Scene({ onLoad, src }: ViewerProps) {
 
   useEventListener(CAMERA_CONTROLS_ENABLED, handleCameraEnabledEvent);
 
+  // can't add event listener to camera controls because the camera switches between perspective and orthographic
+  // and the listeners are not copied over
   // const handleCameraSleepEvent = () => {
   //   console.log('camera sleep');
   //   triggerCameraSleepEvent();
@@ -211,12 +214,10 @@ function Scene({ onLoad, src }: ViewerProps) {
     }
 
     // get current camera position
-    const cameraPosition: Vector3 = new Vector3();
     cameraRefs.controls.current!.getPosition(cameraPosition);
     cameraRefs.position.current = cameraPosition;
 
     // get current camera target
-    const cameraTarget: Vector3 = new Vector3();
     cameraRefs.controls.current!.getTarget(cameraTarget);
     cameraRefs.target.current = cameraTarget;
 

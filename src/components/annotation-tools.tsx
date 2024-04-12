@@ -108,8 +108,6 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
       return;
     }
 
-    dragRef.current = idx;
-
     let x;
     let y;
 
@@ -131,6 +129,11 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
       // continued dragging. use the memo'd initial position plus the movement
       x = state.memo[0] + state.movement[0];
       y = state.memo[1] + state.movement[1];
+
+      // if the annotation has moved, set the dragRef to the index
+      if (x !== state.memo[0] || y !== state.memo[1]) {
+        dragRef.current = idx;
+      }
     }
 
     // set element position without updating state (that happens on MouseUp event)
@@ -200,12 +203,6 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
                 className={cn('annotation', {
                   selected: selectedAnnotation === index,
                 })}
-                onClick={(_e: React.MouseEvent<SVGElement>) => {
-                  if (isFacingCamera(anno)) {
-                    setSelectedAnnotation(index);
-                    triggerAnnoClick(anno);
-                  }
-                }}
                 onMouseDown={(_e: React.MouseEvent<SVGElement>) => {
                   if (isFacingCamera(anno)) {
                     triggerCameraControlsEnabledEvent(false);
@@ -220,20 +217,25 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
                       if (intersects.length > 0) {
                         // update annotation position
                         setAnnotations(
-                          annotations.map((a: Annotation, idx: number) => {
+                          annotations.map((anno: Annotation, idx: number) => {
                             if (idx === index) {
                               return {
-                                ...a,
+                                ...anno,
                                 position: intersects[0].point,
                                 normal: intersects[0].face?.normal!,
+                                cameraPosition: cameraRefs.position.current!,
+                                cameraTarget: cameraRefs.target.current!,
                               };
                             }
-                            return a;
+                            return anno;
                           })
                         );
                       }
 
                       dragRef.current = null;
+                    } else {
+                      setSelectedAnnotation(index);
+                      triggerAnnoClick(anno);
                     }
 
                     triggerCameraControlsEnabledEvent(true);
