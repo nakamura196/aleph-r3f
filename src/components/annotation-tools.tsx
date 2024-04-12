@@ -16,7 +16,9 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
   // if a dot product is less than this, then the normal is facing away from the camera
   const DOT_PRODUCT_THRESHOLD = Math.PI * -0.1;
 
-  const lastAnnoLength = useRef<number>(0);
+  const dragRef = useRef<number | null>(null);
+
+  const v1 = new Vector3();
 
   function zoomToAnnotation(annotation: Annotation) {
     cameraRefs.controls.current!.setPosition(
@@ -52,13 +54,22 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
     return true;
   }
 
+  function updateAnnotationPosition(idx: number, x: number, y: number) {
+    const annoEl: HTMLElement = document.getElementById(`anno-${idx}`)!;
+
+    if (annoEl) {
+      annoEl.setAttribute('transform', `translate(${x}, ${y})`);
+    } else {
+      console.error('could not find annotation element');
+    }
+  }
+
   function updateAnnotationPositions() {
     annotations.forEach((anno: Annotation, idx: number) => {
-      const annoEl: HTMLElement = document.getElementById(`anno-${idx}`)!;
-
-      if (annoEl) {
+      // if not dragging the annotation, update its position
+      if (dragRef.current !== idx) {
         const [x, y] = calculateAnnoPosition(anno);
-        annoEl.setAttribute('transform', `translate(${x}, ${y})`);
+        updateAnnotationPosition(idx, x, y);
       }
     });
   }
@@ -78,8 +89,6 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
         }
       }
     });
-
-    lastAnnoLength.current = annotations.length;
   }
 
   useFrame(() => {
@@ -95,22 +104,41 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
     // get the element's index from the data-index attribute
     const idx = parseInt(el.getAttribute('data-idx')!);
 
-    console.log('dragging', idx);
+    dragRef.current = idx;
+
+    let x;
+    let y;
+
+    if (!state.memo) {
+      // just started dragging. use the initial position
+      let transformValue = el.getAttribute('transform');
+      let translateValues: string[] | null = null;
+      if (transformValue) {
+        let match = transformValue.match(/translate\(([^)]+)\)/);
+        if (match) {
+          translateValues = match[1].split(', ');
+        }
+      }
+      if (translateValues) {
+        x = Number(translateValues[0]);
+        y = Number(translateValues[1]);
+      }
+    } else {
+      // continued dragging. use the memo'd initial position plus the movement
+      x = state.memo[0] + state.movement[0];
+      y = state.memo[1] + state.movement[1];
+    }
+
+    // set element position without updating state (that happens on MouseUp event)
+    updateAnnotationPosition(idx, x, y);
+
+    // memo the initial position
+    if (!state.memo) {
+      return [x, y];
+    } else {
+      return state.memo;
+    }
   });
-
-  function getSVGMousePosition(e: React.MouseEvent<SVGElement>): [number, number] {
-    const parentNode = e.currentTarget.parentNode as HTMLElement;
-
-    // get parentNode offset
-    const rect = parentNode.getBoundingClientRect();
-
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    return [x, y];
-  }
-
-  const v1 = new Vector3();
 
   // https://github.com/pmndrs/drei/blob/master/src/web/Html.tsx#L25
   function calculateAnnoPosition(anno: Annotation) {
@@ -182,9 +210,11 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
                 onMouseUp={(e: React.MouseEvent<SVGElement>) => {
                   triggerCameraControlsEnabledEvent(true);
 
-                  const mousePos: [number, number] = getSVGMousePosition(e);
+                  dragRef.current = null;
 
-                  console.log('mousePos', mousePos);
+                  // const mousePos: [number, number] = getSVGMousePosition(e);
+
+                  // console.log('mousePos', mousePos);
                 }}>
                 <circle r="11" />
                 <text x="0" y="0" textAnchor="middle" dominantBaseline="central" fontSize="10" fill="black">
