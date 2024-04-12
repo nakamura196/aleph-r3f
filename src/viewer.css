@@ -27,7 +27,7 @@ body.dragging {
 }
 
 /* The container that holds the circle */
-.annotation {
+/* .annotation {
   position: relative;
   display: flex;
   justify-content: center;
@@ -35,82 +35,43 @@ body.dragging {
   width: 0px;
   height: 0px;
   white-space: normal;
-}
+} */
 
-/* The circle */
-.annotation .circle {
-  position: absolute;
-  /* transform: translate(-50%, -50%); */
-  border-radius: 50%;
-  background-color: rgba(0, 0, 0, 0.5);
-  border: 1px solid white;
-  width: 24px;
-  height: 24px;
-  color: white;
-  font-size: 11px;
-  font-weight: normal;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  opacity: 100%;
-  transition: opacity 0.25s ease-in-out;
-}
-
-.annotation .circle.selected {
+.annotation {
+  fill: white;
+  stroke: black;
   color: black;
-  background-color: white;
-  border: 1px solid black;
+  cursor: pointer;
+  touch-action: none;
+  transition: opacity 0.25s ease-in-out;
+  user-select: none;
+  font-weight: 100;
 }
 
-.annotation .text {
-  position: absolute;
-  left: 20px;
-  top: 0px;
-  background-color: rgba(0, 0, 0, 0.75);
-  color: white;
-  font-size: 0.875rem; /* equivalent to text-sm in Tailwind */
-  padding: 0.5rem 0.75rem; /* equivalent to py-2 px-3 in Tailwind */
-  min-width: 10rem; /* equivalent to min-w-40 in Tailwind */
+.annotation.facing-away {
+  opacity: 20%;
+  transition: opacity 0.25s ease-in-out;
+  cursor: default;
 }
 
 .annotation .label {
   font-weight: 500; /* equivalent to font-medium in Tailwind */
 }
 
+.annotation .text {
+  background-color: rgba(0, 0, 0, 0.75);
+  color: white;
+  overflow-y: auto;
+  height: 80px;
+  font-size: 0.875rem; /* equivalent to text-sm in Tailwind */
+  padding: 0.5rem 0.75rem; /* equivalent to py-2 px-3 in Tailwind */
+  min-width: 10rem; /* equivalent to min-w-40 in Tailwind */
+}
+
 .annotation .description {
   font-size: 0.75rem; /* equivalent to text-xs in Tailwind */
   margin-top: 0.25rem; /* equivalent to mt-1 in Tailwind */
   color: #abb6c6; /* equivalent to text-gray-300 in Tailwind */
-}
-
-/* .annotation .circle:hover {
-  border: 1px solid white;
-} */
-
-/* The label */
-.annotation .circle .label {
-  display: inline-block;
-  text-align: center;
-  font-family: sans-serif;
-  white-space: nowrap;
-  user-select: none;
-}
-
-.annotation.facing-away {
-  opacity: 20%;
-  transition: opacity 0.25s ease-in-out;
-  /* cursor: default; */
-  /* pointer-events: none; */
-}
-
-.annotation.facing-away .circle {
-  cursor: default;
-  /* pointer-events: none; */
-}
-
-.annotation.no-fade .circle {
-  transition: opacity 0s;
 }
 
 .measurement-point {

@@ -9,6 +9,7 @@ import { Tab } from './tab';
 import { cn } from '@/lib/utils';
 import { Instructions } from './instructions';
 import { AnnotationsDialog } from './import-annotations-dialog';
+import { Check } from 'lucide-react';
 
 function AnnotationTab() {
   const { annotations, setAnnotations, selectedAnnotation, setSelectedAnnotation } = useStore();
@@ -101,7 +102,7 @@ function AnnotationTab() {
   return (
     <Tab>
       {/* <OrthographicSelector /> */}
-      <div>
+      <div className="overflow-y-auto overflow-x-hidden h-72">
         {annotations.length ? (
           annotations.map((anno: Annotation, idx) => {
             return (
@@ -122,7 +123,7 @@ function AnnotationTab() {
                       <input
                         type="text"
                         placeholder="Label"
-                        className="text-xs text-black mb-1 p-1"
+                        className="text-xs text-black mb-1 p-1 w-36"
                         defaultValue={anno.label}
                         required
                         maxLength={64}
@@ -132,7 +133,7 @@ function AnnotationTab() {
                       />
                       <textarea
                         placeholder="Description"
-                        className="text-xs p-1 break-words text-black h-12"
+                        className="text-xs p-1 break-words text-black h-12 w-36"
                         defaultValue={anno.description}
                         maxLength={256}
                         onChange={(e) => {
@@ -140,21 +141,9 @@ function AnnotationTab() {
                         }}
                       />
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex">
                       <Button className="p-2 h-8" variant="outline" type="submit">
-                        <svg
-                          className="h-4 w-4 text-black"
-                          fill="none"
-                          height="24"
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
-                          width="24"
-                          xmlns="http://www.w3.org/2000/svg">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
+                        <Check className="w-4" />
                       </Button>
                     </div>
                   </form>

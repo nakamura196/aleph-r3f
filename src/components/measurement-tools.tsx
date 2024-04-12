@@ -153,6 +153,7 @@ export function MeasurementTools() {
 
       // hide all measurement-labels
       const measurementLabelEls = document.getElementsByClassName('measurement-label');
+
       for (let i = 0; i < measurementLabelEls.length; i++) {
         const labelEl = measurementLabelEls[i] as SVGForeignObjectElement;
         labelEl.classList.add('hidden');
@@ -160,6 +161,7 @@ export function MeasurementTools() {
 
       // hide all angle-labels
       const angleLabelEls = document.getElementsByClassName('angle-label');
+
       for (let i = 0; i < angleLabelEls.length; i++) {
         const labelEl = angleLabelEls[i] as SVGForeignObjectElement;
         labelEl.classList.add('hidden');
