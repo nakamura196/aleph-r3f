@@ -43,9 +43,9 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
 
   const triggerAnnoClick = useEventTrigger(ANNO_CLICK);
 
-  function isFacingCamera(position: Vector3, normal: Vector3): boolean {
-    const cameraDirection: Vector3 = camera.position.clone().normalize().sub(position.clone().normalize());
-    const dotProduct: number = cameraDirection.dot(normal);
+  function isFacingCamera(anno: Annotation): boolean {
+    const cameraDirection: Vector3 = camera.position.clone().normalize().sub(anno.position.clone().normalize());
+    const dotProduct: number = cameraDirection.dot(anno.normal);
 
     if (dotProduct < DOT_PRODUCT_THRESHOLD) {
       return false;
@@ -68,7 +68,7 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
     annotations.forEach((anno: Annotation, idx: number) => {
       // if not dragging the annotation, update its position
       if (dragRef.current !== idx) {
-        const [x, y] = calculateAnnoPosition(anno);
+        const [x, y] = calculatePosition(anno);
         updateAnnotationPosition(idx, x, y);
       }
     });
@@ -82,7 +82,7 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
       const annoEl: HTMLElement = document.getElementById(`anno-${idx}`)!;
 
       if (annoEl) {
-        if (isFacingCamera(anno.position, anno.normal)) {
+        if (isFacingCamera(anno)) {
           annoEl.classList.remove('facing-away');
         } else {
           annoEl.classList.add('facing-away');
@@ -103,6 +103,10 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
 
     // get the element's index from the data-index attribute
     const idx = parseInt(el.getAttribute('data-idx')!);
+
+    if (!isFacingCamera(annotations[idx])) {
+      return;
+    }
 
     dragRef.current = idx;
 
@@ -141,12 +145,17 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
   });
 
   // https://github.com/pmndrs/drei/blob/master/src/web/Html.tsx#L25
-  function calculateAnnoPosition(anno: Annotation) {
+  function calculatePosition(anno: Annotation) {
     const objectPos = v1.copy(anno.position);
     objectPos.project(camera);
     const widthHalf = size.width / 2;
     const heightHalf = size.height / 2;
     return [objectPos.x * widthHalf + widthHalf, -(objectPos.y * heightHalf) + heightHalf];
+  }
+
+  function getIntersects(): Intersection<Object3D<Object3DEventMap>>[] {
+    raycaster.setFromCamera(pointer, camera);
+    return raycaster.intersectObjects(scene.children, true);
   }
 
   return (
@@ -164,12 +173,7 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
         width="100vw"
         height="100vh"
         onDoubleClick={(_e: React.MouseEvent<SVGElement>) => {
-          raycaster.setFromCamera(pointer, camera);
-
-          const intersects: Intersection<Object3D<Object3DEventMap>>[] = raycaster.intersectObjects(
-            scene.children,
-            true
-          );
+          const intersects: Intersection<Object3D>[] = getIntersects();
 
           if (intersects.length > 0) {
             setAnnotations([
@@ -197,24 +201,43 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
                   selected: selectedAnnotation === index,
                 })}
                 onClick={(_e: React.MouseEvent<SVGElement>) => {
-                  if (isFacingCamera(anno.position, anno.normal)) {
+                  if (isFacingCamera(anno)) {
                     setSelectedAnnotation(index);
                     triggerAnnoClick(anno);
                   }
                 }}
                 onMouseDown={(_e: React.MouseEvent<SVGElement>) => {
-                  if (isFacingCamera(anno.position, anno.normal)) {
+                  if (isFacingCamera(anno)) {
                     triggerCameraControlsEnabledEvent(false);
                   }
                 }}
-                onMouseUp={(e: React.MouseEvent<SVGElement>) => {
-                  triggerCameraControlsEnabledEvent(true);
+                onMouseUp={(_e: React.MouseEvent<SVGElement>) => {
+                  if (isFacingCamera(anno)) {
+                    // if was dragging this annotation
+                    if (dragRef.current === index) {
+                      const intersects: Intersection<Object3D>[] = getIntersects();
 
-                  dragRef.current = null;
+                      if (intersects.length > 0) {
+                        // update annotation position
+                        setAnnotations(
+                          annotations.map((a: Annotation, idx: number) => {
+                            if (idx === index) {
+                              return {
+                                ...a,
+                                position: intersects[0].point,
+                                normal: intersects[0].face?.normal!,
+                              };
+                            }
+                            return a;
+                          })
+                        );
+                      }
 
-                  // const mousePos: [number, number] = getSVGMousePosition(e);
+                      dragRef.current = null;
+                    }
 
-                  // console.log('mousePos', mousePos);
+                    triggerCameraControlsEnabledEvent(true);
+                  }
                 }}>
                 <circle r="11" />
                 <text x="0" y="0" textAnchor="middle" dominantBaseline="central" fontSize="10" fill="black">
