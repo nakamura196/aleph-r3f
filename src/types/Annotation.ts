@@ -6,6 +6,5 @@ export type Annotation = {
   description?: string;
   label?: string;
   normal: Vector3;
-  normalFacingCamera?: boolean;
   position: Vector3;
 };
