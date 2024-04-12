@@ -26,18 +26,7 @@ body.dragging {
   cursor: grabbing;
 }
 
-/* The container that holds the circle */
-/* .annotation {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 0px;
-  height: 0px;
-  white-space: normal;
-} */
-
-.annotation {
+.point {
   fill: white;
   stroke: black;
   color: black;
@@ -48,17 +37,17 @@ body.dragging {
   font-weight: 100;
 }
 
-.annotation.facing-away {
+.point.facing-away {
   opacity: 20%;
   transition: opacity 0.25s ease-in-out;
   cursor: default;
 }
 
-.annotation .label {
+.point .label {
   font-weight: 500; /* equivalent to font-medium in Tailwind */
 }
 
-.annotation .text {
+.point .text {
   background-color: rgba(0, 0, 0, 0.75);
   color: white;
   overflow-y: auto;
@@ -68,7 +57,7 @@ body.dragging {
   min-width: 10rem; /* equivalent to min-w-40 in Tailwind */
 }
 
-.annotation .description {
+.point .description {
   font-size: 0.75rem; /* equivalent to text-xs in Tailwind */
   margin-top: 0.25rem; /* equivalent to mt-1 in Tailwind */
   color: #abb6c6; /* equivalent to text-gray-300 in Tailwind */

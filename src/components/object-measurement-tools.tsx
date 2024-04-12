@@ -32,7 +32,7 @@ export function ObjectMeasurementTools() {
   }
 
   function updateMeasurementPosition(idx: number, x: number, y: number) {
-    const measurementEl: HTMLElement = document.getElementById(`measurement-${idx}`)!;
+    const measurementEl: HTMLElement = document.getElementById(`point-${idx}`)!;
 
     if (measurementEl) {
       measurementEl.setAttribute('transform', `translate(${x}, ${y})`);
@@ -56,7 +56,7 @@ export function ObjectMeasurementTools() {
     // are facing towards or away from the camera
 
     measurements.forEach((measurement: ObjectMeasurement, idx: number) => {
-      const measurementEl: HTMLElement = document.getElementById(`measurement-${idx}`)!;
+      const measurementEl: HTMLElement = document.getElementById(`point-${idx}`)!;
 
       if (measurementEl) {
         if (isFacingCamera(measurement)) {
@@ -173,9 +173,9 @@ export function ObjectMeasurementTools() {
             <React.Fragment key={index}>
               <g
                 {...bind()}
-                id={`measurement-${index}`}
+                id={`point-${index}`}
                 data-idx={index}
-                className={cn('annotation', {
+                className={cn('point', {
                   // selected: selectedMeasurement === index,
                 })}
                 onMouseDown={(_e: React.MouseEvent<SVGElement>) => {
