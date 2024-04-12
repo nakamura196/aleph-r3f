@@ -46,7 +46,7 @@ export function ScreenMeasurementTools() {
     }
   }
 
-  function RulerLine({ idx0, idx1, width = 2 }: { idx0: number; idx1: number; width?: number }) {
+  function Ruler({ idx0, idx1, width = 2 }: { idx0: number; idx1: number; width?: number }) {
     const position = measurements[idx0]?.position;
     const nextPosition = measurements[idx1]?.position;
 
@@ -216,7 +216,29 @@ export function ScreenMeasurementTools() {
       return angleDegrees;
     }
 
-    function Angle({ line1, line2 }: { line1: any; line2: any }) {
+    function Angle({
+      point1,
+      point2,
+      point3,
+    }: {
+      point1: [number, number];
+      point2: [number, number];
+      point3: [number, number];
+    }) {
+      const line1 = {
+        x1: point1[0],
+        y1: point1[1],
+        x2: point2[0],
+        y2: point2[1],
+      };
+
+      const line2 = {
+        x1: point2[0],
+        y1: point2[1],
+        x2: point3[0],
+        y2: point3[1],
+      };
+
       // Calculate the angle
       const angle = calculateAngle(line1, line2);
 
@@ -251,38 +273,11 @@ export function ScreenMeasurementTools() {
         y: (line1.y2 + line2.y1) / 2 + normalizedMidDir.y * offsetDistance,
       };
 
-      //     // Calculate the radius of the semicircle
-      //     const radius = offsetDistance;
-
-      //     // Calculate the start and end points of the semicircle
-      //     const semicircleStart = {
-      //       x: line1.x2 - normalizedMidDir.x * radius,
-      //       y: line1.y2 - normalizedMidDir.y * radius,
-      //     };
-      //     const semicircleEnd = {
-      //       x: line2.x1 + normalizedMidDir.x * radius,
-      //       y: line2.y1 + normalizedMidDir.y * radius,
-      //     };
-
-      //     // Define the path for the semicircle
-      //     const semicirclePath = `
-      //   M ${semicircleStart.x} ${semicircleStart.y}
-      //   A ${radius} ${radius} 0 0 1 ${semicircleEnd.x} ${semicircleEnd.y}
-      //   Z
-      // `;
-
       return (
         <>
-          {/* <line x1={line1.x1} y1={line1.y1} x2={line1.x2} y2={line1.y2} stroke="red" />
-          <line x1={line2.x1} y1={line2.y1} x2={line2.x2} y2={line2.y2} stroke="red" /> */}
-          {/* <circle cx={textPosition.x} cy={textPosition.y} r="5" fill="red" /> */}
-          {/* <path d={semicirclePath} fill="red" stroke="red" /> */}
           <foreignObject className="angle-label" x={textPosition.x - 30} y={textPosition.y - 15}>
             <div>{angle.toFixed(2)}°</div>
           </foreignObject>
-          {/* <text x={textPosition.x - offsetDistance / 2} y={textPosition.y + 5} fill="white">
-            {angle.toFixed(2)}°
-          </text> */}
         </>
       );
     }
@@ -318,33 +313,24 @@ export function ScreenMeasurementTools() {
           {measurements.map((_measurement: ScreenMeasurement, index: number) => {
             // const nextPosition = measurements[index + 1]?.position;
             if (index < measurements.length - 1) {
-              return <RulerLine key={index} idx0={index} idx1={index + 1} />;
+              return <Ruler key={index} idx0={index} idx1={index + 1} />;
             }
             return null;
           })}
           {/* draw angles */}
           {measurements.map((_measurement: ScreenMeasurement, index: number) => {
-            if (index < measurements.length - 1) {
-              const line1 = {
-                x1: measurements[index].position[0],
-                y1: measurements[index].position[1],
-                x2: measurements[index + 1].position[0],
-                y2: measurements[index + 1].position[1],
-              };
-              const line2 =
-                index < measurements.length - 2
-                  ? {
-                      x1: measurements[index + 1].position[0],
-                      y1: measurements[index + 1].position[1],
-                      x2: measurements[index + 2].position[0],
-                      y2: measurements[index + 2].position[1],
-                    }
-                  : null;
-
-              if (line2) {
-                return <Angle key={index} line1={line1} line2={line2} />;
-              }
+            if (!measurements[index + 2]) {
+              return null;
             }
+
+            return (
+              <Angle
+                key={index}
+                point1={measurements[index].position}
+                point2={measurements[index + 1].position}
+                point3={measurements[index + 2].position}
+              />
+            );
           })}
           {/* draw points */}
           {measurements.map((measurement: ScreenMeasurement, index: number) => (
@@ -360,7 +346,6 @@ export function ScreenMeasurementTools() {
               r="8"
               onMouseDown={(_e: React.MouseEvent<SVGElement>) => {
                 triggerCameraControlsEnabledEvent(false);
-
                 setSelectedMeasurement(index);
               }}
               onMouseUp={(e: React.MouseEvent<SVGElement>) => {
