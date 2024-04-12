@@ -93,6 +93,9 @@ export function ObjectMeasurementTools() {
         }
       }
     }
+
+    // todo: update the position of the measurement-labels
+    // this should always be happening on frame here, not when rendered
   }
 
   function getTranslateValues(el: HTMLElement): number[] | null {

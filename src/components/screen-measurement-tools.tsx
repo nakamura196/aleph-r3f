@@ -151,6 +151,9 @@ export function ScreenMeasurementTools() {
         }
       }
     }
+
+    // todo: update the text of the measurement-labels
+    // this should always be happening on frame here, not when rendered
   }
 
   function getTranslateValues(el: any): number[] | null {
