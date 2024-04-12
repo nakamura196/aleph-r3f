@@ -31,7 +31,7 @@ export function ObjectMeasurementTools() {
     return true;
   }
 
-  function updateMeasurementPosition(idx: number, x: number, y: number) {
+  function updatePointPosition(idx: number, x: number, y: number) {
     const measurementEl: HTMLElement = document.getElementById(`point-${idx}`)!;
 
     if (measurementEl) {
@@ -41,17 +41,17 @@ export function ObjectMeasurementTools() {
     }
   }
 
-  function updateMeasurementPositions() {
+  function updatePointPositions() {
     measurements.forEach((measurement: ObjectMeasurement, idx: number) => {
       // if not dragging the annotation, update its position
       if (dragRef.current !== idx) {
         const [x, y] = calculateScreenPosition(measurement.position);
-        updateMeasurementPosition(idx, x, y);
+        updatePointPosition(idx, x, y);
       }
     });
   }
 
-  function checkMeasurementsFacingCamera() {
+  function checkPointsFacingCamera() {
     // loop through all measurements and check if their normals
     // are facing towards or away from the camera
 
@@ -68,9 +68,61 @@ export function ObjectMeasurementTools() {
     });
   }
 
+  function updateRulerPositions() {
+    const lineEls = document.getElementsByClassName('ruler-line');
+
+    const points = document.getElementsByClassName('point');
+
+    for (let i = 0; i < points.length; i++) {
+      const point = points[i] as HTMLElement;
+      const idx = Number(point.getAttribute('data-idx'));
+      const translateValues = getTranslateValues(point);
+
+      // for each lineEl, update the x1, y1, x2, y2 attributes using the data-idx0 and data-idx1 attributes
+      for (let j = 0; j < lineEls.length; j++) {
+        const lineEl = lineEls[j] as SVGLineElement;
+        const idx0 = Number(lineEl.getAttribute('data-idx0'));
+        const idx1 = Number(lineEl.getAttribute('data-idx1'));
+
+        if (idx0 === idx) {
+          lineEl.setAttribute('x1', String(translateValues![0]));
+          lineEl.setAttribute('y1', String(translateValues![1]));
+        } else if (idx1 === idx) {
+          lineEl.setAttribute('x2', String(translateValues![0]));
+          lineEl.setAttribute('y2', String(translateValues![1]));
+        }
+      }
+    }
+  }
+
+  function getTranslateValues(el: HTMLElement): number[] | null {
+    let x: number;
+    let y: number;
+
+    let transformValue = el.getAttribute('transform');
+    let translateValues: string[] | null = null;
+
+    if (transformValue) {
+      let match = transformValue.match(/translate\(([^)]+)\)/);
+      if (match) {
+        translateValues = match[1].split(', ');
+      }
+    }
+
+    if (translateValues) {
+      x = Number(translateValues[0]);
+      y = Number(translateValues[1]);
+
+      return [x, y];
+    }
+
+    return null;
+  }
+
   useFrame(() => {
-    updateMeasurementPositions();
-    checkMeasurementsFacingCamera();
+    updatePointPositions();
+    checkPointsFacingCamera();
+    updateRulerPositions();
   });
 
   const triggerCameraControlsEnabledEvent = useEventTrigger(CAMERA_CONTROLS_ENABLED);
@@ -90,17 +142,10 @@ export function ObjectMeasurementTools() {
 
     if (!state.memo) {
       // just started dragging. use the initial position
-      let transformValue = el.getAttribute('transform');
-      let translateValues: string[] | null = null;
-      if (transformValue) {
-        let match = transformValue.match(/translate\(([^)]+)\)/);
-        if (match) {
-          translateValues = match[1].split(', ');
-        }
-      }
+      let translateValues = getTranslateValues(el);
       if (translateValues) {
-        x = Number(translateValues[0]);
-        y = Number(translateValues[1]);
+        x = translateValues[0];
+        y = translateValues[1];
       }
     } else {
       // continued dragging. use the memo'd initial position plus the movement
@@ -114,7 +159,23 @@ export function ObjectMeasurementTools() {
     }
 
     // set element position without updating state (that happens on MouseUp event)
-    updateMeasurementPosition(idx, x, y);
+    updatePointPosition(idx, x, y);
+
+    // hide all measurement-labels
+    const measurementLabelEls = document.getElementsByClassName('measurement-label');
+
+    for (let i = 0; i < measurementLabelEls.length; i++) {
+      const labelEl = measurementLabelEls[i] as SVGForeignObjectElement;
+      labelEl.classList.add('hidden');
+    }
+
+    // hide all angle-labels
+    const angleLabelEls = document.getElementsByClassName('angle-label');
+
+    for (let i = 0; i < angleLabelEls.length; i++) {
+      const labelEl = angleLabelEls[i] as SVGForeignObjectElement;
+      labelEl.classList.add('hidden');
+    }
 
     // memo the initial position
     if (!state.memo) {

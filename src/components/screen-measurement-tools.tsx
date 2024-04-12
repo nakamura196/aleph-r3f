@@ -4,13 +4,15 @@ import React, { useRef } from 'react';
 import { Html } from '@react-three/drei';
 import { useEventTrigger } from '@/lib/hooks/use-event';
 import { useDrag } from '@use-gesture/react';
-import { useThree } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { cn } from '@/lib/utils';
 import useKeyPress from '@/lib/hooks/use-key-press';
 
 export function ScreenMeasurementTools() {
   const { screenMeasurements: measurements, setScreenMeasurements: setMeasurements, measurementUnits } = useStore();
   const { camera } = useThree();
+
+  const dragRef = useRef<number | null>(null);
 
   const triggerCameraControlsEnabledEvent = useEventTrigger(CAMERA_CONTROLS_ENABLED);
 
@@ -34,7 +36,7 @@ export function ScreenMeasurementTools() {
     selectedMeasurementRef.current = index;
 
     // find the selected measurement point and update class
-    const measurementPointEls = document.getElementsByClassName('measurement-point');
+    const measurementPointEls = document.getElementsByClassName('point');
 
     for (let i = 0; i < measurementPointEls.length; i++) {
       const pointEl = measurementPointEls[i] as SVGElement;
@@ -104,6 +106,82 @@ export function ScreenMeasurementTools() {
     );
   }
 
+  function updatePointPosition(idx: number, x: number, y: number) {
+    const measurementEl: HTMLElement = document.getElementById(`point-${idx}`)!;
+
+    if (measurementEl) {
+      measurementEl.setAttribute('transform', `translate(${x}, ${y})`);
+    } else {
+      console.error('could not find element');
+    }
+  }
+
+  function updatePointPositions() {
+    measurements.forEach((measurement: ScreenMeasurement, idx: number) => {
+      // if not dragging the annotation, update its position
+      if (dragRef.current !== idx) {
+        const [x, y] = measurement.position;
+        updatePointPosition(idx, x, y);
+      }
+    });
+  }
+
+  function updateRulerPositions() {
+    const lineEls = document.getElementsByClassName('ruler-line');
+
+    const points = document.getElementsByClassName('point');
+
+    for (let i = 0; i < points.length; i++) {
+      const point = points[i] as HTMLElement;
+      const idx = Number(point.getAttribute('data-idx'));
+      const translateValues = getTranslateValues(point);
+
+      // for each lineEl, update the x1, y1, x2, y2 attributes using the data-idx0 and data-idx1 attributes
+      for (let j = 0; j < lineEls.length; j++) {
+        const lineEl = lineEls[j] as SVGLineElement;
+        const idx0 = Number(lineEl.getAttribute('data-idx0'));
+        const idx1 = Number(lineEl.getAttribute('data-idx1'));
+
+        if (idx0 === idx) {
+          lineEl.setAttribute('x1', String(translateValues![0]));
+          lineEl.setAttribute('y1', String(translateValues![1]));
+        } else if (idx1 === idx) {
+          lineEl.setAttribute('x2', String(translateValues![0]));
+          lineEl.setAttribute('y2', String(translateValues![1]));
+        }
+      }
+    }
+  }
+
+  function getTranslateValues(el: any): number[] | null {
+    let x: number;
+    let y: number;
+
+    let transformValue = el.getAttribute('transform');
+    let translateValues: string[] | null = null;
+
+    if (transformValue) {
+      let match = transformValue.match(/translate\(([^)]+)\)/);
+      if (match) {
+        translateValues = match[1].split(', ');
+      }
+    }
+
+    if (translateValues) {
+      x = Number(translateValues[0]);
+      y = Number(translateValues[1]);
+
+      return [x, y];
+    }
+
+    return null;
+  }
+
+  useFrame(() => {
+    updatePointPositions();
+    updateRulerPositions();
+  });
+
   function Measurements() {
     const triggerDraggingMeasurementEvent = useEventTrigger(DRAGGING_MEASUREMENT);
     const triggerDroppedMeasurementEvent = useEventTrigger(DROPPED_MEASUREMENT);
@@ -121,35 +199,22 @@ export function ScreenMeasurementTools() {
 
       if (!state.memo) {
         // just started dragging. use the initial position
-        x = Number(el.getAttribute('cx'));
-        y = Number(el.getAttribute('cy'));
+        let currentPos = getTranslateValues(el);
+        x = currentPos![0];
+        y = currentPos![1];
       } else {
         // continued dragging. use the memo'd initial position plus the movement
         x = state.memo[0] + state.movement[0];
         y = state.memo[1] + state.movement[1];
+
+        // if the measurement has moved, set the dragRef to the index
+        if (x !== state.memo[0] || y !== state.memo[1]) {
+          dragRef.current = idx;
+        }
       }
 
       // set element position without updating state (that happens on MouseUp event)
-      el.setAttribute('cx', String(x));
-      el.setAttribute('cy', String(y));
-
-      // update all connecting lines
-      const lineEls = document.getElementsByClassName('ruler-line');
-
-      // for each lineEl, update the x1, y1, x2, y2 attributes using the data-idx0 and data-idx1 attributes
-      for (let i = 0; i < lineEls.length; i++) {
-        const lineEl = lineEls[i] as SVGLineElement;
-        const idx0 = Number(lineEl.getAttribute('data-idx0'));
-        const idx1 = Number(lineEl.getAttribute('data-idx1'));
-
-        if (idx0 === idx) {
-          lineEl.setAttribute('x1', String(x));
-          lineEl.setAttribute('y1', String(y));
-        } else if (idx1 === idx) {
-          lineEl.setAttribute('x2', String(x));
-          lineEl.setAttribute('y2', String(y));
-        }
-      }
+      updatePointPosition(idx, x, y);
 
       // hide all measurement-labels
       const measurementLabelEls = document.getElementsByClassName('measurement-label');
@@ -333,43 +398,47 @@ export function ScreenMeasurementTools() {
             );
           })}
           {/* draw points */}
-          {measurements.map((measurement: ScreenMeasurement, index: number) => (
-            <circle
-              {...bind()}
-              key={index}
-              data-idx={index}
-              cx={measurement.position[0]}
-              cy={measurement.position[1]}
-              className={cn('measurement-point', {
-                selected: selectedMeasurementRef.current === index,
-              })}
-              r="8"
-              onMouseDown={(_e: React.MouseEvent<SVGElement>) => {
-                triggerCameraControlsEnabledEvent(false);
-                setSelectedMeasurement(index);
-              }}
-              onMouseUp={(e: React.MouseEvent<SVGElement>) => {
-                triggerCameraControlsEnabledEvent(true);
+          {measurements.map((_measurement: ScreenMeasurement, index: number) => {
+            return (
+              <React.Fragment key={index}>
+                <g
+                  {...bind()}
+                  id={`point-${index}`}
+                  data-idx={index}
+                  className={cn('point', {
+                    // selected: selectedMeasurement === index,
+                  })}
+                  onMouseDown={(_e: React.MouseEvent<SVGElement>) => {
+                    triggerCameraControlsEnabledEvent(false);
+                    setSelectedMeasurement(index);
+                  }}
+                  onMouseUp={(e: React.MouseEvent<SVGElement>) => {
+                    triggerCameraControlsEnabledEvent(true);
 
-                const mousePos: [number, number] = getSVGMousePosition(e);
+                    const mousePos: [number, number] = getSVGMousePosition(e);
 
-                setMeasurements(
-                  measurements.map((measurement, idx) => {
-                    if (idx === index) {
-                      return {
-                        ...measurement,
-                        position: mousePos,
-                      };
-                    } else {
-                      return measurement;
-                    }
-                  })
-                );
+                    setMeasurements(
+                      measurements.map((measurement, idx) => {
+                        if (idx === index) {
+                          return {
+                            ...measurement,
+                            position: mousePos,
+                          };
+                        } else {
+                          return measurement;
+                        }
+                      })
+                    );
 
-                triggerDroppedMeasurementEvent();
-              }}
-            />
-          ))}
+                    triggerDroppedMeasurementEvent();
+
+                    dragRef.current = null;
+                  }}>
+                  <circle r="8" />
+                </g>
+              </React.Fragment>
+            );
+          })}
         </svg>
       </Html>
     );
