@@ -314,7 +314,7 @@ export function ScreenMeasurementTools() {
 
             setSelectedMeasurement(measurements.length);
           }}>
-          {/* draw connections */}
+          {/* draw rulers */}
           {measurements.map((_measurement: ScreenMeasurement, index: number) => {
             // const nextPosition = measurements[index + 1]?.position;
             if (index < measurements.length - 1) {

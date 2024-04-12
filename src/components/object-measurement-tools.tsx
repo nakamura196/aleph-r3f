@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { useDrag } from '@use-gesture/react';
 
 export function ObjectMeasurementTools() {
-  const { objectMeasurements: measurements, setObjectMeasurements: setMeasurements } = useStore();
+  const { objectMeasurements: measurements, setObjectMeasurements: setMeasurements, measurementUnits } = useStore();
   const { scene, camera, pointer, raycaster, size } = useThree();
 
   // if a dot product is less than this, then the normal is facing away from the camera
@@ -45,7 +45,7 @@ export function ObjectMeasurementTools() {
     measurements.forEach((measurement: ObjectMeasurement, idx: number) => {
       // if not dragging the annotation, update its position
       if (dragRef.current !== idx) {
-        const [x, y] = calculatePosition(measurement);
+        const [x, y] = calculateScreenPosition(measurement.position);
         updateMeasurementPosition(idx, x, y);
       }
     });
@@ -125,8 +125,8 @@ export function ObjectMeasurementTools() {
   });
 
   // https://github.com/pmndrs/drei/blob/master/src/web/Html.tsx#L25
-  function calculatePosition(measurement: ObjectMeasurement) {
-    const objectPos = v1.copy(measurement.position);
+  function calculateScreenPosition(position: Vector3) {
+    const objectPos = v1.copy(position);
     objectPos.project(camera);
     const widthHalf = size.width / 2;
     const heightHalf = size.height / 2;
@@ -136,6 +136,180 @@ export function ObjectMeasurementTools() {
   function getIntersects(): Intersection<Object3D<Object3DEventMap>>[] {
     raycaster.setFromCamera(pointer, camera);
     return raycaster.intersectObjects(scene.children, true);
+  }
+
+  function Ruler({ idx0, idx1, width = 2 }: { idx0: number; idx1: number; width?: number }) {
+    const pos2D1: number[] = calculateScreenPosition(measurements[idx0].position);
+    const pos2D2: number[] = calculateScreenPosition(measurements[idx1].position);
+
+    const pos3D1: Vector3 = measurements[idx0].position;
+    const pos3D2: Vector3 = measurements[idx1].position;
+
+    let dir = pos3D2.clone().sub(pos3D1);
+    let worldDistance = dir.length();
+
+    if (measurementUnits === 'mm') {
+      worldDistance *= 1000;
+      // round to two decimal places
+      worldDistance = Math.round(worldDistance);
+    } else {
+      // round to two decimal places
+      worldDistance = parseFloat(worldDistance.toFixed(2));
+    }
+
+    const avgX = (pos2D1[0] + pos2D2[0]) / 2;
+    const avgY = (pos2D1[1] + pos2D2[1]) / 2;
+
+    return (
+      <>
+        <line
+          className="ruler-line"
+          data-idx0={idx0}
+          data-idx1={idx1}
+          x1={pos2D1[0]}
+          y1={pos2D1[1]}
+          x2={pos2D2[0]}
+          y2={pos2D2[1]}
+          stroke="black"
+          strokeWidth={width}
+          strokeDasharray="5,5"
+        />
+        <line
+          className="ruler-line"
+          data-idx0={idx0}
+          data-idx1={idx1}
+          x1={pos2D1[0]}
+          y1={pos2D1[1]}
+          x2={pos2D2[0]}
+          y2={pos2D2[1]}
+          stroke="white"
+          strokeWidth={width}
+          strokeDasharray="5,5"
+          strokeDashoffset="5"
+        />
+        <foreignObject className="measurement-label" x={avgX - 30} y={avgY - 15}>
+          <div>
+            {worldDistance}
+            {measurementUnits}
+          </div>
+        </foreignObject>
+      </>
+    );
+  }
+
+  // function calculateAngle(line1: any, line2: any) {
+  //   // Calculate direction vectors
+  //   const dir1 = { x: line1.x1 - line1.x2, y: line1.y1 - line1.y2 };
+  //   const dir2 = { x: line2.x2 - line2.x1, y: line2.y2 - line2.y1 };
+
+  //   // Calculate the dot product
+  //   const dotProduct = dir1.x * dir2.x + dir1.y * dir2.y;
+
+  //   // Calculate the magnitudes of the vectors
+  //   const mag1 = Math.sqrt(dir1.x * dir1.x + dir1.y * dir1.y);
+  //   const mag2 = Math.sqrt(dir2.x * dir2.x + dir2.y * dir2.y);
+
+  //   // Calculate the cosine of the angle
+  //   const cosTheta = dotProduct / (mag1 * mag2);
+
+  //   // Calculate the angle in radians
+  //   let angleRadians = Math.acos(cosTheta);
+
+  //   // Convert to degrees
+  //   let angleDegrees = angleRadians * (180 / Math.PI);
+
+  //   // Ensure the angle is not more than 180
+  //   if (angleDegrees > 180) {
+  //     angleDegrees = 360 - angleDegrees;
+  //   }
+
+  //   return angleDegrees;
+  // }
+
+  function calculateAngle(point1: Vector3, point2: Vector3, point3: Vector3) {
+    // Create vectors
+    const vector1 = new Vector3().subVectors(point2, point1);
+    const vector2 = new Vector3().subVectors(point2, point3);
+
+    // Normalize the vectors
+    vector1.normalize();
+    vector2.normalize();
+
+    // Calculate the dot product of vector1 and vector2
+    const dotProduct = vector1.dot(vector2);
+
+    // Clamp the value of dotProduct between -1 and 1
+    const clampedDotProduct = Math.max(-1, Math.min(1, dotProduct));
+
+    // Calculate the angle in radians
+    const angleRadians = Math.acos(clampedDotProduct);
+
+    // Convert the angle to degrees
+    const angleDegrees = angleRadians * (180 / Math.PI);
+
+    return angleDegrees;
+  }
+
+  function Angle({ point1, point2, point3 }: { point1: Vector3; point2: Vector3; point3: Vector3 }) {
+    const pos2D1: number[] = calculateScreenPosition(point1);
+    const pos2D2: number[] = calculateScreenPosition(point2);
+    const pos2D3: number[] = calculateScreenPosition(point3);
+
+    const line1 = {
+      x1: pos2D1[0],
+      y1: pos2D1[1],
+      x2: pos2D2[0],
+      y2: pos2D2[1],
+    };
+
+    const line2 = {
+      x1: pos2D2[0],
+      y1: pos2D2[1],
+      x2: pos2D3[0],
+      y2: pos2D3[1],
+    };
+
+    // Calculate the angle between the three points
+    const angle = calculateAngle(point1, point2, point3);
+
+    // Calculate the direction vectors of the lines
+    const dir1 = { x: line1.x1 - line1.x2, y: line1.y1 - line1.y2 };
+    const dir2 = { x: line2.x2 - line2.x1, y: line2.y2 - line2.y1 };
+
+    // Normalize the direction vectors
+    const magnitude1 = Math.sqrt(dir1.x * dir1.x + dir1.y * dir1.y);
+    const magnitude2 = Math.sqrt(dir2.x * dir2.x + dir2.y * dir2.y);
+    const normDir1 = { x: dir1.x / magnitude1, y: dir1.y / magnitude1 };
+    const normDir2 = { x: dir2.x / magnitude2, y: dir2.y / magnitude2 };
+
+    // Calculate the midpoint of the normalized direction vectors
+    const midDir = { x: (normDir1.x + normDir2.x) / 2, y: (normDir1.y + normDir2.y) / 2 };
+
+    // Calculate the magnitude of the midpoint direction
+    const midMagnitude = Math.sqrt(midDir.x * midDir.x + midDir.y * midDir.y);
+
+    // Normalize the midpoint direction
+    const normalizedMidDir = {
+      x: midDir.x / midMagnitude,
+      y: midDir.y / midMagnitude,
+    };
+
+    // Define the offset distance
+    const offsetDistance = 50;
+
+    // Calculate the position for the text
+    const textPosition = {
+      x: (line1.x2 + line2.x1) / 2 + normalizedMidDir.x * offsetDistance,
+      y: (line1.y2 + line2.y1) / 2 + normalizedMidDir.y * offsetDistance,
+    };
+
+    return (
+      <>
+        <foreignObject className="angle-label" x={textPosition.x - 30} y={textPosition.y - 15}>
+          <div>{angle.toFixed(2)}°</div>
+        </foreignObject>
+      </>
+    );
   }
 
   return (
@@ -167,6 +341,29 @@ export function ObjectMeasurementTools() {
             // setSelectedMeasurement(measurement.length);
           }
         }}>
+        {/* draw rulers */}
+        {measurements.map((_measurement: ObjectMeasurement, index: number) => {
+          // const nextPosition = measurements[index + 1]?.position;
+          if (index < measurements.length - 1) {
+            return <Ruler key={index} idx0={index} idx1={index + 1} />;
+          }
+          return null;
+        })}
+        {/* draw angles */}
+        {measurements.map((_measurement: ObjectMeasurement, index: number) => {
+          if (!measurements[index + 2]) {
+            return null;
+          }
+
+          return (
+            <Angle
+              key={index}
+              point1={measurements[index].position}
+              point2={measurements[index + 1].position}
+              point3={measurements[index + 2].position}
+            />
+          );
+        })}
         {/* draw points */}
         {measurements.map((measurement: ObjectMeasurement, index: number) => {
           return (
