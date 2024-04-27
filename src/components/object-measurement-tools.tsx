@@ -43,27 +43,24 @@ export function ObjectMeasurementTools() {
   }
 
   function update() {
-    // update points
+    // points
     measurements.forEach((measurement: ObjectMeasurement, idx: number) => {
-      // if not dragging the annotation, update its position
+      const pointEl: HTMLElement = document.getElementById(`point-${idx}`)!;
+      // if not dragging the point, update its position
       if (dragRef.current !== idx) {
         const [x, y] = calculateScreenPosition(measurement.position);
         const el: HTMLElement = document.getElementById(`point-${idx}`)!;
         setElementTranslate(el, x, y);
       }
 
-      const measurementEl: HTMLElement = document.getElementById(`point-${idx}`)!;
-
-      if (measurementEl) {
-        if (isFacingCamera(measurement)) {
-          measurementEl.classList.remove('facing-away');
-        } else {
-          measurementEl.classList.add('facing-away');
-        }
+      if (isFacingCamera(measurement)) {
+        pointEl.classList.remove('facing-away');
+      } else {
+        pointEl.classList.add('facing-away');
       }
     });
 
-    // update rulers
+    // rulers
     const pointEls = document.getElementsByClassName('point');
     const rulerLineEls = document.getElementsByClassName('ruler-line');
     const measurementLabelEls = document.getElementsByClassName('measurement-label');
@@ -302,7 +299,6 @@ export function ObjectMeasurementTools() {
 
   function calculateAngle(point1: Vector3, point2: Vector3, point3: Vector3) {
     // Create vectors
-    // todo: don't create new vectors every time
     const vector1 = v2.subVectors(point2, point1);
     const vector2 = v3.subVectors(point2, point3);
 
