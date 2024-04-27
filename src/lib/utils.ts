@@ -51,3 +51,35 @@ export const parseAnnotations = (value: any) => {
 
   return parsed;
 };
+
+export function getElementTranslate(el: HTMLElement): number[] | null {
+  let x: number;
+  let y: number;
+
+  let transformValue = el.getAttribute('transform');
+  let translateValues: string[] | null = null;
+
+  if (transformValue) {
+    let match = transformValue.match(/translate\(([^)]+)\)/);
+    if (match) {
+      translateValues = match[1].split(', ');
+    }
+  }
+
+  if (translateValues) {
+    x = Number(translateValues[0]);
+    y = Number(translateValues[1]);
+
+    return [x, y];
+  }
+
+  return null;
+}
+
+export function setElementTranslate(el: HTMLElement, x: number, y: number) {
+  if (el) {
+    el.setAttribute('transform', `translate(${x}, ${y})`);
+  } else {
+    console.error('could not find element');
+  }
+}

@@ -6,7 +6,7 @@ import { useEventTrigger } from '@/lib/hooks/use-event';
 import { ObjectMeasurement, CAMERA_CONTROLS_ENABLED } from '@/types';
 import React from 'react';
 import { Html } from '@react-three/drei';
-import { cn } from '@/lib/utils';
+import { cn, getElementTranslate, setElementTranslate } from '@/lib/utils';
 import { useDrag } from '@use-gesture/react';
 
 export function ObjectMeasurementTools() {
@@ -19,6 +19,8 @@ export function ObjectMeasurementTools() {
   const dragRef = useRef<number | null>(null);
 
   const v1 = new Vector3();
+  const v2 = new Vector3();
+  const v3 = new Vector3();
 
   // https://github.com/pmndrs/drei/blob/master/src/web/Html.tsx#L25
   function calculateScreenPosition(position: Vector3) {
@@ -40,22 +42,14 @@ export function ObjectMeasurementTools() {
     return true;
   }
 
-  function updateElementTranslate(id: string, x: number, y: number) {
-    const el: HTMLElement = document.getElementById(id)!;
-
-    if (el) {
-      el.setAttribute('transform', `translate(${x}, ${y})`);
-    } else {
-      console.error('could not find element');
-    }
-  }
-
-  function updatePoints() {
+  function update() {
+    // update points
     measurements.forEach((measurement: ObjectMeasurement, idx: number) => {
       // if not dragging the annotation, update its position
       if (dragRef.current !== idx) {
         const [x, y] = calculateScreenPosition(measurement.position);
-        updateElementTranslate(`point-${idx}`, x, y);
+        const el: HTMLElement = document.getElementById(`point-${idx}`)!;
+        setElementTranslate(el, x, y);
       }
 
       const measurementEl: HTMLElement = document.getElementById(`point-${idx}`)!;
@@ -68,9 +62,8 @@ export function ObjectMeasurementTools() {
         }
       }
     });
-  }
 
-  function updateRulers() {
+    // update rulers
     const pointEls = document.getElementsByClassName('point');
     const rulerLineEls = document.getElementsByClassName('ruler-line');
     const measurementLabelEls = document.getElementsByClassName('measurement-label');
@@ -79,7 +72,7 @@ export function ObjectMeasurementTools() {
     for (let i = 0; i < pointEls.length; i++) {
       const pointEl = pointEls[i] as HTMLElement;
       const idx = Number(pointEl.getAttribute('data-idx'));
-      const translateValues = getTranslateValues(pointEl);
+      const translateValues = getElementTranslate(pointEl);
 
       // for each rulerLineEl, update the x1, y1, x2, y2 attributes using the data-idx0 and data-idx1 attributes
       for (let j = 0; j < rulerLineEls.length; j++) {
@@ -105,16 +98,11 @@ export function ObjectMeasurementTools() {
         const pos2D1: number[] = calculateScreenPosition(measurements[idx0].position);
         const pos2D2: number[] = calculateScreenPosition(measurements[idx1].position);
 
-        // const pos2D1: number[] = translateValues!;
-
-        // const point2El = document.getElementById(`point-${idx1}`)!;
-        // const pos2D2: number[] = getTranslateValues(point2El)!;
-
         const avgX = (pos2D1[0] + pos2D2[0]) / 2;
         const avgY = (pos2D1[1] + pos2D2[1]) / 2;
 
-        measurementLabelEl.setAttribute('x', String(avgX));
-        measurementLabelEl.setAttribute('y', String(avgY));
+        measurementLabelEl.setAttribute('x', String(avgX - 30));
+        measurementLabelEl.setAttribute('y', String(avgY - 15));
 
         const pos3D1: Vector3 = measurements[idx0].position;
         const pos3D2: Vector3 = measurements[idx1].position;
@@ -202,10 +190,6 @@ export function ObjectMeasurementTools() {
           y: (line1.y2 + line2.y1) / 2 + normalizedMidDir.y * offsetDistance,
         };
 
-        //       <foreignObject className="angle-label" x={textPosition.x - 30} y={textPosition.y - 15}>
-        //         <div>{angle.toFixed(2)}°</div>
-        //       </foreignObject>
-
         angleLabelEl.setAttribute('x', String(textPosition.x - 30));
         angleLabelEl.setAttribute('y', String(textPosition.y - 15));
 
@@ -215,110 +199,11 @@ export function ObjectMeasurementTools() {
             </div>
           `;
       }
-
-      // todo: update the position of the measurement-labels
-      // for (let i = 0; i < measurements.length - 2; i++) {
-      //   const idx0 = i;
-      //   const idx1 = i + 1;
-
-      //   const pos2D1: number[] = calculateScreenPosition(measurements[idx0].position);
-      //   const pos2D2: number[] = calculateScreenPosition(measurements[idx1].position);
-
-      //   const pos3D1: Vector3 = measurements[idx0].position;
-      //   const pos3D2: Vector3 = measurements[idx1].position;
-
-      //   let dir = pos3D2.clone().sub(pos3D1);
-      //   let worldDistance = dir.length();
-
-      //   if (measurementUnits === 'mm') {
-      //     worldDistance *= 1000;
-      //     // round to two decimal places
-      //     worldDistance = Math.round(worldDistance);
-      //   } else {
-      //     // round to two decimal places
-      //     worldDistance = parseFloat(worldDistance.toFixed(2));
-      //   }
-
-      //   // get elements that have data-index0 and data-index1 attributes that match the current idx0 and idx1
-      //   const els = document.querySelectorAll(`[data-idx0="${idx0}"][data-idx1="${idx1}"]`);
-
-      //   // get ruler-line elements by filtering els by class name
-      //   const rulerEls = Array.from(els).filter((el) => el.classList.contains('ruler')) as HTMLElement[];
-
-      //   rulerEls.forEach((rulerEl) => {
-      //     rulerEl.setAttribute('x1', String(pos2D1[0]));
-      //     rulerEl.setAttribute('y1', String(pos2D1[1]));
-      //     rulerEl.setAttribute('x2', String(pos2D2[0]));
-      //     rulerEl.setAttribute('y2', String(pos2D2[1]));
-      //   });
-
-      //   // get the average position of the two points
-      //   const avgX = (pos2D1[0] + pos2D2[0]) / 2;
-      //   const avgY = (pos2D1[1] + pos2D2[1]) / 2;
-
-      //   // get the measurement-label
-      //   const measurementLabel = Array.from(els).find((el) =>
-      //     el.classList.contains('measurement-label')
-      //   ) as SVGForeignObjectElement;
-
-      //   console.log('measurementLabel', measurementLabel);
-
-      //   measurementLabel.setAttribute('x', String(avgX - 30));
-      //   measurementLabel.setAttribute('y', String(avgY - 15));
-
-      //   // x={avgX - 30}
-      //   // y={avgY - 15}
-
-      //   // update the measurement-label text
-      //   measurementLabel.innerHTML = `
-      //     <div>
-      //       ${worldDistance} ${measurementUnits}
-      //     </div>
-      //   `;
-
-      //   // // get the angle-label
-      //   // const angleLabel = rulerEl.getElementsByClassName('angle-label')[0] as SVGForeignObjectElement;
-
-      //   // angleLabel.setAttribute('x', String(avgX - 30));
-      //   // angleLabel.setAttribute('y', String(avgY - 15));
-
-      //   // // update the angle-label text
-      //   // angleLabel.innerHTML = `
-      //   //   <div>
-      //   //     ${calculateAngle(pos3D1, pos3D2, pos3D2).toFixed(2)}°
-      //   //   </div>
-      //   // `;
-      // }
     }
-  }
-
-  function getTranslateValues(el: HTMLElement): number[] | null {
-    let x: number;
-    let y: number;
-
-    let transformValue = el.getAttribute('transform');
-    let translateValues: string[] | null = null;
-
-    if (transformValue) {
-      let match = transformValue.match(/translate\(([^)]+)\)/);
-      if (match) {
-        translateValues = match[1].split(', ');
-      }
-    }
-
-    if (translateValues) {
-      x = Number(translateValues[0]);
-      y = Number(translateValues[1]);
-
-      return [x, y];
-    }
-
-    return null;
   }
 
   useFrame(() => {
-    updatePoints();
-    updateRulers();
+    update();
   });
 
   const triggerCameraControlsEnabledEvent = useEventTrigger(CAMERA_CONTROLS_ENABLED);
@@ -338,7 +223,7 @@ export function ObjectMeasurementTools() {
 
     if (!state.memo) {
       // just started dragging. use the initial position
-      let translateValues = getTranslateValues(el);
+      let translateValues = getElementTranslate(el);
       if (translateValues) {
         x = translateValues[0];
         y = translateValues[1];
@@ -355,9 +240,8 @@ export function ObjectMeasurementTools() {
     }
 
     // set element position without updating state (that happens on MouseUp event)
-    updateElementTranslate(`point-${idx}`, x, y);
+    setElementTranslate(el, x, y);
 
-    // todo: update positions of ruler lines and measurement labels on drag
     // hide all measurement-labels
     const measurementLabelEls = document.getElementsByClassName('measurement-label');
 
@@ -412,40 +296,15 @@ export function ObjectMeasurementTools() {
     );
   }
 
-  // function calculateAngle(line1: any, line2: any) {
-  //   // Calculate direction vectors
-  //   const dir1 = { x: line1.x1 - line1.x2, y: line1.y1 - line1.y2 };
-  //   const dir2 = { x: line2.x2 - line2.x1, y: line2.y2 - line2.y1 };
-
-  //   // Calculate the dot product
-  //   const dotProduct = dir1.x * dir2.x + dir1.y * dir2.y;
-
-  //   // Calculate the magnitudes of the vectors
-  //   const mag1 = Math.sqrt(dir1.x * dir1.x + dir1.y * dir1.y);
-  //   const mag2 = Math.sqrt(dir2.x * dir2.x + dir2.y * dir2.y);
-
-  //   // Calculate the cosine of the angle
-  //   const cosTheta = dotProduct / (mag1 * mag2);
-
-  //   // Calculate the angle in radians
-  //   let angleRadians = Math.acos(cosTheta);
-
-  //   // Convert to degrees
-  //   let angleDegrees = angleRadians * (180 / Math.PI);
-
-  //   // Ensure the angle is not more than 180
-  //   if (angleDegrees > 180) {
-  //     angleDegrees = 360 - angleDegrees;
-  //   }
-
-  //   return angleDegrees;
-  // }
+  function Angle({ idx0, idx1, idx2 }: { idx0: number; idx1: number; idx2: number }) {
+    return <foreignObject className="angle-label" data-idx0={idx0} data-idx1={idx1} data-idx2={idx2}></foreignObject>;
+  }
 
   function calculateAngle(point1: Vector3, point2: Vector3, point3: Vector3) {
     // Create vectors
     // todo: don't create new vectors every time
-    const vector1 = new Vector3().subVectors(point2, point1);
-    const vector2 = new Vector3().subVectors(point2, point3);
+    const vector1 = v2.subVectors(point2, point1);
+    const vector2 = v3.subVectors(point2, point3);
 
     // Normalize the vectors
     vector1.normalize();
@@ -465,68 +324,6 @@ export function ObjectMeasurementTools() {
 
     return angleDegrees;
   }
-
-  // function Angle({ point1, point2, point3 }: { point1: Vector3; point2: Vector3; point3: Vector3 }) {
-  //   const pos2D1: number[] = calculateScreenPosition(point1);
-  //   const pos2D2: number[] = calculateScreenPosition(point2);
-  //   const pos2D3: number[] = calculateScreenPosition(point3);
-
-  //   const line1 = {
-  //     x1: pos2D1[0],
-  //     y1: pos2D1[1],
-  //     x2: pos2D2[0],
-  //     y2: pos2D2[1],
-  //   };
-
-  //   const line2 = {
-  //     x1: pos2D2[0],
-  //     y1: pos2D2[1],
-  //     x2: pos2D3[0],
-  //     y2: pos2D3[1],
-  //   };
-
-  //   // Calculate the angle between the three points
-  //   const angle = calculateAngle(point1, point2, point3);
-
-  //   // Calculate the direction vectors of the lines
-  //   const dir1 = { x: line1.x1 - line1.x2, y: line1.y1 - line1.y2 };
-  //   const dir2 = { x: line2.x2 - line2.x1, y: line2.y2 - line2.y1 };
-
-  //   // Normalize the direction vectors
-  //   const magnitude1 = Math.sqrt(dir1.x * dir1.x + dir1.y * dir1.y);
-  //   const magnitude2 = Math.sqrt(dir2.x * dir2.x + dir2.y * dir2.y);
-  //   const normDir1 = { x: dir1.x / magnitude1, y: dir1.y / magnitude1 };
-  //   const normDir2 = { x: dir2.x / magnitude2, y: dir2.y / magnitude2 };
-
-  //   // Calculate the midpoint of the normalized direction vectors
-  //   const midDir = { x: (normDir1.x + normDir2.x) / 2, y: (normDir1.y + normDir2.y) / 2 };
-
-  //   // Calculate the magnitude of the midpoint direction
-  //   const midMagnitude = Math.sqrt(midDir.x * midDir.x + midDir.y * midDir.y);
-
-  //   // Normalize the midpoint direction
-  //   const normalizedMidDir = {
-  //     x: midDir.x / midMagnitude,
-  //     y: midDir.y / midMagnitude,
-  //   };
-
-  //   // Define the offset distance
-  //   const offsetDistance = 50;
-
-  //   // Calculate the position for the text
-  //   const textPosition = {
-  //     x: (line1.x2 + line2.x1) / 2 + normalizedMidDir.x * offsetDistance,
-  //     y: (line1.y2 + line2.y1) / 2 + normalizedMidDir.y * offsetDistance,
-  //   };
-
-  //   return (
-  //     <>
-  //       <foreignObject className="angle-label" x={textPosition.x - 30} y={textPosition.y - 15}>
-  //         <div>{angle.toFixed(2)}°</div>
-  //       </foreignObject>
-  //     </>
-  //   );
-  // }
 
   return (
     <Html
@@ -571,22 +368,7 @@ export function ObjectMeasurementTools() {
             return null;
           }
 
-          return (
-            <foreignObject
-              className="angle-label"
-              data-idx0={index}
-              data-idx1={index + 1}
-              data-idx2={index + 2}></foreignObject>
-          );
-
-          // return (
-          //   <Angle
-          //     key={index}
-          //     point1={measurements[index].position}
-          //     point2={measurements[index + 1].position}
-          //     point3={measurements[index + 2].position}
-          //   />
-          // );
+          return <Angle key={index} idx0={index} idx1={index + 1} idx2={index + 2} />;
         })}
         {/* draw points */}
         {measurements.map((measurement: ObjectMeasurement, index: number) => {
