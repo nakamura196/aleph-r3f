@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import useStore from '@/Store';
 import { Intersection, Object3D, Object3DEventMap, Vector3 } from 'three';
@@ -22,6 +22,32 @@ export function ObjectMeasurementTools() {
   const v2 = new Vector3();
   const v3 = new Vector3();
 
+  const pointElsRef = useRef<HTMLElement[]>([]);
+  const rulerLineElsRef = useRef<SVGLineElement[]>([]);
+  const measurementLabelElsRef = useRef<SVGForeignObjectElement[]>([]);
+  const angleLabelElsRef = useRef<SVGForeignObjectElement[]>([]);
+
+  // cache DOM query selectors when measurements change
+  useEffect(() => {
+    setTimeout(() => {
+      pointElsRef.current = Array.from(document.getElementsByClassName('point')) as HTMLElement[];
+      rulerLineElsRef.current = Array.from(document.getElementsByClassName('ruler-line')) as SVGLineElement[];
+      measurementLabelElsRef.current = Array.from(
+        document.getElementsByClassName('measurement-label')
+      ) as SVGForeignObjectElement[];
+      angleLabelElsRef.current = Array.from(
+        document.getElementsByClassName('angle-label')
+      ) as SVGForeignObjectElement[];
+    }, 1);
+
+    return () => {
+      pointElsRef.current = [];
+      rulerLineElsRef.current = [];
+      measurementLabelElsRef.current = [];
+      angleLabelElsRef.current = [];
+    };
+  }, [measurements]);
+
   // https://github.com/pmndrs/drei/blob/master/src/web/Html.tsx#L25
   function calculateScreenPosition(position: Vector3) {
     const objectPos = v1.copy(position);
@@ -42,15 +68,16 @@ export function ObjectMeasurementTools() {
     return true;
   }
 
-  function update() {
+  // update overlaid DOM elements every frame
+  function draw() {
     // points
     measurements.forEach((measurement: ObjectMeasurement, idx: number) => {
-      const pointEl: HTMLElement = document.getElementById(`point-${idx}`)!;
+      const pointEl: HTMLElement = pointElsRef.current.find((el) => el.id === `point-${idx}`)!;
+
       // if not dragging the point, update its position
       if (dragRef.current !== idx) {
         const [x, y] = calculateScreenPosition(measurement.position);
-        const el: HTMLElement = document.getElementById(`point-${idx}`)!;
-        setElementTranslate(el, x, y);
+        setElementTranslate(pointEl, x, y);
       }
 
       if (isFacingCamera(measurement)) {
@@ -61,19 +88,15 @@ export function ObjectMeasurementTools() {
     });
 
     // rulers
-    const pointEls = document.getElementsByClassName('point');
-    const rulerLineEls = document.getElementsByClassName('ruler-line');
-    const measurementLabelEls = document.getElementsByClassName('measurement-label');
-    const angleLabelEls = document.getElementsByClassName('angle-label');
-
-    for (let i = 0; i < pointEls.length; i++) {
-      const pointEl = pointEls[i] as HTMLElement;
+    for (let i = 0; i < pointElsRef.current.length; i++) {
+      const pointEl: HTMLElement = pointElsRef.current[i];
       const idx = Number(pointEl.getAttribute('data-idx'));
       const translateValues = getElementTranslate(pointEl);
 
       // for each rulerLineEl, update the x1, y1, x2, y2 attributes using the data-idx0 and data-idx1 attributes
-      for (let j = 0; j < rulerLineEls.length; j++) {
-        const rulerLineEl = rulerLineEls[j] as SVGLineElement;
+      for (let j = 0; j < rulerLineElsRef.current.length; j++) {
+        const rulerLineEl: SVGLineElement = rulerLineElsRef.current[j];
+        console.log('rulerLineEl', rulerLineEl);
         const idx0 = Number(rulerLineEl.getAttribute('data-idx0'));
         const idx1 = Number(rulerLineEl.getAttribute('data-idx1'));
 
@@ -87,8 +110,8 @@ export function ObjectMeasurementTools() {
       }
 
       // for each measurementLabelEl, update the x, y attributes using the data-idx0 and data-idx1 attributes
-      for (let j = 0; j < measurementLabelEls.length; j++) {
-        const measurementLabelEl = measurementLabelEls[j] as SVGForeignObjectElement;
+      for (let j = 0; j < measurementLabelElsRef.current.length; j++) {
+        const measurementLabelEl: SVGForeignObjectElement = measurementLabelElsRef.current[j];
         const idx0 = Number(measurementLabelEl.getAttribute('data-idx0'));
         const idx1 = Number(measurementLabelEl.getAttribute('data-idx1'));
 
@@ -124,8 +147,8 @@ export function ObjectMeasurementTools() {
       }
 
       // for each angleLabelEl, update the x, y attributes using the data-idx0, data-idx1, and data-idx2 attributes
-      for (let j = 0; j < angleLabelEls.length; j++) {
-        const angleLabelEl = angleLabelEls[j] as SVGForeignObjectElement;
+      for (let j = 0; j < angleLabelElsRef.current.length; j++) {
+        const angleLabelEl: SVGForeignObjectElement = angleLabelElsRef.current[j];
 
         const idx0 = Number(angleLabelEl.getAttribute('data-idx0'));
         const idx1 = Number(angleLabelEl.getAttribute('data-idx1'));
@@ -200,7 +223,7 @@ export function ObjectMeasurementTools() {
   }
 
   useFrame(() => {
-    update();
+    draw();
   });
 
   const triggerCameraControlsEnabledEvent = useEventTrigger(CAMERA_CONTROLS_ENABLED);
@@ -240,18 +263,14 @@ export function ObjectMeasurementTools() {
     setElementTranslate(el, x, y);
 
     // hide all measurement-labels
-    const measurementLabelEls = document.getElementsByClassName('measurement-label');
-
-    for (let i = 0; i < measurementLabelEls.length; i++) {
-      const labelEl = measurementLabelEls[i] as SVGForeignObjectElement;
+    for (let i = 0; i < measurementLabelElsRef.current.length; i++) {
+      const labelEl = measurementLabelElsRef.current[i] as SVGForeignObjectElement;
       labelEl.classList.add('hidden');
     }
 
     // hide all angle-labels
-    const angleLabelEls = document.getElementsByClassName('angle-label');
-
-    for (let i = 0; i < angleLabelEls.length; i++) {
-      const labelEl = angleLabelEls[i] as SVGForeignObjectElement;
+    for (let i = 0; i < angleLabelElsRef.current.length; i++) {
+      const labelEl = angleLabelElsRef.current[i] as SVGForeignObjectElement;
       labelEl.classList.add('hidden');
     }
 
