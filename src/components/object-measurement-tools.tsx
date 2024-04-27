@@ -40,11 +40,11 @@ export function ObjectMeasurementTools() {
     return true;
   }
 
-  function updatePointPosition(idx: number, x: number, y: number) {
-    const measurementEl: HTMLElement = document.getElementById(`point-${idx}`)!;
+  function updateElementTranslate(id: string, x: number, y: number) {
+    const el: HTMLElement = document.getElementById(id)!;
 
-    if (measurementEl) {
-      measurementEl.setAttribute('transform', `translate(${x}, ${y})`);
+    if (el) {
+      el.setAttribute('transform', `translate(${x}, ${y})`);
     } else {
       console.error('could not find element');
     }
@@ -55,7 +55,7 @@ export function ObjectMeasurementTools() {
       // if not dragging the annotation, update its position
       if (dragRef.current !== idx) {
         const [x, y] = calculateScreenPosition(measurement.position);
-        updatePointPosition(idx, x, y);
+        updateElementTranslate(`point-${idx}`, x, y);
       }
 
       const measurementEl: HTMLElement = document.getElementById(`point-${idx}`)!;
@@ -105,11 +105,16 @@ export function ObjectMeasurementTools() {
         const pos2D1: number[] = calculateScreenPosition(measurements[idx0].position);
         const pos2D2: number[] = calculateScreenPosition(measurements[idx1].position);
 
+        // const pos2D1: number[] = translateValues!;
+
+        // const point2El = document.getElementById(`point-${idx1}`)!;
+        // const pos2D2: number[] = getTranslateValues(point2El)!;
+
         const avgX = (pos2D1[0] + pos2D2[0]) / 2;
         const avgY = (pos2D1[1] + pos2D2[1]) / 2;
 
-        measurementLabelEl.setAttribute('x', String(avgX - 30));
-        measurementLabelEl.setAttribute('y', String(avgY - 15));
+        measurementLabelEl.setAttribute('x', String(avgX));
+        measurementLabelEl.setAttribute('y', String(avgY));
 
         const pos3D1: Vector3 = measurements[idx0].position;
         const pos3D2: Vector3 = measurements[idx1].position;
@@ -350,24 +355,24 @@ export function ObjectMeasurementTools() {
     }
 
     // set element position without updating state (that happens on MouseUp event)
-    updatePointPosition(idx, x, y);
+    updateElementTranslate(`point-${idx}`, x, y);
 
     // todo: update positions of ruler lines and measurement labels on drag
     // hide all measurement-labels
-    // const measurementLabelEls = document.getElementsByClassName('measurement-label');
+    const measurementLabelEls = document.getElementsByClassName('measurement-label');
 
-    // for (let i = 0; i < measurementLabelEls.length; i++) {
-    //   const labelEl = measurementLabelEls[i] as SVGForeignObjectElement;
-    //   labelEl.classList.add('hidden');
-    // }
+    for (let i = 0; i < measurementLabelEls.length; i++) {
+      const labelEl = measurementLabelEls[i] as SVGForeignObjectElement;
+      labelEl.classList.add('hidden');
+    }
 
-    // // hide all angle-labels
-    // const angleLabelEls = document.getElementsByClassName('angle-label');
+    // hide all angle-labels
+    const angleLabelEls = document.getElementsByClassName('angle-label');
 
-    // for (let i = 0; i < angleLabelEls.length; i++) {
-    //   const labelEl = angleLabelEls[i] as SVGForeignObjectElement;
-    //   labelEl.classList.add('hidden');
-    // }
+    for (let i = 0; i < angleLabelEls.length; i++) {
+      const labelEl = angleLabelEls[i] as SVGForeignObjectElement;
+      labelEl.classList.add('hidden');
+    }
 
     // memo the initial position
     if (!state.memo) {
