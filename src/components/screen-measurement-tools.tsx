@@ -6,7 +6,7 @@ import { useEventTrigger } from '@/lib/hooks/use-event';
 import { useDrag } from '@use-gesture/react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { cn } from '@/lib/utils';
-import useKeyPress from '@/lib/hooks/use-key-press';
+import useKeyDown from '@/lib/hooks/use-key-press';
 
 export function ScreenMeasurementTools() {
   const { screenMeasurements: measurements, setScreenMeasurements: setMeasurements, measurementUnits } = useStore();
@@ -22,7 +22,7 @@ export function ScreenMeasurementTools() {
 
   // useEventListener(CAMERA_SLEEP, handleCameraSleepEvent);
 
-  useKeyPress('Delete', () => {
+  useKeyDown('Delete', () => {
     // delete measurement
     if (selectedMeasurementRef.current !== null) {
       setMeasurements(measurements.filter((_measurement, index) => index !== selectedMeasurementRef.current));

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import useStore from '@/Store';
 import { Intersection, Object3D, Object3DEventMap, Vector3 } from 'three';
@@ -8,6 +8,7 @@ import React from 'react';
 import { Html } from '@react-three/drei';
 import { cn, getElementTranslate, setElementTranslate } from '@/lib/utils';
 import { useDrag } from '@use-gesture/react';
+import useKeyDown from '@/lib/hooks/use-key-press';
 
 export function ObjectMeasurementTools() {
   const { objectMeasurements: measurements, setObjectMeasurements: setMeasurements, measurementUnits } = useStore();
@@ -27,6 +28,31 @@ export function ObjectMeasurementTools() {
   const measurementLabelElsRef = useRef<SVGForeignObjectElement[]>([]);
   const angleLabelElsRef = useRef<SVGForeignObjectElement[]>([]);
 
+  useKeyDown('Delete', () => {
+    // delete measurement
+    if (selectedMeasurementRef.current !== null) {
+      setMeasurements(measurements.filter((_measurement, index) => index !== selectedMeasurementRef.current));
+    }
+    setSelectedMeasurement(measurements.length ? measurements.length - 2 : null);
+  });
+
+  const selectedMeasurementRef = useRef<number | null>(null);
+
+  function setSelectedMeasurement(index: number | null) {
+    selectedMeasurementRef.current = index;
+
+    // find the selected measurement point and update class
+
+    for (let i = 0; i < pointElsRef.current.length; i++) {
+      const pointEl: HTMLElement = pointElsRef.current[i];
+      pointEl.classList.remove('selected');
+
+      if (index !== null && i === index) {
+        pointEl.classList.add('selected');
+      }
+    }
+  }
+
   // cache DOM query selectors when measurements change
   useEffect(() => {
     setTimeout(() => {
@@ -38,6 +64,13 @@ export function ObjectMeasurementTools() {
       angleLabelElsRef.current = Array.from(
         document.getElementsByClassName('angle-label')
       ) as SVGForeignObjectElement[];
+      // console.log(
+      //   'cached DOM elements',
+      //   pointElsRef.current,
+      //   rulerLineElsRef.current,
+      //   measurementLabelElsRef.current,
+      //   angleLabelElsRef.current
+      // );
     }, 1);
 
     return () => {
@@ -69,7 +102,7 @@ export function ObjectMeasurementTools() {
   }
 
   // update overlaid DOM elements every frame
-  function draw() {
+  useFrame(() => {
     // points
     measurements.forEach((measurement: ObjectMeasurement, idx: number) => {
       const pointEl: HTMLElement = pointElsRef.current.find((el) => el.id === `point-${idx}`)!;
@@ -81,9 +114,9 @@ export function ObjectMeasurementTools() {
       }
 
       if (isFacingCamera(measurement)) {
-        pointEl.classList.remove('facing-away');
+        pointEl?.classList.remove('facing-away');
       } else {
-        pointEl.classList.add('facing-away');
+        pointEl?.classList.add('facing-away');
       }
     });
 
@@ -96,7 +129,6 @@ export function ObjectMeasurementTools() {
       // for each rulerLineEl, update the x1, y1, x2, y2 attributes using the data-idx0 and data-idx1 attributes
       for (let j = 0; j < rulerLineElsRef.current.length; j++) {
         const rulerLineEl: SVGLineElement = rulerLineElsRef.current[j];
-        console.log('rulerLineEl', rulerLineEl);
         const idx0 = Number(rulerLineEl.getAttribute('data-idx0'));
         const idx1 = Number(rulerLineEl.getAttribute('data-idx1'));
 
@@ -220,10 +252,6 @@ export function ObjectMeasurementTools() {
           `;
       }
     }
-  }
-
-  useFrame(() => {
-    draw();
   });
 
   const triggerCameraControlsEnabledEvent = useEventTrigger(CAMERA_CONTROLS_ENABLED);
@@ -262,18 +290,6 @@ export function ObjectMeasurementTools() {
     // set element position without updating state (that happens on MouseUp event)
     setElementTranslate(el, x, y);
 
-    // hide all measurement-labels
-    for (let i = 0; i < measurementLabelElsRef.current.length; i++) {
-      const labelEl = measurementLabelElsRef.current[i] as SVGForeignObjectElement;
-      labelEl.classList.add('hidden');
-    }
-
-    // hide all angle-labels
-    for (let i = 0; i < angleLabelElsRef.current.length; i++) {
-      const labelEl = angleLabelElsRef.current[i] as SVGForeignObjectElement;
-      labelEl.classList.add('hidden');
-    }
-
     // memo the initial position
     if (!state.memo) {
       return [x, y];
@@ -281,6 +297,32 @@ export function ObjectMeasurementTools() {
       return state.memo;
     }
   });
+
+  function showLabels() {
+    // show all measurement-labels
+    for (let i = 0; i < measurementLabelElsRef.current.length; i++) {
+      const labelEl = measurementLabelElsRef.current[i] as SVGForeignObjectElement;
+      labelEl.classList.remove('hidden');
+    }
+    // show all angle-labels
+    for (let i = 0; i < angleLabelElsRef.current.length; i++) {
+      const labelEl = angleLabelElsRef.current[i] as SVGForeignObjectElement;
+      labelEl.classList.remove('hidden');
+    }
+  }
+
+  function hideLabels() {
+    // hide all measurement-labels
+    for (let i = 0; i < measurementLabelElsRef.current.length; i++) {
+      const labelEl = measurementLabelElsRef.current[i] as SVGForeignObjectElement;
+      labelEl.classList.add('hidden');
+    }
+    // hide all angle-labels
+    for (let i = 0; i < angleLabelElsRef.current.length; i++) {
+      const labelEl = angleLabelElsRef.current[i] as SVGForeignObjectElement;
+      labelEl.classList.add('hidden');
+    }
+  }
 
   function getIntersects(): Intersection<Object3D<Object3DEventMap>>[] {
     raycaster.setFromCamera(pointer, camera);
@@ -393,17 +435,16 @@ export function ObjectMeasurementTools() {
                 {...bind()}
                 id={`point-${index}`}
                 data-idx={index}
-                className={cn('point', {
-                  // selected: selectedMeasurement === index,
-                })}
+                className={cn('point')}
                 onMouseDown={(_e: React.MouseEvent<SVGElement>) => {
                   if (isFacingCamera(measurement)) {
                     triggerCameraControlsEnabledEvent(false);
+                    hideLabels();
                   }
                 }}
                 onMouseUp={(_e: React.MouseEvent<SVGElement>) => {
                   if (isFacingCamera(measurement)) {
-                    // if was dragging this annotation
+                    // if dragging this point
                     if (dragRef.current === index) {
                       const intersects: Intersection<Object3D>[] = getIntersects();
 
@@ -425,10 +466,11 @@ export function ObjectMeasurementTools() {
 
                       dragRef.current = null;
                     } else {
-                      // setSelectedMeasurement(index);
+                      setSelectedMeasurement(index);
                     }
 
                     triggerCameraControlsEnabledEvent(true);
+                    showLabels();
                   }
                 }}>
                 <circle r="8" />

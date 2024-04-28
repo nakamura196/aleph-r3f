@@ -37,6 +37,11 @@ body.dragging {
   font-weight: 100;
 }
 
+.point.selected {
+  fill: black;
+  stroke: white;
+}
+
 .point.facing-away {
   opacity: 20%;
   transition: opacity 0.25s ease-in-out;
@@ -61,22 +66,6 @@ body.dragging {
   font-size: 0.75rem; /* equivalent to text-xs in Tailwind */
   margin-top: 0.25rem; /* equivalent to mt-1 in Tailwind */
   color: #abb6c6; /* equivalent to text-gray-300 in Tailwind */
-}
-
-.measurement-point {
-  fill: black;
-  stroke: white;
-  touch-action: none;
-}
-
-.measurement-point:hover {
-  fill: white;
-  stroke: black;
-}
-
-.measurement-point.selected {
-  fill: white;
-  stroke: black;
 }
 
 .measurement-label {

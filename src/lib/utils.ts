@@ -77,9 +77,5 @@ export function getElementTranslate(el: HTMLElement): number[] | null {
 }
 
 export function setElementTranslate(el: HTMLElement, x: number, y: number) {
-  if (el) {
-    el.setAttribute('transform', `translate(${x}, ${y})`);
-  } else {
-    console.error('could not find element');
-  }
+  el?.setAttribute('transform', `translate(${x}, ${y})`);
 }
