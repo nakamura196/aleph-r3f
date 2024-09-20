@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Annotation, SrcObj, Mode, Measurement } from './types/';
+import { Annotation, SrcObj, Mode, ObjectMeasurement, ScreenMeasurement, MeasurementMode } from './types/';
 // import { mountStoreDevtool } from 'simple-zustand-devtools';
 
 type State = {
@@ -9,10 +9,12 @@ type State = {
   boundsEnabled: boolean;
   gridEnabled: boolean;
   loading: boolean;
-  measurements: Measurement[];
+  measurementMode: MeasurementMode;
   measurementUnits: 'm' | 'mm';
   mode: Mode;
+  objectMeasurements: ObjectMeasurement[];
   orthographicEnabled: boolean;
+  screenMeasurements: ScreenMeasurement[];
   selectedAnnotation: number | null;
   srcs: SrcObj[];
   upVector: [number, number, number];
@@ -22,10 +24,12 @@ type State = {
   setBoundsEnabled: (boundsEnabled: boolean) => void;
   setGridEnabled: (gridEnabled: boolean) => void;
   setLoading: (loading: boolean) => void;
-  setMeasurements: (measurements: Measurement[]) => void;
+  setMeasurementMode: (measurementMode: MeasurementMode) => void;
   setMeasurementUnits: (measurementUnits: 'm' | 'mm') => void;
   setMode: (mode: Mode) => void;
+  setObjectMeasurements: (measurements: ObjectMeasurement[]) => void;
   setOrthographicEnabled: (orthographicEnabled: boolean) => void;
+  setScreenMeasurements: (measurements: ScreenMeasurement[]) => void;
   setSelectedAnnotation: (selectedAnnotation: number | null) => void;
   setSrcs: (srcs: SrcObj[]) => void;
   setUpVector: (upVector: [number, number, number]) => void;
@@ -38,10 +42,12 @@ const useStore = create<State>((set) => ({
   boundsEnabled: false,
   gridEnabled: false,
   loading: true,
-  measurements: [],
+  measurementMode: 'object',
   measurementUnits: 'm',
   mode: 'scene',
+  objectMeasurements: [],
   orthographicEnabled: false,
+  screenMeasurements: [],
   selectedAnnotation: null,
   srcs: [],
   upVector: [0, 1, 0],
@@ -76,9 +82,9 @@ const useStore = create<State>((set) => ({
       loading,
     }),
 
-  setMeasurements: (measurements: Measurement[]) =>
+  setMeasurementMode: (measurementMode: MeasurementMode) =>
     set({
-      measurements,
+      measurementMode,
     }),
 
   setMeasurementUnits: (measurementUnits: 'm' | 'mm') =>
@@ -92,9 +98,19 @@ const useStore = create<State>((set) => ({
       orthographicEnabled: mode === 'measurement', // enable orthographic camera for measurement mode only
     }),
 
+  setObjectMeasurements: (measurements: ObjectMeasurement[]) =>
+    set({
+      objectMeasurements: measurements,
+    }),
+
   setOrthographicEnabled: (orthographicEnabled: boolean) =>
     set({
       orthographicEnabled,
+    }),
+
+  setScreenMeasurements: (measurements: ScreenMeasurement[]) =>
+    set({
+      screenMeasurements: measurements,
     }),
 
   setSelectedAnnotation: (selectedAnnotation: number | null) =>

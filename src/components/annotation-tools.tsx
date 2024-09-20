@@ -55,7 +55,7 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
   }
 
   function updateAnnotationPosition(idx: number, x: number, y: number) {
-    const annoEl: HTMLElement = document.getElementById(`anno-${idx}`)!;
+    const annoEl: HTMLElement = document.getElementById(`point-${idx}`)!;
 
     if (annoEl) {
       annoEl.setAttribute('transform', `translate(${x}, ${y})`);
@@ -79,7 +79,7 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
     // are facing towards or away from the camera
 
     annotations.forEach((anno: Annotation, idx: number) => {
-      const annoEl: HTMLElement = document.getElementById(`anno-${idx}`)!;
+      const annoEl: HTMLElement = document.getElementById(`point-${idx}`)!;
 
       if (annoEl) {
         if (isFacingCamera(anno)) {
@@ -198,9 +198,9 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
             <React.Fragment key={index}>
               <g
                 {...bind()}
-                id={`anno-${index}`}
+                id={`point-${index}`}
                 data-idx={index}
-                className={cn('annotation', {
+                className={cn('point', {
                   selected: selectedAnnotation === index,
                 })}
                 onMouseDown={(_e: React.MouseEvent<SVGElement>) => {

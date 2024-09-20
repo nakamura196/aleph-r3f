@@ -1,4 +1,4 @@
-export type Measurement = {
+export type ScreenMeasurement = {
   position: [number, number];
   absPosition?: [number, number];
 };

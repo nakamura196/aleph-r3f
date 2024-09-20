@@ -1,7 +1,7 @@
 import { FormEvent, useRef, useState } from 'react';
 import { Annotation, ANNO_CLICK, CAMERA_UPDATE } from '@/types';
 import { Button } from './ui/button';
-import useKeyPress from '@/lib/hooks/use-key-press';
+import useKeyDown from '@/lib/hooks/use-key-press';
 import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
 import useStore from '@/Store';
 import { Vector3 } from 'three';
@@ -24,7 +24,7 @@ function AnnotationTab() {
   const cameraPositionRef = useRef<Vector3>();
   const cameraTargetRef = useRef<Vector3>();
 
-  useKeyPress('Escape', () => {
+  useKeyDown('Escape', () => {
     setEditIdx(null);
   });
 
