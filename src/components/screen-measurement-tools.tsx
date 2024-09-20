@@ -1,8 +1,8 @@
 import useStore from '@/Store';
-import { CAMERA_CONTROLS_ENABLED, DRAGGING_MEASUREMENT, DROPPED_MEASUREMENT, ScreenMeasurement } from '@/types';
+import { CAMERA_CONTROLS_ENABLED, CAMERA_UPDATE, DRAGGING_MEASUREMENT, DROPPED_MEASUREMENT, ScreenMeasurement } from '@/types';
 import React, { useRef } from 'react';
 import { Html } from '@react-three/drei';
-import { useEventTrigger } from '@/lib/hooks/use-event';
+import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
 import { useDrag } from '@use-gesture/react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { cn } from '@/lib/utils';
@@ -15,12 +15,6 @@ export function ScreenMeasurementTools() {
   const dragRef = useRef<number | null>(null);
 
   const triggerCameraControlsEnabledEvent = useEventTrigger(CAMERA_CONTROLS_ENABLED);
-
-  // const handleCameraSleepEvent = (e: any) => {
-  //   console.log('camera sleep event');
-  // };
-
-  // useEventListener(CAMERA_SLEEP, handleCameraSleepEvent);
 
   useKeyDown('Delete', () => {
     // delete measurement
@@ -52,19 +46,7 @@ export function ScreenMeasurementTools() {
     const position = measurements[idx0]?.position;
     const nextPosition = measurements[idx1]?.position;
 
-    const dx = nextPosition[0] - position[0];
-    const dy = nextPosition[1] - position[1];
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    let worldDistance = distance / camera.zoom;
-
-    if (measurementUnits === 'mm') {
-      worldDistance *= 1000;
-      // round to two decimal places
-      worldDistance = Math.round(worldDistance);
-    } else {
-      // round to two decimal places
-      worldDistance = parseFloat(worldDistance.toFixed(2));
-    }
+    const worldDistance = calculateWorldDistance(position[0], nextPosition[0], position[1], nextPosition[1]);
 
     const avgX = (position[0] + nextPosition[0]) / 2;
     const avgY = (position[1] + nextPosition[1]) / 2;
@@ -96,7 +78,17 @@ export function ScreenMeasurementTools() {
           strokeDasharray="5,5"
           strokeDashoffset="5"
         />
-        <foreignObject className="measurement-label" x={avgX - 30} y={avgY - 15}>
+        <foreignObject 
+          className="measurement-label"
+          x={avgX - 30}
+          y={avgY - 15}
+          data-idx0={idx0}
+          data-idx1={idx1}
+          x1={position[0]}
+          y1={position[1]}
+          x2={nextPosition[0]}
+          y2={nextPosition[1]}
+        >
           <div>
             {worldDistance}
             {measurementUnits}
@@ -160,11 +152,11 @@ export function ScreenMeasurementTools() {
     let x: number;
     let y: number;
 
-    let transformValue = el.getAttribute('transform');
+    const transformValue = el.getAttribute('transform');
     let translateValues: string[] | null = null;
 
     if (transformValue) {
-      let match = transformValue.match(/translate\(([^)]+)\)/);
+      const match = transformValue.match(/translate\(([^)]+)\)/);
       if (match) {
         translateValues = match[1].split(', ');
       }
@@ -180,10 +172,54 @@ export function ScreenMeasurementTools() {
     return null;
   }
 
+  function updateMeasurementLabels() {
+    const labels = document.getElementsByClassName('measurement-label');
+    for (let i = 0; i < labels.length; i++) {
+      const x1 = Number(labels[i].getAttribute('x1'));
+      const x2 = Number(labels[i].getAttribute('x2'));
+      const y1 = Number(labels[i].getAttribute('y1'));
+      const y2 = Number(labels[i].getAttribute('y2'));
+
+      const worldDistance = calculateWorldDistance(x1, x2, y1, y2);
+
+      if (labels[i].firstElementChild) {
+        labels[i].firstElementChild!.textContent = `
+          ${worldDistance}
+          ${measurementUnits}
+        `;
+      }
+    }
+  }
+
+  function calculateWorldDistance(x1: number, x2: number, y1: number, y2: number): number {
+    const dx = x2 - x1;
+    const dy = y2 - y2;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    let worldDistance = distance / camera.zoom;
+
+    if (measurementUnits === 'mm') {
+      worldDistance *= 1000;
+      console.log(worldDistance);
+      // round to two decimal places
+      worldDistance = parseFloat(worldDistance.toFixed(2));
+    } else {
+      // round to two decimal places
+      worldDistance = parseFloat(worldDistance.toFixed(2));
+    }
+
+    return worldDistance;
+  }
+
   useFrame(() => {
     updatePointPositions();
     updateRulerPositions();
   });
+
+  const handleCameraUpdateEvent = () => {
+    updateMeasurementLabels();
+  };
+
+  useEventListener(CAMERA_UPDATE, handleCameraUpdateEvent);
 
   function Measurements() {
     const triggerDraggingMeasurementEvent = useEventTrigger(DRAGGING_MEASUREMENT);
@@ -202,7 +238,7 @@ export function ScreenMeasurementTools() {
 
       if (!state.memo) {
         // just started dragging. use the initial position
-        let currentPos = getTranslateValues(el);
+        const currentPos = getTranslateValues(el);
         x = currentPos![0];
         y = currentPos![1];
       } else {
@@ -271,7 +307,7 @@ export function ScreenMeasurementTools() {
       const cosTheta = dotProduct / (mag1 * mag2);
 
       // Calculate the angle in radians
-      let angleRadians = Math.acos(cosTheta);
+      const angleRadians = Math.acos(cosTheta);
 
       // Convert to degrees
       let angleDegrees = angleRadians * (180 / Math.PI);
