@@ -82,10 +82,17 @@ const useStore = create<State>((set) => ({
       loading,
     }),
 
-  setMeasurementMode: (measurementMode: MeasurementMode) =>
+  setMeasurementMode: (measurementMode: MeasurementMode) => {
     set({
       measurementMode,
-    }),
+    });
+
+    if (measurementMode === 'screen') {
+      set({
+        orthographicEnabled: true,
+      })
+    }
+  },
 
   setMeasurementUnits: (measurementUnits: 'm' | 'mm') =>
     set({
@@ -95,7 +102,6 @@ const useStore = create<State>((set) => ({
   setMode: (mode: Mode) =>
     set({
       mode,
-      orthographicEnabled: mode === 'measurement', // enable orthographic camera for measurement mode only
     }),
 
   setObjectMeasurements: (measurements: ObjectMeasurement[]) =>

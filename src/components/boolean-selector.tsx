@@ -6,11 +6,13 @@ import { Switch } from './ui/switch';
 export function BooleanSelector({
   label,
   description,
+  disabled,
   value,
   onChange,
 }: {
   label: string;
   description: string;
+  disabled: boolean;
   value: boolean;
   onChange: (checked: boolean) => void;
 }) {
@@ -18,6 +20,7 @@ export function BooleanSelector({
     <Selector label={label} description={description}>
       <Switch
         checked={value}
+        disabled={disabled}
         onCheckedChange={(checked: boolean) => {
           onChange(checked);
         }}
