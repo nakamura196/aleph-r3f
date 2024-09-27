@@ -78,7 +78,7 @@ function App() {
     // if the src is already loaded, recenter the camera
     if (normalizedSrc.every((src) => loadedUrlsRef.current.includes(src.url))) {
       setTimeout(() => {
-        viewerRef.current?.recenter();
+        viewerRef.current?.setDefaultView();
       }, 100);
     }
   }, [src]);
