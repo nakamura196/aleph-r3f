@@ -38,6 +38,18 @@ function Scene({ onLoad, src }: ViewerProps) {
 
   const cameraRefs: CameraRefs = {
     controls: useRef<CameraControls | null>(null),
+    defaults: {
+      perspective: {
+        position: useRef<Vector3>(null),
+        target: useRef<Vector3>(null),
+        zoom: useRef<number>(null),
+      },
+      orthographic: {
+        position: useRef<Vector3>(null),
+        target: useRef<Vector3>(null),
+        zoom: useRef<number>(null),
+      }
+    },
     position: useRef<Vector3>(new Vector3()),
     target: useRef<Vector3>(new Vector3()),
   };
@@ -82,7 +94,15 @@ function Scene({ onLoad, src }: ViewerProps) {
   useTimeout(
     () => {
       if (!loading) {
-        recenter(true);
+        const defaultPosition = getDefaultPosition();
+        const defaultTarget = getDefaultTarget();
+        const defaultZoom = getDefaultZoom();
+        
+        if (defaultPosition && defaultTarget) {
+          zoomToPositionAndTarget(defaultPosition, defaultTarget, true, defaultZoom);
+        } else {
+          setDefaultView();
+        }
       }
     },
     1,
@@ -119,6 +139,18 @@ function Scene({ onLoad, src }: ViewerProps) {
   //   };
   // }, [orthographicEnabled]);
 
+  function getDefaultPosition() {
+    return cameraRefs.defaults[ orthographicEnabled ? 'orthographic' : 'perspective' ]?.position?.current
+  }
+
+  function getDefaultTarget() {
+    return cameraRefs.defaults[ orthographicEnabled ? 'orthographic' : 'perspective' ]?.target?.current
+  }
+
+  function getDefaultZoom() {
+    return cameraRefs.defaults[ orthographicEnabled ? 'orthographic' : 'perspective' ]?.zoom?.current
+  }
+
   function zoomToObject(object: Object3D, instant?: boolean, padding: number = 0.1) {
     cameraRefs.controls.current!.fitToBox(object, !instant, {
       cover: false,
@@ -129,9 +161,57 @@ function Scene({ onLoad, src }: ViewerProps) {
     });
   }
 
-  function recenter(instant?: boolean, padding?: number) {
+  function setDefaultView() {
     if (boundsRef.current) {
-      zoomToObject(boundsRef.current, instant, padding);
+      // Calculate a default camera view
+      zoomToObject(boundsRef.current, true);
+
+      // Get camera default position and target
+      const defaultPosition = new Vector3();
+      cameraRefs.controls.current!.getPosition(defaultPosition);      
+      const defaultTarget = new Vector3();
+      cameraRefs.controls.current!.getTarget(defaultTarget);
+
+      // Get default zoom
+      const cameraState = JSON.parse(cameraRefs.controls.current!.toJSON());
+
+      // Set camera defaults
+      const cameraKey = orthographicEnabled ? 'orthographic' : 'perspective'
+      cameraRefs.defaults[cameraKey].position.current = defaultPosition;
+      cameraRefs.defaults[cameraKey].target.current = defaultTarget;
+      cameraRefs.defaults[cameraKey].zoom.current = cameraState.zoom;
+    }
+  }
+
+  function zoomToPositionAndTarget(position: Vector3, target: Vector3, instant?: boolean, zoom?: number | null) {
+    if (boundsRef.current) {
+      cameraRefs.controls.current!.setLookAt(
+        position.x,
+        position.y,
+        position.z,
+        target.x,
+        target.y,
+        target.z,
+        !instant
+      );
+    }
+
+    if (orthographicEnabled && zoom) {
+      cameraRefs.controls.current!.zoomTo(zoom, !instant)
+    }
+  }
+
+  function recenter(instant?: boolean) {
+    if (boundsRef.current) {
+      const defaultPosition = getDefaultPosition();
+      const defaultTarget = getDefaultTarget();
+      const defaultZoom = getDefaultZoom();
+
+      if (defaultPosition && defaultTarget) {
+        zoomToPositionAndTarget(defaultPosition, defaultTarget, instant, defaultZoom)
+      } else {
+        setDefaultView();
+      }
     }
   }
 
