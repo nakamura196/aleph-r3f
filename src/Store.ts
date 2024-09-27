@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Annotation, SrcObj, Mode, ObjectMeasurement, ScreenMeasurement, MeasurementMode } from './types/';
+import { Annotation, SrcObj, Mode, ObjectMeasurement, ScreenMeasurement, MeasurementMode, UpVector } from './types/';
 // import { mountStoreDevtool } from 'simple-zustand-devtools';
 
 type State = {
@@ -17,7 +17,7 @@ type State = {
   screenMeasurements: ScreenMeasurement[];
   selectedAnnotation: number | null;
   srcs: SrcObj[];
-  upVector: [number, number, number];
+  upVector: UpVector;
   setAmbientLightIntensity: (ambientLightIntensity: number) => void;
   setAnnotations: (annotations: Annotation[]) => void;
   setAxesEnabled: (axesEnabled: boolean) => void;
@@ -32,7 +32,7 @@ type State = {
   setScreenMeasurements: (measurements: ScreenMeasurement[]) => void;
   setSelectedAnnotation: (selectedAnnotation: number | null) => void;
   setSrcs: (srcs: SrcObj[]) => void;
-  setUpVector: (upVector: [number, number, number]) => void;
+  setUpVector: (upVector: UpVector) => void;
 };
 
 const useStore = create<State>((set) => ({
@@ -50,7 +50,7 @@ const useStore = create<State>((set) => ({
   screenMeasurements: [],
   selectedAnnotation: null,
   srcs: [],
-  upVector: [0, 1, 0],
+  upVector: 'y-positive',
 
   setAmbientLightIntensity: (ambientLightIntensity: number) =>
     set({
@@ -130,7 +130,7 @@ const useStore = create<State>((set) => ({
       loading: true,
     }),
 
-  setUpVector: (upVector: [number, number, number]) =>
+  setUpVector: (upVector: UpVector) =>
     set({
       upVector,
     }),

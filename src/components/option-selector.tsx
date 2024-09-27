@@ -19,7 +19,7 @@ export function OptionSelector({
   return (
     <Selector label={label} description={description}>
       <Select
-        defaultValue={value}
+        value={value}
         onValueChange={(value) => {
           onChange(value);
         }}>

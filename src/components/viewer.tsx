@@ -38,18 +38,6 @@ function Scene({ onLoad, src }: ViewerProps) {
 
   const cameraRefs: CameraRefs = {
     controls: useRef<CameraControls | null>(null),
-    defaults: {
-      perspective: {
-        position: useRef<Vector3>(null),
-        target: useRef<Vector3>(null),
-        zoom: useRef<number>(null),
-      },
-      orthographic: {
-        position: useRef<Vector3>(null),
-        target: useRef<Vector3>(null),
-        zoom: useRef<number>(null),
-      }
-    },
     position: useRef<Vector3>(new Vector3()),
     target: useRef<Vector3>(new Vector3()),
   };
@@ -77,11 +65,6 @@ function Scene({ onLoad, src }: ViewerProps) {
   } = useStore();
 
   const triggerCameraUpdateEvent = useEventTrigger(CAMERA_UPDATE);
-  // const triggerCameraSleepEvent = useEventTrigger(CAMERA_SLEEP);
-
-  // set the camera up vector
-  camera.up.copy(new Vector3(upVector[0], upVector[1], upVector[2]));
-  cameraRefs.controls.current?.updateCameraUp();
 
   // src changed
   useEffect(() => {
@@ -90,19 +73,19 @@ function Scene({ onLoad, src }: ViewerProps) {
     setAnnotations([]);
   }, [src]);
 
+  // upVector changed
+  useEffect(() => {
+    console.log('up vector changed');
+    const cameraUpChanged = setCameraUp();
+    if (cameraUpChanged) recenter();
+  }, [upVector]);
+
   // when loaded or camera type changed, zoom to object(s) instantaneously
   useTimeout(
     () => {
-      if (!loading) {
-        const defaultPosition = getDefaultPosition();
-        const defaultTarget = getDefaultTarget();
-        const defaultZoom = getDefaultZoom();
-        
-        if (defaultPosition && defaultTarget) {
-          zoomToPositionAndTarget(defaultPosition, defaultTarget, true, defaultZoom);
-        } else {
-          setDefaultView();
-        }
+      if (!loading) {        
+        setCameraUp();
+        recenter(true);
       }
     },
     1,
@@ -121,36 +104,6 @@ function Scene({ onLoad, src }: ViewerProps) {
 
   useEventListener(CAMERA_CONTROLS_ENABLED, handleCameraEnabledEvent);
 
-  // can't add event listener to camera controls because the camera switches between perspective and orthographic
-  // and the listeners are not copied over
-  // const handleCameraSleepEvent = () => {
-  //   console.log('camera sleep');
-  //   triggerCameraSleepEvent();
-  // };
-
-  // useEffect(() => {
-  //   console.log('adding event listener');
-  //   // detect onsleep event
-  //   cameraRefs.controls.current?.addEventListener('rest', handleCameraSleepEvent);
-
-  //   return () => {
-  //     console.log('removing event listener');
-  //     cameraRefs.controls.current?.removeEventListener('rest', handleCameraSleepEvent);
-  //   };
-  // }, [orthographicEnabled]);
-
-  function getDefaultPosition() {
-    return cameraRefs.defaults[ orthographicEnabled ? 'orthographic' : 'perspective' ]?.position?.current
-  }
-
-  function getDefaultTarget() {
-    return cameraRefs.defaults[ orthographicEnabled ? 'orthographic' : 'perspective' ]?.target?.current
-  }
-
-  function getDefaultZoom() {
-    return cameraRefs.defaults[ orthographicEnabled ? 'orthographic' : 'perspective' ]?.zoom?.current
-  }
-
   function zoomToObject(object: Object3D, instant?: boolean, padding: number = 0.1) {
     cameraRefs.controls.current!.fitToBox(object, !instant, {
       cover: false,
@@ -161,58 +114,27 @@ function Scene({ onLoad, src }: ViewerProps) {
     });
   }
 
-  function setDefaultView() {
-    if (boundsRef.current) {
-      // Calculate a default camera view
-      zoomToObject(boundsRef.current, true);
-
-      // Get camera default position and target
-      const defaultPosition = new Vector3();
-      cameraRefs.controls.current!.getPosition(defaultPosition);      
-      const defaultTarget = new Vector3();
-      cameraRefs.controls.current!.getTarget(defaultTarget);
-
-      // Get default zoom
-      const cameraState = JSON.parse(cameraRefs.controls.current!.toJSON());
-
-      // Set camera defaults
-      const cameraKey = orthographicEnabled ? 'orthographic' : 'perspective'
-      cameraRefs.defaults[cameraKey].position.current = defaultPosition;
-      cameraRefs.defaults[cameraKey].target.current = defaultTarget;
-      cameraRefs.defaults[cameraKey].zoom.current = cameraState.zoom;
-    }
-  }
-
-  function zoomToPositionAndTarget(position: Vector3, target: Vector3, instant?: boolean, zoom?: number | null) {
-    if (boundsRef.current) {
-      cameraRefs.controls.current!.setLookAt(
-        position.x,
-        position.y,
-        position.z,
-        target.x,
-        target.y,
-        target.z,
-        !instant
-      );
-    }
-
-    if (orthographicEnabled && zoom) {
-      cameraRefs.controls.current!.zoomTo(zoom, !instant)
-    }
-  }
-
   function recenter(instant?: boolean) {
     if (boundsRef.current) {
-      const defaultPosition = getDefaultPosition();
-      const defaultTarget = getDefaultTarget();
-      const defaultZoom = getDefaultZoom();
-
-      if (defaultPosition && defaultTarget) {
-        zoomToPositionAndTarget(defaultPosition, defaultTarget, instant, defaultZoom)
-      } else {
-        setDefaultView();
-      }
+      zoomToObject(boundsRef.current, instant);
     }
+  }
+
+  function setCameraUp() {
+    const upVectorToNumeric = {
+      'y-positive': [0, 1, 0],
+      'y-negative': [0, -1, 0],
+      'z-positive': [0, 0, 1],
+      'z-negative': [0, 0, -1]
+    };
+    const upVectorNumeric = upVectorToNumeric[upVector];
+
+    const newCameraUp = new Vector3(upVectorNumeric[0], upVectorNumeric[1], upVectorNumeric[2]);
+    const cameraUpChange = !camera.up.equals(newCameraUp);
+    camera.up.copy(newCameraUp);
+    cameraRefs.controls.current?.updateCameraUp();
+
+    return cameraUpChange;
   }
 
   function Bounds({ lineVisible, children }: { lineVisible?: boolean; children: React.ReactNode }) {

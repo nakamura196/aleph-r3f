@@ -7,4 +7,5 @@ export * from './Mode';
 export * from './ObjectMeasurement';
 export * from './ScreenMeasurement';
 export * from './Src';
+export * from './UpVector';
 export * from './ViewerProps';
