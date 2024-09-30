@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Annotation, SrcObj, Mode, ObjectMeasurement, ScreenMeasurement, MeasurementMode, UpVector } from './types/';
+import { Annotation, CameraMode, SrcObj, Mode, ObjectMeasurement, ScreenMeasurement, MeasurementMode, UpVector } from './types/';
 // import { mountStoreDevtool } from 'simple-zustand-devtools';
 
 type State = {
@@ -7,6 +7,7 @@ type State = {
   annotations: Annotation[];
   axesEnabled: boolean;
   boundsEnabled: boolean;
+  cameraMode: CameraMode;
   gridEnabled: boolean;
   loading: boolean;
   measurementMode: MeasurementMode;
@@ -22,6 +23,7 @@ type State = {
   setAnnotations: (annotations: Annotation[]) => void;
   setAxesEnabled: (axesEnabled: boolean) => void;
   setBoundsEnabled: (boundsEnabled: boolean) => void;
+  setCameraMode: (cameraMode: CameraMode) => void;
   setGridEnabled: (gridEnabled: boolean) => void;
   setLoading: (loading: boolean) => void;
   setMeasurementMode: (measurementMode: MeasurementMode) => void;
@@ -40,6 +42,7 @@ const useStore = create<State>((set) => ({
   annotations: [],
   axesEnabled: false,
   boundsEnabled: false,
+  cameraMode: 'perspective',
   gridEnabled: false,
   loading: true,
   measurementMode: 'object',
@@ -72,6 +75,13 @@ const useStore = create<State>((set) => ({
       boundsEnabled,
     }),
 
+    setCameraMode: (cameraMode: CameraMode) => {
+      set({
+        cameraMode,
+        orthographicEnabled: cameraMode === 'orthographic'
+      })
+    },
+
   setGridEnabled: (gridEnabled: boolean) =>
     set({
       gridEnabled,
@@ -89,7 +99,8 @@ const useStore = create<State>((set) => ({
 
     if (measurementMode === 'screen') {
       set({
-        orthographicEnabled: true,
+        cameraMode: 'orthographic',
+        orthographicEnabled: true
       })
     }
   },

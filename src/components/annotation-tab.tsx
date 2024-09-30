@@ -236,7 +236,6 @@ function AnnotationTab() {
         }}>
         Recenter
       </Button>
-      <OrthographicSelector />
     </Tab>
   );
 }

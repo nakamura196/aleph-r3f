@@ -4,8 +4,8 @@ import { AmbientLightSelector } from './ambient-light-selector';
 import { AxesSelector } from './axes-selector';
 import { BoundsSelector } from './bounds-selector';
 
+import { CameraModeSelector } from './camera-mode-selector';
 import { GridSelector } from './grid-selector';
-import { OrthographicSelector } from './orthographic-selector';
 import { Tab } from './tab';
 import { Button } from './ui/button';
 import { RECENTER } from '@/types';
@@ -18,6 +18,7 @@ function SceneTab() {
     <Tab>
       <AmbientLightSelector />
       <UpVectorSelector />
+      <CameraModeSelector />
       <BoundsSelector />
       <GridSelector />
       <AxesSelector />
@@ -28,7 +29,6 @@ function SceneTab() {
         }}>
         Recenter
       </Button>
-      <OrthographicSelector />
     </Tab>
   );
 }

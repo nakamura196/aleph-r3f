@@ -1,4 +1,5 @@
 export * from './Annotation';
+export * from './CameraMode';
 export * from './CameraRefs';
 export * from './Environment';
 export * from './Events';

@@ -1,7 +1,6 @@
 import { useEventTrigger } from '@/lib/hooks/use-event';
 import { MeasurementModeSelector } from './measurement-mode-selector';
 import { MeasurementUnitsSelector } from './measurement-units-selector';
-import { OrthographicSelector } from './orthographic-selector';
 import { Tab } from './tab';
 import { Button } from './ui/button';
 import { RECENTER } from '@/types';
@@ -10,12 +9,12 @@ import { useEffect } from 'react';
 import useStore from '@/Store';
 
 function MeasurementTab() {
-  const { measurementMode, setOrthographicEnabled } = useStore();
+  const { measurementMode, setCameraMode } = useStore();
 
   const triggerRecenterEvent = useEventTrigger(RECENTER);
 
   useEffect(() => {
-    if (measurementMode === 'screen') setOrthographicEnabled(true);
+    if (measurementMode === 'screen') setCameraMode('orthographic');
   }, []);
 
   return (
@@ -30,7 +29,6 @@ function MeasurementTab() {
         }}>
         Recenter
       </Button>
-      <OrthographicSelector disabled={measurementMode === 'screen'} />
     </Tab>
   );
 }
