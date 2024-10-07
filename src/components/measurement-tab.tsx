@@ -1,21 +1,15 @@
-import { useEventTrigger } from '@/lib/hooks/use-event';
 import { MeasurementModeSelector } from './measurement-mode-selector';
 import { MeasurementUnitsSelector } from './measurement-units-selector';
-import { OrthographicSelector } from './orthographic-selector';
 import { Tab } from './tab';
-import { Button } from './ui/button';
-import { RECENTER } from '@/types';
 import { Instructions } from './instructions';
 import { useEffect } from 'react';
 import useStore from '@/Store';
 
 function MeasurementTab() {
-  const { measurementMode, setOrthographicEnabled } = useStore();
-
-  const triggerRecenterEvent = useEventTrigger(RECENTER);
+  const { measurementMode, setCameraMode } = useStore();
 
   useEffect(() => {
-    if (measurementMode === 'screen') setOrthographicEnabled(true);
+    if (measurementMode === 'screen') setCameraMode('orthographic');
   }, []);
 
   return (
@@ -23,14 +17,6 @@ function MeasurementTab() {
       <Instructions>Double-click to create measurements.</Instructions>
       <MeasurementModeSelector />
       <MeasurementUnitsSelector />
-      <Button
-        className="text-white mt-6"
-        onClick={() => {
-          triggerRecenterEvent();
-        }}>
-        Recenter
-      </Button>
-      <OrthographicSelector disabled={measurementMode === 'screen'} />
     </Tab>
   );
 }

@@ -7,16 +7,20 @@ export function Selector({
   label,
   description,
   children,
+  inline,
+  noPaddingTop
 }: {
   label: string;
   description: string;
   children: React.ReactNode;
+  inline?: boolean;
+  noPaddingTop?: boolean;
 }) {
   return (
-    <div className="grid gap-4 pt-4">
+    <div className={ `grid gap-4 ${ noPaddingTop ? '' : 'pt-4' }` }>
       <HoverCard openDelay={200}>
         <HoverCardTrigger asChild>
-          <div className="grid gap-4">
+          <div className={ inline ? "flex justify-between" : "grid gap-4" }>
             <div className="flex items-center justify-between">
               <Label className="text-white whitespace-normal">{label}</Label>
             </div>

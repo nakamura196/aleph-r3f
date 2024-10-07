@@ -6,12 +6,10 @@ import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
 import useStore from '@/Store';
 import { Vector3 } from 'three';
 import { Tab } from './tab';
-import { RECENTER } from '@/types';
 import { cn } from '@/lib/utils';
 import { Instructions } from './instructions';
 import { AnnotationsDialog } from './import-annotations-dialog';
 import { Check } from 'lucide-react';
-import { OrthographicSelector } from './orthographic-selector';
 
 function AnnotationTab() {
   const { annotations, setAnnotations, selectedAnnotation, setSelectedAnnotation } = useStore();
@@ -25,8 +23,6 @@ function AnnotationTab() {
 
   const cameraPositionRef = useRef<Vector3>();
   const cameraTargetRef = useRef<Vector3>();
-
-  const triggerRecenterEvent = useEventTrigger(RECENTER);
 
   useKeyDown('Escape', () => {
     setEditIdx(null);
@@ -229,14 +225,6 @@ function AnnotationTab() {
         )}
       </div>
       <AnnotationsDialog />
-      <Button
-        className="text-white mt-6"
-        onClick={() => {
-          triggerRecenterEvent();
-        }}>
-        Recenter
-      </Button>
-      <OrthographicSelector />
     </Tab>
   );
 }

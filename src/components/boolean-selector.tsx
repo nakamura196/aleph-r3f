@@ -17,7 +17,12 @@ export function BooleanSelector({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <Selector label={label} description={description}>
+    <Selector 
+      label={label} 
+      description={description} 
+      inline={true} 
+      noPaddingTop={true}
+    >
       <Switch
         checked={value}
         disabled={disabled}
