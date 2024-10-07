@@ -98,3 +98,8 @@ body.dragging {
   color: black;
   font-size: small;
 }
+
+.tab-scroll {
+  overflow-y: auto;
+  height: 90vh;
+}
