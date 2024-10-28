@@ -1,6 +1,7 @@
 import { FormEvent, useRef, useState } from 'react';
 import { Annotation, ANNO_CLICK, CAMERA_UPDATE } from '@/types';
 import { Button } from './ui/button';
+import { Tooltip } from './ui/tooltip';
 import useKeyDown from '@/lib/hooks/use-key-press';
 import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
 import useStore from '@/Store';
@@ -9,7 +10,7 @@ import { Tab } from './tab';
 import { cn } from '@/lib/utils';
 import { Instructions } from './instructions';
 import { AnnotationsDialog } from './import-annotations-dialog';
-import { Check } from 'lucide-react';
+import { Check, Pencil, View, X } from 'lucide-react';
 
 function AnnotationTab() {
   const { annotations, setAnnotations, selectedAnnotation, setSelectedAnnotation } = useStore();
@@ -65,24 +66,37 @@ function AnnotationTab() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const copyListItems = [...annotations];
-    const updatedItem = {
-      ...copyListItems[editIdx as number],
+    const props = {
       label,
       description,
-      ...(cameraPositionRef.current !== undefined && { cameraPosition: cameraPositionRef.current }),
-      ...(cameraTargetRef.current !== undefined && { cameraTarget: cameraTargetRef.current }),
-    };
-    const updatedListItems = [
-      ...copyListItems.slice(0, editIdx as number),
-      updatedItem,
-      ...copyListItems.slice((editIdx as number) + 1),
-    ];
-    setAnnotations(updatedListItems);
+    }
+    updateAnnotation(editIdx as number, props);
     setLabel('');
     setDescription('');
     setEditIdx(null);
   };
+
+  function updateAnnotationCameraProps(idx: number) {
+    const props = {
+      ...(cameraPositionRef.current !== undefined && { cameraPosition: cameraPositionRef.current }),
+      ...(cameraTargetRef.current !== undefined && { cameraTarget: cameraTargetRef.current })
+    }
+    updateAnnotation(idx, props);
+  }
+
+  function updateAnnotation(idx: number, props: Annotation) {
+    const copyListItems = [...annotations];
+    const updatedItem = {
+      ...copyListItems[idx],
+      ...props,
+    };
+    const updatedListItems = [
+      ...copyListItems.slice(0, idx as number),
+      updatedItem,
+      ...copyListItems.slice((idx as number) + 1),
+    ];
+    setAnnotations(updatedListItems);
+  }
 
   function deleteAnnotation(idx: number) {
     const annotation = annotations[idx];
@@ -101,130 +115,124 @@ function AnnotationTab() {
 
   return (
     <Tab>
-      <div className="overflow-y-auto overflow-x-hidden h-72">
-        {annotations.length ? (
-          annotations.map((anno: Annotation, idx) => {
-            return (
-              <div
-                key={idx}
-                className={cn('flex items-center justify-between my-2', {
-                  'cursor-move': editIdx === null,
-                })}
-                draggable={editIdx === null}
-                onDragStart={(e) => dragStart(e)}
-                onDragEnter={(e) => dragEnter(e)}
-                onDragOver={(e) => e.preventDefault()}
-                onDragEnd={drop}
-                data-idx={idx}>
-                {editIdx === idx && (
-                  <form onSubmit={handleSubmit} className="flex items-end justify-between w-full py-2">
-                    <div className="flex flex-col w-full mr-2">
-                      <input
-                        type="text"
-                        placeholder="Label"
-                        className="text-xs text-black mb-1 p-1 w-36"
-                        defaultValue={anno.label}
-                        required
-                        maxLength={64}
-                        onChange={(e) => {
-                          setLabel(e.target.value);
-                        }}
-                      />
-                      <textarea
-                        placeholder="Description"
-                        className="text-xs p-1 break-words text-black h-12 w-36"
-                        defaultValue={anno.description}
-                        maxLength={256}
-                        onChange={(e) => {
-                          setDescription(e.target.value);
-                        }}
-                      />
-                    </div>
-                    <div className="flex">
-                      <Button className="p-2 h-8" variant="outline" type="submit">
-                        <Check className="w-4" />
-                      </Button>
-                    </div>
-                  </form>
-                )}
-                {editIdx !== idx && (
-                  <>
-                    <div
-                      className="max-w-full"
-                      onClick={() => {
-                        triggerAnnoClickEvent(anno);
-                        setSelectedAnnotation(idx);
-                      }}>
-                      <h3
-                        className={cn(
-                          'text-gray-400 font-medium text-sm md:text-md line-clamp-1 pr-1 whitespace-normal',
-                          {
-                            'text-white': selectedAnnotation === idx,
-                          }
-                        )}>{`${idx + 1}. ${anno.label || 'no label'}`}</h3>
-                      <p className="text-xs text-zinc-400 line-clamp-1 pr-1 whitespace-normal">{anno.description}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {/* edit button */}
-                      <Button
-                        className="p-2 h-8 text-black"
-                        variant="outline"
-                        onClick={() => {
-                          setEditIdx(idx);
-                          setLabel(anno.label);
-                          setDescription(anno.description);
-                          triggerAnnoClickEvent(anno);
-                          setSelectedAnnotation(idx);
-                        }}>
-                        <svg
-                          className="h-4 w-4"
-                          fill="none"
-                          height="24"
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
-                          width="24"
-                          xmlns="http://www.w3.org/2000/svg">
-                          <path d="M4 13.5V4a2 2 0 0 1 2-2h8.5L20 7.5V20a2 2 0 0 1-2 2h-5.5" />
-                          <polyline points="14 2 14 8 20 8" />
-                          <path d="M10.42 12.61a2.1 2.1 0 1 1 2.97 2.97L7.95 21 4 22l.99-3.95 5.43-5.44Z" />
-                        </svg>
-                      </Button>
-                      {/* delete button */}
-                      <Button
-                        className="p-2 h-8"
-                        variant="destructive"
-                        onClick={() => {
-                          deleteAnnotation(idx);
-                        }}>
-                        <svg
-                          className=" h-4 w-4"
-                          fill="none"
-                          height="24"
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
-                          width="24"
-                          xmlns="http://www.w3.org/2000/svg">
-                          <path d="M18 6 6 18" />
-                          <path d="m6 6 12 12" />
-                        </svg>
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </div>
-            );
-          })
-        ) : (
-          <Instructions>Double-click to create an annotation.</Instructions>
-        )}
+      <div className='flex flex-col justify-between grow'>
+        <div className='grid gap-y-4'>
+          <div className="overflow-y-auto overflow-x-hidden">
+            {annotations.length ? (
+              annotations.map((anno: Annotation, idx) => {
+                return (
+                  <div
+                    key={idx}
+                    className={cn('flex items-center justify-between my-2', {
+                      'cursor-move': editIdx === null,
+                    })}
+                    draggable={editIdx === null}
+                    onDragStart={(e) => dragStart(e)}
+                    onDragEnter={(e) => dragEnter(e)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDragEnd={drop}
+                    data-idx={idx}>
+                    {editIdx === idx && (
+                      <form onSubmit={handleSubmit} className="flex items-end justify-between w-full py-2">
+                        <div className="flex flex-col w-full mr-2">
+                          <input
+                            type="text"
+                            placeholder="Label"
+                            className="text-xs text-black mb-1 p-1 w-36"
+                            defaultValue={anno.label}
+                            required
+                            maxLength={64}
+                            onChange={(e) => {
+                              setLabel(e.target.value);
+                            }}
+                          />
+                          <textarea
+                            placeholder="Description"
+                            className="text-xs p-1 break-words text-black h-12 w-36"
+                            defaultValue={anno.description}
+                            maxLength={256}
+                            onChange={(e) => {
+                              setDescription(e.target.value);
+                            }}
+                          />
+                        </div>
+                        <div className="flex">
+                          <Button className="p-2 h-8" variant="outline" type="submit">
+                            <Check className="w-4" />
+                          </Button>
+                        </div>
+                      </form>
+                    )}
+                    {editIdx !== idx && (
+                      <>
+                        <div
+                          className="max-w-full"
+                          onClick={() => {
+                            triggerAnnoClickEvent(anno);
+                            setSelectedAnnotation(idx);
+                          }}>
+                          <h3
+                            className={cn(
+                              'text-gray-400 font-medium text-sm md:text-md line-clamp-1 pr-1 whitespace-normal',
+                              {
+                                'text-white': selectedAnnotation === idx,
+                              }
+                            )}>{`${idx + 1}. ${anno.label || 'no label'}`}</h3>
+                          <p className="text-xs text-zinc-400 line-clamp-1 pr-1 whitespace-normal">{anno.description}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {/* set default camera view button */}
+                          <Tooltip content="Set Default View">
+                            <Button
+                              className="p-2 h-8 text-black"
+                              variant="outline"
+                              onClick={() => {
+                                updateAnnotationCameraProps(idx);
+                                setSelectedAnnotation(idx);
+                              }}>
+                              <View size="16" />
+                            </Button>
+                          </Tooltip>
+                          {/* edit button */}
+                          <Tooltip content="Edit Annotation">
+                            <Button
+                              className="p-2 h-8 text-black"
+                              variant="outline"
+                              onClick={() => {
+                                setEditIdx(idx);
+                                setLabel(anno.label);
+                                setDescription(anno.description);
+                                triggerAnnoClickEvent(anno);
+                                setSelectedAnnotation(idx);
+                              }}>
+                              <Pencil size="16" />
+                            </Button>
+                          </Tooltip>
+                          {/* delete button */}
+                          <Tooltip content="Delete Annotation">
+                            <Button
+                              className="p-2 h-8"
+                              variant="destructive"
+                              onClick={() => {
+                                deleteAnnotation(idx);
+                              }}>
+                              <X size="16" />
+                            </Button>
+                          </Tooltip>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })
+            ) : (
+              <Instructions>Double-click to create an annotation.</Instructions>
+            )}
+          </div>
+        </div>
+
+        <AnnotationsDialog />
       </div>
-      <AnnotationsDialog />
     </Tab>
   );
 }

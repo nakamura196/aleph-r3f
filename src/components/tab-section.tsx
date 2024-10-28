@@ -7,6 +7,6 @@ export function TabSection({
   children: React.ReactNode,
   className?: string
 }) {
-  return <div className={cn('grid gap-y-4', className)}>{children}</div>;
+  return <div className={cn('flex flex-col gap-y-4', className)}>{children}</div>;
 }
 
