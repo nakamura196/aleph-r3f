@@ -8,7 +8,8 @@ export function RecenterButton() {
 
   return (
     <Button
-      className="text-white mt-4"
+      className="text-white mt-4 bg-black"
+      variant={'outline'}
       onClick={() => {
         triggerRecenterEvent();
       }}>
