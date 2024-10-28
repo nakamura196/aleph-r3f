@@ -22,15 +22,15 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
 
   function zoomToAnnotation(annotation: Annotation) {
     cameraRefs.controls.current!.setPosition(
-      annotation.cameraPosition.x,
-      annotation.cameraPosition.y,
-      annotation.cameraPosition.z,
+      annotation.cameraPosition!.x,
+      annotation.cameraPosition!.y,
+      annotation.cameraPosition!.z,
       true
     );
     cameraRefs.controls.current!.setTarget(
-      annotation.cameraTarget.x,
-      annotation.cameraTarget.y,
-      annotation.cameraTarget.z,
+      annotation.cameraTarget!.x,
+      annotation.cameraTarget!.y,
+      annotation.cameraTarget!.z,
       true
     );
   }
@@ -44,8 +44,8 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
   const triggerAnnoClick = useEventTrigger(ANNO_CLICK);
 
   function isFacingCamera(anno: Annotation): boolean {
-    const cameraDirection: Vector3 = camera.position.clone().normalize().sub(anno.position.clone().normalize());
-    const dotProduct: number = cameraDirection.dot(anno.normal);
+    const cameraDirection: Vector3 = camera.position.clone().normalize().sub(anno.position!.clone().normalize());
+    const dotProduct: number = cameraDirection.dot(anno.normal!);
 
     if (dotProduct < DOT_PRODUCT_THRESHOLD) {
       return false;
@@ -113,10 +113,10 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
 
     if (!state.memo) {
       // just started dragging. use the initial position
-      let transformValue = el.getAttribute('transform');
+      const transformValue = el.getAttribute('transform');
       let translateValues: string[] | null = null;
       if (transformValue) {
-        let match = transformValue.match(/translate\(([^)]+)\)/);
+        const match = transformValue.match(/translate\(([^)]+)\)/);
         if (match) {
           translateValues = match[1].split(', ');
         }
@@ -149,7 +149,7 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
 
   // https://github.com/pmndrs/drei/blob/master/src/web/Html.tsx#L25
   function calculatePosition(anno: Annotation) {
-    const objectPos = v1.copy(anno.position);
+    const objectPos = v1.copy(anno.position!);
     objectPos.project(camera);
     const widthHalf = size.width / 2;
     const heightHalf = size.height / 2;
