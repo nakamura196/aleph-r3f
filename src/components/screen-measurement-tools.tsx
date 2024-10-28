@@ -193,7 +193,7 @@ export function ScreenMeasurementTools() {
 
   function calculateWorldDistance(x1: number, x2: number, y1: number, y2: number): number {
     const dx = x2 - x1;
-    const dy = y2 - y2;
+    const dy = y2 - y1;
     const distance = Math.sqrt(dx * dx + dy * dy);
     let worldDistance = distance / camera.zoom;
 

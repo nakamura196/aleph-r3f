@@ -12,7 +12,7 @@ export function BooleanSelector({
 }: {
   label: string;
   description: string;
-  disabled: boolean;
+  disabled?: boolean;
   value: boolean;
   onChange: (checked: boolean) => void;
 }) {
