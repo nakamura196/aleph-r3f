@@ -39,6 +39,18 @@ export const copyText = (text: string) => {
   document.body.removeChild(textArea);
 };
 
+export const downloadJsonFile = (json: string) => {
+  const fileName = "aleph_annotations.json";
+  const data = new Blob([json], { type: "text/json" });
+  const jsonURL = window.URL.createObjectURL(data);
+  const link = document.createElement("a");
+  document.body.appendChild(link);
+  link.href = jsonURL;
+  link.setAttribute("download", fileName);
+  link.click();
+  document.body.removeChild(link);
+}
+
 export const parseAnnotations = (value: any) => {
   const parsed = JSON.parse(value);
 
@@ -56,11 +68,11 @@ export function getElementTranslate(el: HTMLElement): number[] | null {
   let x: number;
   let y: number;
 
-  let transformValue = el.getAttribute('transform');
+  const transformValue = el.getAttribute('transform');
   let translateValues: string[] | null = null;
 
   if (transformValue) {
-    let match = transformValue.match(/translate\(([^)]+)\)/);
+    const match = transformValue.match(/translate\(([^)]+)\)/);
     if (match) {
       translateValues = match[1].split(', ');
     }
