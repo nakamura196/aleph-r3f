@@ -1,4 +1,5 @@
 export * from './Annotation';
+export * from './CameraMode';
 export * from './CameraRefs';
 export * from './Environment';
 export * from './Events';
@@ -7,4 +8,5 @@ export * from './Mode';
 export * from './ObjectMeasurement';
 export * from './ScreenMeasurement';
 export * from './Src';
+export * from './UpVector';
 export * from './ViewerProps';

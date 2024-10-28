@@ -9,20 +9,24 @@ export function OptionSelector({
   value,
   onChange,
   options,
+  disabled
 }: {
   label: string;
   description: string;
   value: string;
   onChange: (value: string) => void;
   options: { value: string; label: string }[];
+  disabled?: boolean
 }) {
   return (
-    <Selector label={label} description={description}>
+    <Selector label={label} description={description} noPaddingTop={true}>
       <Select
-        defaultValue={value}
+        value={value}
         onValueChange={(value) => {
           onChange(value);
-        }}>
+        }}
+        disabled={disabled}
+      >
         <SelectTrigger className="w-full text-black">
           <SelectValue />
         </SelectTrigger>

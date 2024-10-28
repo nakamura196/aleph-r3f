@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Annotation, SrcObj, Mode, ObjectMeasurement, ScreenMeasurement, MeasurementMode } from './types/';
+import { Annotation, CameraMode, SrcObj, Mode, ObjectMeasurement, ScreenMeasurement, MeasurementMode, UpVector } from './types/';
 // import { mountStoreDevtool } from 'simple-zustand-devtools';
 
 type State = {
@@ -7,6 +7,7 @@ type State = {
   annotations: Annotation[];
   axesEnabled: boolean;
   boundsEnabled: boolean;
+  cameraMode: CameraMode;
   gridEnabled: boolean;
   loading: boolean;
   measurementMode: MeasurementMode;
@@ -17,11 +18,12 @@ type State = {
   screenMeasurements: ScreenMeasurement[];
   selectedAnnotation: number | null;
   srcs: SrcObj[];
-  upVector: [number, number, number];
+  upVector: UpVector;
   setAmbientLightIntensity: (ambientLightIntensity: number) => void;
   setAnnotations: (annotations: Annotation[]) => void;
   setAxesEnabled: (axesEnabled: boolean) => void;
   setBoundsEnabled: (boundsEnabled: boolean) => void;
+  setCameraMode: (cameraMode: CameraMode) => void;
   setGridEnabled: (gridEnabled: boolean) => void;
   setLoading: (loading: boolean) => void;
   setMeasurementMode: (measurementMode: MeasurementMode) => void;
@@ -32,7 +34,7 @@ type State = {
   setScreenMeasurements: (measurements: ScreenMeasurement[]) => void;
   setSelectedAnnotation: (selectedAnnotation: number | null) => void;
   setSrcs: (srcs: SrcObj[]) => void;
-  setUpVector: (upVector: [number, number, number]) => void;
+  setUpVector: (upVector: UpVector) => void;
 };
 
 const useStore = create<State>((set) => ({
@@ -40,6 +42,7 @@ const useStore = create<State>((set) => ({
   annotations: [],
   axesEnabled: false,
   boundsEnabled: false,
+  cameraMode: 'perspective',
   gridEnabled: false,
   loading: true,
   measurementMode: 'object',
@@ -50,7 +53,7 @@ const useStore = create<State>((set) => ({
   screenMeasurements: [],
   selectedAnnotation: null,
   srcs: [],
-  upVector: [0, 1, 0],
+  upVector: 'y-positive',
 
   setAmbientLightIntensity: (ambientLightIntensity: number) =>
     set({
@@ -72,6 +75,13 @@ const useStore = create<State>((set) => ({
       boundsEnabled,
     }),
 
+    setCameraMode: (cameraMode: CameraMode) => {
+      set({
+        cameraMode,
+        orthographicEnabled: cameraMode === 'orthographic'
+      })
+    },
+
   setGridEnabled: (gridEnabled: boolean) =>
     set({
       gridEnabled,
@@ -82,10 +92,18 @@ const useStore = create<State>((set) => ({
       loading,
     }),
 
-  setMeasurementMode: (measurementMode: MeasurementMode) =>
+  setMeasurementMode: (measurementMode: MeasurementMode) => {
     set({
       measurementMode,
-    }),
+    });
+
+    if (measurementMode === 'screen') {
+      set({
+        cameraMode: 'orthographic',
+        orthographicEnabled: true
+      })
+    }
+  },
 
   setMeasurementUnits: (measurementUnits: 'm' | 'mm') =>
     set({
@@ -95,7 +113,6 @@ const useStore = create<State>((set) => ({
   setMode: (mode: Mode) =>
     set({
       mode,
-      orthographicEnabled: mode === 'measurement', // enable orthographic camera for measurement mode only
     }),
 
   setObjectMeasurements: (measurements: ObjectMeasurement[]) =>
@@ -124,7 +141,7 @@ const useStore = create<State>((set) => ({
       loading: true,
     }),
 
-  setUpVector: (upVector: [number, number, number]) =>
+  setUpVector: (upVector: UpVector) =>
     set({
       upVector,
     }),
