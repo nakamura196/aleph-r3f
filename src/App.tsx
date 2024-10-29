@@ -4,6 +4,7 @@ import { useControls } from 'leva';
 import { normalizeSrc, ViewerRef, SrcObj, Viewer, ControlPanel } from '../index';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
+import DOMPurify from 'dompurify';
 
 function App() {
   const viewerRef = useRef<ViewerRef>(null);
@@ -103,7 +104,8 @@ function App() {
             srcs
               .filter((srcObj) => srcObj.requiredStatement)
               .forEach((srcObj) => {
-                toast(srcObj.requiredStatement);
+                const sanitizedHTML = DOMPurify.sanitize(srcObj.requiredStatement);
+                toast(<div dangerouslySetInnerHTML={{ __html: sanitizedHTML }} />);
               });
           }}
         />
