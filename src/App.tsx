@@ -4,6 +4,7 @@ import { useControls } from 'leva';
 import { normalizeSrc, ViewerRef, SrcObj, Viewer, ControlPanel } from '../index';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
+// @ts-ignore
 import DOMPurify from 'dompurify';
 
 function App() {
