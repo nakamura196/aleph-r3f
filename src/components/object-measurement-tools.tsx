@@ -23,11 +23,6 @@ export function ObjectMeasurementTools() {
   const v2 = new Vector3();
   const v3 = new Vector3();
 
-  const pointElsRef = useRef<HTMLElement[]>([]);
-  const rulerLineElsRef = useRef<SVGLineElement[]>([]);
-  const measurementLabelElsRef = useRef<SVGForeignObjectElement[]>([]);
-  const angleLabelElsRef = useRef<SVGForeignObjectElement[]>([]);
-
   useKeyDown('Delete', () => {
     // delete measurement
     if (selectedMeasurementRef.current !== null) {
@@ -42,9 +37,10 @@ export function ObjectMeasurementTools() {
     selectedMeasurementRef.current = index;
 
     // find the selected measurement point and update class
+    const measurementPointEls = Array.from(document.getElementsByClassName('point')) as HTMLElement[];
 
-    for (let i = 0; i < pointElsRef.current.length; i++) {
-      const pointEl: HTMLElement = pointElsRef.current[i];
+    for (let i = 0; i < measurementPointEls.length; i++) {
+      const pointEl = measurementPointEls[i] as HTMLElement;
       pointEl.classList.remove('selected');
 
       if (index !== null && i === index) {
@@ -52,34 +48,6 @@ export function ObjectMeasurementTools() {
       }
     }
   }
-
-  // cache DOM query selectors when measurements change
-  useEffect(() => {
-    setTimeout(() => {
-      pointElsRef.current = Array.from(document.getElementsByClassName('point')) as HTMLElement[];
-      rulerLineElsRef.current = Array.from(document.getElementsByClassName('ruler-line')) as SVGLineElement[];
-      measurementLabelElsRef.current = Array.from(
-        document.getElementsByClassName('measurement-label')
-      ) as SVGForeignObjectElement[];
-      angleLabelElsRef.current = Array.from(
-        document.getElementsByClassName('angle-label')
-      ) as SVGForeignObjectElement[];
-      // console.log(
-      //   'cached DOM elements',
-      //   pointElsRef.current,
-      //   rulerLineElsRef.current,
-      //   measurementLabelElsRef.current,
-      //   angleLabelElsRef.current
-      // );
-    }, 1);
-
-    return () => {
-      pointElsRef.current = [];
-      rulerLineElsRef.current = [];
-      measurementLabelElsRef.current = [];
-      angleLabelElsRef.current = [];
-    };
-  }, [measurements]);
 
   // https://github.com/pmndrs/drei/blob/master/src/web/Html.tsx#L25
   function calculateScreenPosition(position: Vector3) {
@@ -101,157 +69,176 @@ export function ObjectMeasurementTools() {
     return true;
   }
 
-  // update overlaid DOM elements every frame
-  useFrame(() => {
-    // points
+  function updatePointPositions() {
     measurements.forEach((measurement: ObjectMeasurement, idx: number) => {
-      const pointEl: HTMLElement = pointElsRef.current.find((el) => el.id === `point-${idx}`)!;
+      const point: HTMLElement = document.getElementById(`point-${idx}`)!;
 
       // if not dragging the point, update its position
       if (dragRef.current !== idx) {
         const [x, y] = calculateScreenPosition(measurement.position);
-        setElementTranslate(pointEl, x, y);
+        setElementTranslate(point, x, y);
       }
 
       if (isFacingCamera(measurement)) {
-        pointEl?.classList.remove('facing-away');
+        point?.classList.remove('facing-away');
       } else {
-        pointEl?.classList.add('facing-away');
+        point?.classList.add('facing-away');
       }
     });
+  }
 
-    // rulers
-    for (let i = 0; i < pointElsRef.current.length; i++) {
-      const pointEl: HTMLElement = pointElsRef.current[i];
-      const idx = Number(pointEl.getAttribute('data-idx'));
-      const translateValues = getElementTranslate(pointEl);
+  function updateRulerPositions() {
+    const lineEls = document.getElementsByClassName('ruler-line');
 
-      // for each rulerLineEl, update the x1, y1, x2, y2 attributes using the data-idx0 and data-idx1 attributes
-      for (let j = 0; j < rulerLineElsRef.current.length; j++) {
-        const rulerLineEl: SVGLineElement = rulerLineElsRef.current[j];
-        const idx0 = Number(rulerLineEl.getAttribute('data-idx0'));
-        const idx1 = Number(rulerLineEl.getAttribute('data-idx1'));
+    const points = document.getElementsByClassName('point');
+
+    for (let i = 0; i < points.length; i++) {
+      const point = points[i] as HTMLElement;
+      const idx = Number(point.getAttribute('data-idx'));
+      const translateValues = getElementTranslate(point);
+
+      // for each lineEl, update the x1, y1, x2, y2 attributes using the data-idx0 and data-idx1 attributes
+      for (let j = 0; j < lineEls.length; j++) {
+        const lineEl = lineEls[j] as SVGLineElement;
+        const idx0 = Number(lineEl.getAttribute('data-idx0'));
+        const idx1 = Number(lineEl.getAttribute('data-idx1'));
 
         if (idx0 === idx) {
-          rulerLineEl.setAttribute('x1', String(translateValues![0]));
-          rulerLineEl.setAttribute('y1', String(translateValues![1]));
+          lineEl.setAttribute('x1', String(translateValues![0]));
+          lineEl.setAttribute('y1', String(translateValues![1]));
         } else if (idx1 === idx) {
-          rulerLineEl.setAttribute('x2', String(translateValues![0]));
-          rulerLineEl.setAttribute('y2', String(translateValues![1]));
+          lineEl.setAttribute('x2', String(translateValues![0]));
+          lineEl.setAttribute('y2', String(translateValues![1]));
         }
-      }
-
-      // for each measurementLabelEl, update the x, y attributes using the data-idx0 and data-idx1 attributes
-      for (let j = 0; j < measurementLabelElsRef.current.length; j++) {
-        const measurementLabelEl: SVGForeignObjectElement = measurementLabelElsRef.current[j];
-        const idx0 = Number(measurementLabelEl.getAttribute('data-idx0'));
-        const idx1 = Number(measurementLabelEl.getAttribute('data-idx1'));
-
-        const pos2D1: number[] = calculateScreenPosition(measurements[idx0].position);
-        const pos2D2: number[] = calculateScreenPosition(measurements[idx1].position);
-
-        const avgX = (pos2D1[0] + pos2D2[0]) / 2;
-        const avgY = (pos2D1[1] + pos2D2[1]) / 2;
-
-        measurementLabelEl.setAttribute('x', String(avgX - 30));
-        measurementLabelEl.setAttribute('y', String(avgY - 15));
-
-        const pos3D1: Vector3 = measurements[idx0].position;
-        const pos3D2: Vector3 = measurements[idx1].position;
-
-        let dir = pos3D2.clone().sub(pos3D1);
-        let worldDistance = dir.length();
-
-        if (measurementUnits === 'mm') {
-          worldDistance *= 1000;
-          // round to two decimal places
-          worldDistance = Math.round(worldDistance);
-        } else {
-          // round to two decimal places
-          worldDistance = parseFloat(worldDistance.toFixed(2));
-        }
-
-        measurementLabelEl.innerHTML = `
-          <div>
-            ${worldDistance} ${measurementUnits}
-          </div>
-        `;
-      }
-
-      // for each angleLabelEl, update the x, y attributes using the data-idx0, data-idx1, and data-idx2 attributes
-      for (let j = 0; j < angleLabelElsRef.current.length; j++) {
-        const angleLabelEl: SVGForeignObjectElement = angleLabelElsRef.current[j];
-
-        const idx0 = Number(angleLabelEl.getAttribute('data-idx0'));
-        const idx1 = Number(angleLabelEl.getAttribute('data-idx1'));
-        const idx2 = Number(angleLabelEl.getAttribute('data-idx2'));
-
-        const pos2D1: number[] = calculateScreenPosition(measurements[idx0].position);
-        const pos2D2: number[] = calculateScreenPosition(measurements[idx1].position);
-        const pos2D3: number[] = calculateScreenPosition(measurements[idx2].position);
-
-        const line1 = {
-          x1: pos2D1[0],
-          y1: pos2D1[1],
-          x2: pos2D2[0],
-          y2: pos2D2[1],
-        };
-
-        const line2 = {
-          x1: pos2D2[0],
-          y1: pos2D2[1],
-          x2: pos2D3[0],
-          y2: pos2D3[1],
-        };
-
-        // Calculate the angle between the three points
-        const angle = calculateAngle(
-          measurements[idx0].position,
-          measurements[idx1].position,
-          measurements[idx2].position
-        );
-
-        // Calculate the direction vectors of the lines
-        const dir1 = { x: line1.x1 - line1.x2, y: line1.y1 - line1.y2 };
-        const dir2 = { x: line2.x2 - line2.x1, y: line2.y2 - line2.y1 };
-
-        // Normalize the direction vectors
-        const magnitude1 = Math.sqrt(dir1.x * dir1.x + dir1.y * dir1.y);
-        const magnitude2 = Math.sqrt(dir2.x * dir2.x + dir2.y * dir2.y);
-        const normDir1 = { x: dir1.x / magnitude1, y: dir1.y / magnitude1 };
-        const normDir2 = { x: dir2.x / magnitude2, y: dir2.y / magnitude2 };
-
-        // Calculate the midpoint of the normalized direction vectors
-        const midDir = { x: (normDir1.x + normDir2.x) / 2, y: (normDir1.y + normDir2.y) / 2 };
-
-        // Calculate the magnitude of the midpoint direction
-        const midMagnitude = Math.sqrt(midDir.x * midDir.x + midDir.y * midDir.y);
-
-        // Normalize the midpoint direction
-        const normalizedMidDir = {
-          x: midDir.x / midMagnitude,
-          y: midDir.y / midMagnitude,
-        };
-
-        // Define the offset distance
-        const offsetDistance = 50;
-
-        // Calculate the position for the text
-        const textPosition = {
-          x: (line1.x2 + line2.x1) / 2 + normalizedMidDir.x * offsetDistance,
-          y: (line1.y2 + line2.y1) / 2 + normalizedMidDir.y * offsetDistance,
-        };
-
-        angleLabelEl.setAttribute('x', String(textPosition.x - 30));
-        angleLabelEl.setAttribute('y', String(textPosition.y - 15));
-
-        angleLabelEl.innerHTML = `
-            <div>
-              ${angle.toFixed(2)}°
-            </div>
-          `;
       }
     }
+  }
+
+  function updateMeasurementLabels() {
+    // for each label, update the x, y attributes using the data-idx0 and data-idx1 attributes
+    const labels = document.getElementsByClassName('measurement-label');
+
+    for (let i = 0; i < labels.length; i++) {
+      const label = labels[i] as SVGForeignObjectElement;
+      const idx0 = Number(label.getAttribute('data-idx0'));
+      const idx1 = Number(label.getAttribute('data-idx1'));
+
+      const pos2D1: number[] = calculateScreenPosition(measurements[idx0].position);
+      const pos2D2: number[] = calculateScreenPosition(measurements[idx1].position);
+
+      const avgX = (pos2D1[0] + pos2D2[0]) / 2;
+      const avgY = (pos2D1[1] + pos2D2[1]) / 2;
+
+      label.setAttribute('x', String(avgX - 30));
+      label.setAttribute('y', String(avgY - 15));
+
+      const pos3D1: Vector3 = measurements[idx0].position;
+      const pos3D2: Vector3 = measurements[idx1].position;
+
+      const dir = pos3D2.clone().sub(pos3D1);
+      let worldDistance = dir.length();
+
+      if (measurementUnits === 'mm') {
+        worldDistance *= 1000;
+        // round to two decimal places
+        worldDistance = Math.round(worldDistance);
+      } else {
+        // round to two decimal places
+        worldDistance = parseFloat(worldDistance.toFixed(2));
+      }
+
+      label.innerHTML = `
+        <div>
+          ${worldDistance} ${measurementUnits}
+        </div>
+      `;
+    }
+  }
+
+  function updateAngleLabels() {
+    // for each label, update the x, y attributes using the data-idx0, data-idx1, and data-idx2 attributes
+    const labels = document.getElementsByClassName('angle-label');
+
+    for (let i = 0; i < labels.length; i++) {
+      const label = labels[i] as SVGForeignObjectElement;
+
+      const idx0 = Number(label.getAttribute('data-idx0'));
+      const idx1 = Number(label.getAttribute('data-idx1'));
+      const idx2 = Number(label.getAttribute('data-idx2'));
+
+      const pos2D1: number[] = calculateScreenPosition(measurements[idx0].position);
+      const pos2D2: number[] = calculateScreenPosition(measurements[idx1].position);
+      const pos2D3: number[] = calculateScreenPosition(measurements[idx2].position);
+
+      const line1 = {
+        x1: pos2D1[0],
+        y1: pos2D1[1],
+        x2: pos2D2[0],
+        y2: pos2D2[1],
+      };
+
+      const line2 = {
+        x1: pos2D2[0],
+        y1: pos2D2[1],
+        x2: pos2D3[0],
+        y2: pos2D3[1],
+      };
+
+      // Calculate the angle between the three points
+      const angle = calculateAngle(
+        measurements[idx0].position,
+        measurements[idx1].position,
+        measurements[idx2].position
+      );
+
+      // Calculate the direction vectors of the lines
+      const dir1 = { x: line1.x1 - line1.x2, y: line1.y1 - line1.y2 };
+      const dir2 = { x: line2.x2 - line2.x1, y: line2.y2 - line2.y1 };
+
+      // Normalize the direction vectors
+      const magnitude1 = Math.sqrt(dir1.x * dir1.x + dir1.y * dir1.y);
+      const magnitude2 = Math.sqrt(dir2.x * dir2.x + dir2.y * dir2.y);
+      const normDir1 = { x: dir1.x / magnitude1, y: dir1.y / magnitude1 };
+      const normDir2 = { x: dir2.x / magnitude2, y: dir2.y / magnitude2 };
+
+      // Calculate the midpoint of the normalized direction vectors
+      const midDir = { x: (normDir1.x + normDir2.x) / 2, y: (normDir1.y + normDir2.y) / 2 };
+
+      // Calculate the magnitude of the midpoint direction
+      const midMagnitude = Math.sqrt(midDir.x * midDir.x + midDir.y * midDir.y);
+
+      // Normalize the midpoint direction
+      const normalizedMidDir = {
+        x: midDir.x / midMagnitude,
+        y: midDir.y / midMagnitude,
+      };
+
+      // Define the offset distance
+      const offsetDistance = 50;
+
+      // Calculate the position for the text
+      const textPosition = {
+        x: (line1.x2 + line2.x1) / 2 + normalizedMidDir.x * offsetDistance,
+        y: (line1.y2 + line2.y1) / 2 + normalizedMidDir.y * offsetDistance,
+      };
+
+      label.setAttribute('x', String(textPosition.x - 30));
+      label.setAttribute('y', String(textPosition.y - 15));
+
+      label.innerHTML = `
+          <div>
+            ${angle.toFixed(2)}°
+          </div>
+        `;
+    }
+  }
+
+  // update overlaid DOM elements every frame
+  useFrame(() => {
+    updatePointPositions();
+    updateRulerPositions();
+    updateMeasurementLabels();
+    updateAngleLabels();
   });
 
   const triggerCameraControlsEnabledEvent = useEventTrigger(CAMERA_CONTROLS_ENABLED);
@@ -271,7 +258,7 @@ export function ObjectMeasurementTools() {
 
     if (!state.memo) {
       // just started dragging. use the initial position
-      let translateValues = getElementTranslate(el);
+      const translateValues = getElementTranslate(el);
       if (translateValues) {
         x = translateValues[0];
         y = translateValues[1];
@@ -300,26 +287,30 @@ export function ObjectMeasurementTools() {
 
   function showLabels() {
     // show all measurement-labels
-    for (let i = 0; i < measurementLabelElsRef.current.length; i++) {
-      const labelEl = measurementLabelElsRef.current[i] as SVGForeignObjectElement;
+    const measurementLabels = document.getElementsByClassName('measurement-label');
+    for (let i = 0; i < measurementLabels.length; i++) {
+      const labelEl = measurementLabels[i] as SVGForeignObjectElement;
       labelEl.classList.remove('hidden');
     }
     // show all angle-labels
-    for (let i = 0; i < angleLabelElsRef.current.length; i++) {
-      const labelEl = angleLabelElsRef.current[i] as SVGForeignObjectElement;
+    const angleLabels = document.getElementsByClassName('angle-label');
+    for (let i = 0; i < angleLabels.length; i++) {
+      const labelEl = angleLabels[i] as SVGForeignObjectElement;
       labelEl.classList.remove('hidden');
     }
   }
 
   function hideLabels() {
     // hide all measurement-labels
-    for (let i = 0; i < measurementLabelElsRef.current.length; i++) {
-      const labelEl = measurementLabelElsRef.current[i] as SVGForeignObjectElement;
+    const measurementLabels = document.getElementsByClassName('measurement-label');
+    for (let i = 0; i < measurementLabels.length; i++) {
+      const labelEl = measurementLabels[i] as SVGForeignObjectElement;
       labelEl.classList.add('hidden');
     }
     // hide all angle-labels
-    for (let i = 0; i < angleLabelElsRef.current.length; i++) {
-      const labelEl = angleLabelElsRef.current[i] as SVGForeignObjectElement;
+    const angleLabels = document.getElementsByClassName('angle-label');
+    for (let i = 0; i < angleLabels.length; i++) {
+      const labelEl = angleLabels[i] as SVGForeignObjectElement;
       labelEl.classList.add('hidden');
     }
   }
