@@ -138,7 +138,7 @@ function AnnotationTab() {
                           <input
                             type="text"
                             placeholder="Label"
-                            className="text-xs text-black mb-1 p-1 w-36"
+                            className="text-xs text-black mb-1 p-1"
                             defaultValue={anno.label}
                             required
                             maxLength={64}
@@ -148,7 +148,7 @@ function AnnotationTab() {
                           />
                           <textarea
                             placeholder="Description"
-                            className="text-xs p-1 break-words text-black h-12 w-36"
+                            className="text-xs p-1 break-words text-black h-12"
                             defaultValue={anno.description}
                             maxLength={256}
                             onChange={(e) => {
@@ -157,7 +157,7 @@ function AnnotationTab() {
                           />
                         </div>
                         <div className="flex">
-                          <Button className="p-2 h-8" variant="outline" type="submit">
+                          <Button className="p-2 h-8 text-black" variant="outline" type="submit">
                             <Check className="w-4" />
                           </Button>
                         </div>

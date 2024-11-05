@@ -21,7 +21,7 @@ const Tooltip: React.FC<TooltipProps> = (({ children, ...props }) => {
 				<TooltipPrimitives.Content 
 					side="top" 
 					align="center"
-					className="tooltip-content"
+					className="tooltip-content text-black"
 					{...props} 
 				>
 					{content}
