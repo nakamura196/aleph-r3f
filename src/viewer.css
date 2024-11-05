@@ -99,9 +99,13 @@ body.dragging {
   font-size: small;
 }
 
+.h-full-minus-10 {
+  height: calc(100% - 2.5rem);
+}
+
 .tab-scroll {
   overflow-y: auto;
-  height: calc(100vh - 2.5rem);
+  height: 100%;
 }
 
 .tooltip-arrow {
