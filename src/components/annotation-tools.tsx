@@ -161,6 +161,71 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
     return raycaster.intersectObjects(scene.children, true);
   }
 
+  function drawAnnotation(anno: Annotation, index: number) {
+    return (
+      <React.Fragment key={index}>
+        <g
+          {...bind()}
+          id={`point-${index}`}
+          data-idx={index}
+          className={cn('point', {
+            selected: selectedAnnotation === index,
+          })}
+          onMouseDown={(_e: React.MouseEvent<SVGElement>) => {
+            if (isFacingCamera(anno)) {
+              triggerCameraControlsEnabledEvent(false);
+            }
+          }}
+          onMouseUp={(_e: React.MouseEvent<SVGElement>) => {
+            if (isFacingCamera(anno)) {
+              // if was dragging this annotation
+              if (dragRef.current === index) {
+                const intersects: Intersection<Object3D>[] = getIntersects();
+
+                if (intersects.length > 0) {
+                  // update annotation position
+                  setAnnotations(
+                    annotations.map((anno: Annotation, idx: number) => {
+                      if (idx === index) {
+                        return {
+                          ...anno,
+                          position: intersects[0].point,
+                          normal: intersects[0].face?.normal!,
+                          cameraPosition: cameraRefs.position.current!,
+                          cameraTarget: cameraRefs.target.current!,
+                        };
+                      }
+                      return anno;
+                    })
+                  );
+                }
+
+                dragRef.current = null;
+              } else {
+                setSelectedAnnotation(index);
+                triggerAnnoClick(anno);
+              }
+
+              triggerCameraControlsEnabledEvent(true);
+            }
+          }}>
+          <circle r="11" />
+          <text x="0" y="0" textAnchor="middle" dominantBaseline="central" fontSize="10" fill="black">
+            {index + 1}
+          </text>
+          {selectedAnnotation === index && anno.label && (
+            <foreignObject width="200" height={anno.description ? 80 : 38} x="18">
+              <div className="text">
+                <div className="label">{anno.label}</div>
+                {anno.description && <div className="description">{anno.description}</div>}
+              </div>
+            </foreignObject>
+          )}
+        </g>
+      </React.Fragment>
+    );
+  }
+
   return (
     <Html
       zIndexRange={[50, 0]}
@@ -194,69 +259,12 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
         }}>
         {/* draw points */}
         {annotations.map((anno: Annotation, index: number) => {
-          return (
-            <React.Fragment key={index}>
-              <g
-                {...bind()}
-                id={`point-${index}`}
-                data-idx={index}
-                className={cn('point', {
-                  selected: selectedAnnotation === index,
-                })}
-                onMouseDown={(_e: React.MouseEvent<SVGElement>) => {
-                  if (isFacingCamera(anno)) {
-                    triggerCameraControlsEnabledEvent(false);
-                  }
-                }}
-                onMouseUp={(_e: React.MouseEvent<SVGElement>) => {
-                  if (isFacingCamera(anno)) {
-                    // if was dragging this annotation
-                    if (dragRef.current === index) {
-                      const intersects: Intersection<Object3D>[] = getIntersects();
-
-                      if (intersects.length > 0) {
-                        // update annotation position
-                        setAnnotations(
-                          annotations.map((anno: Annotation, idx: number) => {
-                            if (idx === index) {
-                              return {
-                                ...anno,
-                                position: intersects[0].point,
-                                normal: intersects[0].face?.normal!,
-                                cameraPosition: cameraRefs.position.current!,
-                                cameraTarget: cameraRefs.target.current!,
-                              };
-                            }
-                            return anno;
-                          })
-                        );
-                      }
-
-                      dragRef.current = null;
-                    } else {
-                      setSelectedAnnotation(index);
-                      triggerAnnoClick(anno);
-                    }
-
-                    triggerCameraControlsEnabledEvent(true);
-                  }
-                }}>
-                <circle r="11" />
-                <text x="0" y="0" textAnchor="middle" dominantBaseline="central" fontSize="10" fill="black">
-                  {index + 1}
-                </text>
-                {selectedAnnotation === index && anno.label && (
-                  <foreignObject width="200" height={anno.description ? 80 : 38} x="18">
-                    <div className="text">
-                      <div className="label">{anno.label}</div>
-                      {anno.description && <div className="description">{anno.description}</div>}
-                    </div>
-                  </foreignObject>
-                )}
-              </g>
-            </React.Fragment>
-          );
+          if (selectedAnnotation != null && selectedAnnotation != index) {
+            return drawAnnotation(anno, index);
+          }
         })}
+        {/* always draw selected annotation last so that it overlaps other annotations */}
+        { selectedAnnotation != null && drawAnnotation(annotations[selectedAnnotation], selectedAnnotation) }
       </svg>
     </Html>
   );
