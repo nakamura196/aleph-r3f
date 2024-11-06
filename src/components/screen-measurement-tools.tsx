@@ -196,16 +196,10 @@ export function ScreenMeasurementTools() {
     const dy = y2 - y1;
     const distance = Math.sqrt(dx * dx + dy * dy);
     let worldDistance = distance / camera.zoom;
+    if (measurementUnits === 'mm') worldDistance *= 1000;
 
-    if (measurementUnits === 'mm') {
-      worldDistance *= 1000;
-      console.log(worldDistance);
-      // round to two decimal places
-      worldDistance = parseFloat(worldDistance.toFixed(2));
-    } else {
-      // round to two decimal places
-      worldDistance = parseFloat(worldDistance.toFixed(2));
-    }
+    // round to two decimal places
+    worldDistance = parseFloat(worldDistance.toFixed(2));
 
     return worldDistance;
   }
