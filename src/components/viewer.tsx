@@ -75,7 +75,6 @@ function Scene({ onLoad, src }: ViewerProps) {
 
   // upVector changed
   useEffect(() => {
-    console.log('up vector changed');
     const cameraUpChanged = setCameraUp();
     if (cameraUpChanged) recenter();
   }, [upVector]);
@@ -237,7 +236,7 @@ function Scene({ onLoad, src }: ViewerProps) {
       {orthographicEnabled ? <OrthographicCamera makeDefault position={[0, 0, 2]} /> : <PerspectiveCamera />}
       <CameraControls ref={cameraRefs.controls} minDistance={minDistance} onChange={onCameraChange} />
       <ambientLight intensity={ambientLightIntensity} />
-      <Bounds lineVisible={boundsEnabled}>
+      <Bounds lineVisible={boundsEnabled && mode == 'scene'}>
         <Suspense fallback={<Loader />}>
           {srcs.map((src, index) => {
             return <GLTF key={index} {...src} />;
@@ -246,8 +245,8 @@ function Scene({ onLoad, src }: ViewerProps) {
       </Bounds>
       <Environment preset={environment} />
       {Tools[mode]}
-      {gridEnabled && <gridHelper args={[100, 100]} />}
-      {axesEnabled && <axesHelper args={[5]} />}
+      { (gridEnabled && mode == 'scene') && <gridHelper args={[100, 100]} />}
+      { (axesEnabled && mode == 'scene') && <axesHelper args={[5]} />}
     </>
   );
 }
