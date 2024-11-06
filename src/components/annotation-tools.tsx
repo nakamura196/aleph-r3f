@@ -161,6 +161,28 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
     return raycaster.intersectObjects(scene.children, true);
   }
 
+  function drawAnnotations() {
+    let primaryAnnotation: Annotation | null = null;
+    let primaryIndex: number | null = null; 
+    const fragments = [];
+
+    annotations.map((anno: Annotation, index: number) => {
+      if (selectedAnnotation == index) {
+        primaryAnnotation = anno;
+        primaryIndex = index;
+      } else {
+        fragments.push(drawAnnotation(anno, index));
+      }
+    });
+
+    // Draw selected Annotation last so it overlaps others
+    if (primaryAnnotation && primaryIndex != null) {
+      fragments.push(drawAnnotation(primaryAnnotation, primaryIndex));
+    }
+
+    return fragments;
+  }
+
   function drawAnnotation(anno: Annotation, index: number) {
     return (
       <React.Fragment key={index}>
@@ -213,7 +235,7 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
           <text x="0" y="0" textAnchor="middle" dominantBaseline="central" fontSize="10" fill="black">
             {index + 1}
           </text>
-          {selectedAnnotation === index && anno.label && (
+          {selectedAnnotation === index && anno && anno.label && (
             <foreignObject width="200" height={anno.description ? 80 : 38} x="18">
               <div className="text">
                 <div className="label">{anno.label}</div>
@@ -257,14 +279,7 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
             setSelectedAnnotation(annotations.length);
           }
         }}>
-        {/* draw points */}
-        {annotations.map((anno: Annotation, index: number) => {
-          if (selectedAnnotation != null && selectedAnnotation != index) {
-            return drawAnnotation(anno, index);
-          }
-        })}
-        {/* always draw selected annotation last so that it overlaps other annotations */}
-        { selectedAnnotation != null && drawAnnotation(annotations[selectedAnnotation], selectedAnnotation) }
+        { drawAnnotations() }
       </svg>
     </Html>
   );
