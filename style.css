@@ -23,10 +23,20 @@ body {
 }
 
 #control-panel {
+  display: block; /* Default display */
   width: 20%;
   background-color: #1f1f26;
 }
 
 #viewer {
   width: 80%;
+}
+
+@media (max-width: 768px) {
+  #control-panel {
+    display: none; /* Hide on mobile */
+  }
+  #viewer {
+    width: 100%;
+  }
 }
