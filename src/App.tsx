@@ -89,7 +89,7 @@ function App() {
 
   return (
     <div id="container">
-      <div id="control-panel">
+      <div id="control-panel" className="block md:hidden">
         <ControlPanel></ControlPanel>
       </div>
       <div id="viewer">
