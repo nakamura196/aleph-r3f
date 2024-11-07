@@ -1,9 +1,0 @@
-#control-panel {
-  display: block; /* Default display */
-}
-
-@media (max-width: 768px) {
-  #control-panel {
-    display: none; /* Hide on mobile */
-  }
-}
