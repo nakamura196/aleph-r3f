@@ -1,7 +1,7 @@
 import { Src, SrcObj } from '@/types';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { Vector3 } from 'three';
+import { Box3, Object3D, Sphere, Vector3 } from 'three';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -9,6 +9,12 @@ export function cn(...inputs: ClassValue[]) {
 
 export function areObjectsIdentical(a: any, b: any) {
   return JSON.stringify(a) === JSON.stringify(b);
+}
+
+export function getBoundingSphereRadius(object: Object3D) {
+  const box = new Box3().setFromObject(object);
+  const sphere = box.getBoundingSphere(new Sphere());
+  return sphere.radius;
 }
 
 export function normalizeSrc(src: Src): SrcObj[] {
