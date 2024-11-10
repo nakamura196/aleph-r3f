@@ -90,8 +90,7 @@ export function ScreenMeasurementTools() {
           y2={nextPosition[1]}
         >
           <div>
-            {worldDistance}
-            {measurementUnits}
+            {worldDistance == 0 ? '<0.001' : worldDistance} {measurementUnits}
           </div>
         </foreignObject>
       </>
@@ -184,7 +183,7 @@ export function ScreenMeasurementTools() {
 
       if (labels[i].firstElementChild) {
         labels[i].firstElementChild!.textContent = `
-          ${worldDistance}
+          ${worldDistance == 0 ? '<0.001' : worldDistance}
           ${measurementUnits}
         `;
       }
@@ -198,8 +197,8 @@ export function ScreenMeasurementTools() {
     let worldDistance = distance / camera.zoom;
     if (measurementUnits === 'mm') worldDistance *= 1000;
 
-    // round to two decimal places
-    worldDistance = parseFloat(worldDistance.toFixed(2));
+    // round to three decimal places
+    worldDistance = parseFloat(worldDistance.toFixed(3));
 
     return worldDistance;
   }

@@ -140,16 +140,16 @@ export function ObjectMeasurementTools() {
 
       if (measurementUnits === 'mm') {
         worldDistance *= 1000;
-        // round to two decimal places
-        worldDistance = Math.round(worldDistance);
+        // round to three decimal places
+        worldDistance = parseFloat(worldDistance.toFixed(3));
       } else {
-        // round to two decimal places
-        worldDistance = parseFloat(worldDistance.toFixed(2));
+        // round to three decimal places
+        worldDistance = parseFloat(worldDistance.toFixed(3));
       }
 
       label.innerHTML = `
         <div>
-          ${worldDistance} ${measurementUnits}
+          ${worldDistance == 0 ? '<0.001' : worldDistance} ${measurementUnits}
         </div>
       `;
     }
