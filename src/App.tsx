@@ -105,7 +105,7 @@ function App() {
             srcs
               .filter((srcObj) => srcObj.requiredStatement)
               .forEach((srcObj) => {
-                const sanitizedHTML = DOMPurify.sanitize(srcObj.requiredStatement);
+                const sanitizedHTML = DOMPurify.sanitize(srcObj.requiredStatement as string);
                 toast(<div dangerouslySetInnerHTML={{ __html: sanitizedHTML }} />);
               });
           }}
