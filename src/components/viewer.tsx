@@ -57,6 +57,7 @@ function Scene({ onLoad, src }: ViewerProps) {
     gridEnabled,
     loading,
     mode,
+    orientation,
     orthographicEnabled,
     setAnnotations,
     setLoading,
@@ -74,6 +75,11 @@ function Scene({ onLoad, src }: ViewerProps) {
     setSrcs(srcs);
     setAnnotations([]);
   }, [src]);
+
+  // orientation changed
+  useEffect(() => {
+    recenter();
+  }, [orientation]);
 
   // upVector changed
   useEffect(() => {
@@ -296,7 +302,7 @@ function Scene({ onLoad, src }: ViewerProps) {
       <Bounds lineVisible={boundsEnabled && mode == 'scene'}>
         <Suspense fallback={<Loader />}>
           {srcs.map((src, index) => {
-            return <GLTF key={index} {...src} />;
+            return <GLTF key={index} {...src} orientation={orientation} />;
           })}
         </Suspense>
       </Bounds>
