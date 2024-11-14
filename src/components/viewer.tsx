@@ -93,7 +93,7 @@ function Scene({ onLoad, src }: ViewerProps) {
       if (!loading) {
         setCameraUp();
         recenter(true);
-        setCameraNearFar(); 
+        setCameraConfig(); 
       }
     },
     1,
@@ -133,33 +133,38 @@ function Scene({ onLoad, src }: ViewerProps) {
     }
   }
 
-  function setCameraNearFar() {
+  function setCameraConfig() {
     if (boundsRef.current) {
       if (!boundingSphereRadius) boundingSphereRadius = getBoundingSphereRadius(boundsRef.current);
-
-      const backoffDistanceFactor = 3.0; // multipled by bounding radius to measure back off distance
-      const nearDistanceRatio = 0.1; // fraction of back off distance to use as near frustrum distance
-      const farDistanceFactor = 100.0; // multipled by back off distance to get far frustum distance
-
-      const backoffDistance = boundingSphereRadius * backoffDistanceFactor;
 
       if (orthographicEnabled) {
         const cameraObjectDistance = cameraRefs.controls.current?.distance;
         if (cameraObjectDistance) {
-          const near = cameraObjectDistance - (backoffDistance * (1.0 - nearDistanceRatio));
-          const far = near + (backoffDistance * farDistanceFactor);
-
-          camera.near = near;
-          camera.far = far;
+          camera.near = cameraObjectDistance - (boundingSphereRadius * 100);
+          camera.far = cameraObjectDistance + (boundingSphereRadius * 100);
           camera.updateProjectionMatrix();
         }
-      } else {
-        const near = backoffDistance * nearDistanceRatio;
-        const far = backoffDistance * farDistanceFactor;
 
-        camera.near = near;
-        camera.far = far;
+        if (cameraRefs.controls.current) {
+          if ('isOrthographicCamera' in camera && camera.isOrthographicCamera) {
+            const width = camera.right - camera.left;
+            const height = camera.top - camera.bottom;
+            const diameter = boundingSphereRadius * 2;
+
+            const zoom = Math.min( width / diameter, height / diameter );
+            cameraRefs.controls.current.maxZoom = zoom * 4;
+            cameraRefs.controls.current.minZoom = zoom/4;
+          }
+        }
+      } else {
+        camera.near = boundingSphereRadius * 0.01;
+        camera.far = boundingSphereRadius * 200;
         camera.updateProjectionMatrix();
+
+        if (cameraRefs.controls.current) {
+          cameraRefs.controls.current.minDistance = boundingSphereRadius;
+          cameraRefs.controls.current.maxDistance = boundingSphereRadius * 5;
+        }
       }
     }
   }
