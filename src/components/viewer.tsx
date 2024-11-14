@@ -45,7 +45,7 @@ function Scene({ onLoad, src }: ViewerProps) {
 
   const cameraPosition = new Vector3();
   const cameraTarget = new Vector3();
-  const environment = 'apartment';
+  const environment = 'warehouse';
   const { camera, gl } = useThree();
 
   let boundingSphereRadius: number | null = null;
