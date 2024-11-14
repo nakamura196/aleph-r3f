@@ -184,18 +184,7 @@ function Scene({ onLoad, src }: ViewerProps) {
   function getAxesProperties(): [size?: number | undefined] {
     if (boundsRef.current) {
       if (!boundingSphereRadius) boundingSphereRadius = getBoundingSphereRadius(boundsRef.current);
-
-      const breakPoints = [0.001, 0.01, 0.1, 1.0, 10.0, 100.0];
-      let axisLength = 100.0; // maximum possible value, reduce to scale with object
-
-      for (const breakPoint of breakPoints) {
-        if (boundingSphereRadius! < breakPoint) {
-          axisLength = breakPoint;
-          break;
-        } 
-      }
-
-      return [axisLength];
+      return [boundingSphereRadius * 2];
     } else {
       return [5];
     }
