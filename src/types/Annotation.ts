@@ -1,4 +1,4 @@
-import { Vector3 } from 'three';
+import { Euler, Vector3 } from 'three';
 
 export type Annotation = {
   cameraPosition?: Vector3;
@@ -7,4 +7,5 @@ export type Annotation = {
   label?: string;
   normal?: Vector3;
   position?: Vector3;
+  rotation?: Euler;
 };

@@ -1,7 +1,7 @@
 import { Src, SrcObj, UpVector } from '@/types';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { Box3, Object3D, Sphere, Vector3 } from 'three';
+import { Box3, Euler, Object3D, Sphere, Vector3 } from 'three';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -106,4 +106,8 @@ export function getEulerAnglesFromOrientation(orientation: UpVector): [number, n
     'z-negative': [Math.PI/2, 0, 0] // rotate 270 degrees around X ccw, points "forward"
   };
   return orientationToEulerAngles[orientation] as [number, number, number];
+}
+
+export function getEulerFromOrientation(orientation: UpVector): Euler {
+  return new Euler().fromArray(getEulerAnglesFromOrientation(orientation || 'y-positive'));
 }

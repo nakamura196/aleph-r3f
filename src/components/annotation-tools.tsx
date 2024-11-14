@@ -1,16 +1,22 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import useStore from '@/Store';
-import { Intersection, Object3D, Object3DEventMap, Vector3 } from 'three';
+import { Euler, Intersection, Object3D, Object3DEventMap, Quaternion, Vector3 } from 'three';
 import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
 import { ANNO_CLICK, Annotation, CAMERA_CONTROLS_ENABLED, CameraRefs } from '@/types';
 import React from 'react';
 import { Html } from '@react-three/drei';
-import { cn } from '@/lib/utils';
+import { cn, getEulerFromOrientation } from '@/lib/utils';
 import { useDrag } from '@use-gesture/react';
 
 export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
-  const { annotations, setAnnotations, selectedAnnotation, setSelectedAnnotation } = useStore();
+  const { 
+    annotations, 
+    setAnnotations, 
+    orientation,
+    selectedAnnotation, 
+    setSelectedAnnotation 
+  } = useStore();
   const { scene, camera, pointer, raycaster, size } = useThree();
 
   // if a dot product is less than this, then the normal is facing away from the camera
@@ -42,6 +48,30 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
   useEventListener(ANNO_CLICK, handleAnnotationClick);
 
   const triggerAnnoClick = useEventTrigger(ANNO_CLICK);
+
+  function updateAnnotationRotation(anno: Annotation, rotation: Euler): Annotation {
+    // get inverted previous rotation
+    const prevRotation = anno.rotation || new Euler(0, 0, 0);
+    const q = new Quaternion().setFromEuler(prevRotation).invert();
+    const invertPrevRotation = new Euler().setFromQuaternion(q);
+
+    // rotate back to original state and then apply new rotation
+    anno.position = anno.position?.applyEuler(invertPrevRotation).applyEuler(rotation);
+    anno.normal = anno.normal?.applyEuler(invertPrevRotation).applyEuler(rotation);
+    anno.cameraPosition = anno.cameraPosition?.applyEuler(invertPrevRotation).applyEuler(rotation);
+    anno.cameraTarget = anno.cameraTarget?.applyEuler(invertPrevRotation).applyEuler(rotation);
+    anno.rotation = rotation;
+
+    return anno;
+  }
+
+  // orientation changed
+  useEffect(() => {
+    const orientationEuler = getEulerFromOrientation(orientation);
+    setAnnotations(
+      annotations.map((anno: Annotation) => updateAnnotationRotation(anno, orientationEuler))
+    )
+  }, [orientation]);
 
   function isFacingCamera(anno: Annotation): boolean {
     const cameraDirection: Vector3 = camera.position.clone().normalize().sub(anno.position!.clone().normalize());
@@ -273,6 +303,7 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
                 normal: intersects[0].face?.normal!,
                 cameraPosition: cameraRefs.position.current!,
                 cameraTarget: cameraRefs.target.current!,
+                rotation: getEulerFromOrientation(orientation)
               },
             ]);
 
