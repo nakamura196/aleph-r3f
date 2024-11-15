@@ -58,7 +58,6 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
     // rotate back to original state and then apply new rotation
     anno.position = anno.position?.applyEuler(invertPrevRotation).applyEuler(rotation);
     anno.normal = anno.normal?.applyEuler(invertPrevRotation).applyEuler(rotation);
-    anno.cameraPosition = anno.cameraPosition?.applyEuler(invertPrevRotation).applyEuler(rotation);
     anno.cameraTarget = anno.cameraTarget?.applyEuler(invertPrevRotation).applyEuler(rotation);
     anno.rotation = rotation;
 
@@ -242,7 +241,7 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
                         return {
                           ...anno,
                           position: intersects[0].point,
-                          normal: intersects[0].face?.normal!,
+                          normal: intersects[0].face?.normal!.applyEuler(anno.rotation!),
                           cameraPosition: cameraRefs.position.current!,
                           cameraTarget: cameraRefs.target.current!,
                         };
@@ -296,14 +295,16 @@ export function AnnotationTools({ cameraRefs }: { cameraRefs: CameraRefs }) {
           const intersects: Intersection<Object3D>[] = getIntersects();
 
           if (intersects.length > 0) {
+            const rotation = getEulerFromOrientation(orientation);
+
             setAnnotations([
               ...annotations,
               {
                 position: intersects[0].point,
-                normal: intersects[0].face?.normal!,
+                normal: intersects[0].face?.normal!.applyEuler(rotation),
                 cameraPosition: cameraRefs.position.current!,
                 cameraTarget: cameraRefs.target.current!,
-                rotation: getEulerFromOrientation(orientation)
+                rotation: rotation
               },
             ]);
 

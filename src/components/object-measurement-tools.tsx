@@ -1,17 +1,22 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import useStore from '@/Store';
-import { Intersection, Object3D, Object3DEventMap, Vector3 } from 'three';
+import { Euler, Intersection, Object3D, Object3DEventMap, Quaternion, Vector3 } from 'three';
 import { useEventTrigger } from '@/lib/hooks/use-event';
 import { ObjectMeasurement, CAMERA_CONTROLS_ENABLED } from '@/types';
 import React from 'react';
 import { Html } from '@react-three/drei';
-import { cn, getElementTranslate, setElementTranslate } from '@/lib/utils';
+import { cn, getElementTranslate, getEulerFromOrientation, setElementTranslate } from '@/lib/utils';
 import { useDrag } from '@use-gesture/react';
 import useKeyDown from '@/lib/hooks/use-key-press';
 
 export function ObjectMeasurementTools() {
-  const { objectMeasurements: measurements, setObjectMeasurements: setMeasurements, measurementUnits } = useStore();
+  const { 
+    objectMeasurements: measurements, 
+    setObjectMeasurements: setMeasurements, 
+    measurementUnits,
+    orientation 
+  } = useStore();
   const { scene, camera, pointer, raycaster, size } = useThree();
 
   // if a dot product is less than this, then the normal is facing away from the camera
@@ -49,6 +54,28 @@ export function ObjectMeasurementTools() {
     }
   }
 
+  function updateMeasurementRotation(measurement: ObjectMeasurement, rotation: Euler): ObjectMeasurement {
+    // get inverted previous rotation
+    const prevRotation = measurement.rotation || new Euler(0, 0, 0);
+    const q = new Quaternion().setFromEuler(prevRotation).invert();
+    const invertPrevRotation = new Euler().setFromQuaternion(q);
+
+    // rotate back to original state and then apply new rotation
+    measurement.position = measurement.position?.applyEuler(invertPrevRotation).applyEuler(rotation);
+    measurement.normal = measurement.normal?.applyEuler(invertPrevRotation).applyEuler(rotation);
+    measurement.rotation = rotation;
+
+    return measurement;
+  }
+
+  // orientation changed
+  useEffect(() => {
+    const orientationEuler = getEulerFromOrientation(orientation);
+    setMeasurements(
+      measurements.map((measurement: ObjectMeasurement) => updateMeasurementRotation(measurement, orientationEuler))
+    )
+  }, [orientation]);
+
   // https://github.com/pmndrs/drei/blob/master/src/web/Html.tsx#L25
   function calculateScreenPosition(position: Vector3) {
     const objectPos = v1.copy(position);
@@ -59,8 +86,8 @@ export function ObjectMeasurementTools() {
   }
 
   function isFacingCamera(measurement: ObjectMeasurement): boolean {
-    const cameraDirection: Vector3 = camera.position.clone().normalize().sub(measurement.position.clone().normalize());
-    const dotProduct: number = cameraDirection.dot(measurement.normal);
+    const cameraDirection: Vector3 = camera.position.clone().normalize().sub(measurement.position!.clone().normalize());
+    const dotProduct: number = cameraDirection.dot(measurement.normal!);
 
     if (dotProduct < DOT_PRODUCT_THRESHOLD) {
       return false;
@@ -75,7 +102,7 @@ export function ObjectMeasurementTools() {
 
       // if not dragging the point, update its position
       if (dragRef.current !== idx) {
-        const [x, y] = calculateScreenPosition(measurement.position);
+        const [x, y] = calculateScreenPosition(measurement.position!);
         setElementTranslate(point, x, y);
       }
 
@@ -123,8 +150,8 @@ export function ObjectMeasurementTools() {
       const idx0 = Number(label.getAttribute('data-idx0'));
       const idx1 = Number(label.getAttribute('data-idx1'));
 
-      const pos2D1: number[] = calculateScreenPosition(measurements[idx0].position);
-      const pos2D2: number[] = calculateScreenPosition(measurements[idx1].position);
+      const pos2D1: number[] = calculateScreenPosition(measurements[idx0].position!);
+      const pos2D2: number[] = calculateScreenPosition(measurements[idx1].position!);
 
       const avgX = (pos2D1[0] + pos2D2[0]) / 2;
       const avgY = (pos2D1[1] + pos2D2[1]) / 2;
@@ -132,8 +159,8 @@ export function ObjectMeasurementTools() {
       label.setAttribute('x', String(avgX - 30));
       label.setAttribute('y', String(avgY - 15));
 
-      const pos3D1: Vector3 = measurements[idx0].position;
-      const pos3D2: Vector3 = measurements[idx1].position;
+      const pos3D1: Vector3 = measurements[idx0].position!;
+      const pos3D2: Vector3 = measurements[idx1].position!;
 
       const dir = pos3D2.clone().sub(pos3D1);
       let worldDistance = dir.length();
@@ -166,9 +193,9 @@ export function ObjectMeasurementTools() {
       const idx1 = Number(label.getAttribute('data-idx1'));
       const idx2 = Number(label.getAttribute('data-idx2'));
 
-      const pos2D1: number[] = calculateScreenPosition(measurements[idx0].position);
-      const pos2D2: number[] = calculateScreenPosition(measurements[idx1].position);
-      const pos2D3: number[] = calculateScreenPosition(measurements[idx2].position);
+      const pos2D1: number[] = calculateScreenPosition(measurements[idx0].position!);
+      const pos2D2: number[] = calculateScreenPosition(measurements[idx1].position!);
+      const pos2D3: number[] = calculateScreenPosition(measurements[idx2].position!);
 
       const line1 = {
         x1: pos2D1[0],
@@ -186,9 +213,9 @@ export function ObjectMeasurementTools() {
 
       // Calculate the angle between the three points
       const angle = calculateAngle(
-        measurements[idx0].position,
-        measurements[idx1].position,
-        measurements[idx2].position
+        measurements[idx0].position!,
+        measurements[idx1].position!,
+        measurements[idx2].position!
       );
 
       // Calculate the direction vectors of the lines
@@ -391,11 +418,14 @@ export function ObjectMeasurementTools() {
           const intersects: Intersection<Object3D>[] = getIntersects();
 
           if (intersects.length > 0) {
+            const rotation = getEulerFromOrientation(orientation);
+
             setMeasurements([
               ...measurements,
               {
                 position: intersects[0].point,
-                normal: intersects[0].face?.normal!,
+                normal: intersects[0].face?.normal!.applyEuler(rotation),
+                rotation: rotation
               },
             ]);
 
@@ -447,7 +477,7 @@ export function ObjectMeasurementTools() {
                               return {
                                 ...measurement,
                                 position: intersects[0].point,
-                                normal: intersects[0].face?.normal!,
+                                normal: intersects[0].face?.normal!.applyEuler(measurement.rotation!),
                               };
                             }
                             return measurement;
