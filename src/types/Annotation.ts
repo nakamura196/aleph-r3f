@@ -1,10 +1,9 @@
 import { Vector3 } from 'three';
+import { Point } from './Point';
 
-export type Annotation = {
+export type Annotation = Point & {
   cameraPosition?: Vector3;
   cameraTarget?: Vector3;
   description?: string;
   label?: string;
-  normal?: Vector3;
-  position?: Vector3;
 };

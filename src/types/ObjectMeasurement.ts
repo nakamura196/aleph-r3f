@@ -1,6 +1,3 @@
-import { Vector3 } from 'three';
+import { Point } from './Point';
 
-export type ObjectMeasurement = {
-  normal: Vector3;
-  position: Vector3;
-};
+export type ObjectMeasurement = Point;

@@ -24,6 +24,8 @@ function App() {
           'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/FlightHelmet/glTF/FlightHelmet.gltf',
         'Roberto Clemente Batting Helmet':
           'https://cdn.glitch.global/2658666b-2aa1-4395-8dfe-44a4aaaa0b16/nmah-1981_0706_06-clemente_helmet-100k-2048_std_draco.glb?v=1729600102458',
+        'Stanford Bunny': 
+          'https://raw.githubusercontent.com/JulieWinchester/aleph-assets/main/bunny.glb',
         Shoe: {
           url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/MaterialsVariantsShoe/glTF-Binary/MaterialsVariantsShoe.glb',
           requiredStatement:
@@ -105,7 +107,7 @@ function App() {
             srcs
               .filter((srcObj) => srcObj.requiredStatement)
               .forEach((srcObj) => {
-                const sanitizedHTML = DOMPurify.sanitize(srcObj.requiredStatement);
+                const sanitizedHTML = DOMPurify.sanitize(srcObj.requiredStatement as string);
                 toast(<div dangerouslySetInnerHTML={{ __html: sanitizedHTML }} />);
               });
           }}

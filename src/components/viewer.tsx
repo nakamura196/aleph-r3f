@@ -45,7 +45,7 @@ function Scene({ onLoad, src }: ViewerProps) {
 
   const cameraPosition = new Vector3();
   const cameraTarget = new Vector3();
-  const environment = 'apartment';
+  const environment = 'warehouse';
   const { camera, gl } = useThree();
 
   let boundingSphereRadius: number | null = null;
@@ -57,6 +57,7 @@ function Scene({ onLoad, src }: ViewerProps) {
     gridEnabled,
     loading,
     mode,
+    orientation,
     orthographicEnabled,
     setAnnotations,
     setLoading,
@@ -75,6 +76,11 @@ function Scene({ onLoad, src }: ViewerProps) {
     setAnnotations([]);
   }, [src]);
 
+  // orientation changed
+  useEffect(() => {
+    recenter();
+  }, [orientation]);
+
   // upVector changed
   useEffect(() => {
     const cameraUpChanged = setCameraUp();
@@ -87,7 +93,7 @@ function Scene({ onLoad, src }: ViewerProps) {
       if (!loading) {
         setCameraUp();
         recenter(true);
-        setCameraNearFar(); 
+        setCameraConfig(); 
       }
     },
     1,
@@ -127,33 +133,38 @@ function Scene({ onLoad, src }: ViewerProps) {
     }
   }
 
-  function setCameraNearFar() {
+  function setCameraConfig() {
     if (boundsRef.current) {
       if (!boundingSphereRadius) boundingSphereRadius = getBoundingSphereRadius(boundsRef.current);
-
-      const backoffDistanceFactor = 3.0; // multipled by bounding radius to measure back off distance
-      const nearDistanceRatio = 0.1; // fraction of back off distance to use as near frustrum distance
-      const farDistanceFactor = 100.0; // multipled by back off distance to get far frustum distance
-
-      const backoffDistance = boundingSphereRadius * backoffDistanceFactor;
 
       if (orthographicEnabled) {
         const cameraObjectDistance = cameraRefs.controls.current?.distance;
         if (cameraObjectDistance) {
-          const near = cameraObjectDistance - (backoffDistance * (1.0 - nearDistanceRatio));
-          const far = near + (backoffDistance * farDistanceFactor);
-
-          camera.near = near;
-          camera.far = far;
+          camera.near = cameraObjectDistance - (boundingSphereRadius * 100);
+          camera.far = cameraObjectDistance + (boundingSphereRadius * 100);
           camera.updateProjectionMatrix();
         }
-      } else {
-        const near = backoffDistance * nearDistanceRatio;
-        const far = backoffDistance * farDistanceFactor;
 
-        camera.near = near;
-        camera.far = far;
+        if (cameraRefs.controls.current) {
+          if ('isOrthographicCamera' in camera && camera.isOrthographicCamera) {
+            const width = camera.right - camera.left;
+            const height = camera.top - camera.bottom;
+            const diameter = boundingSphereRadius * 2;
+
+            const zoom = Math.min( width / diameter, height / diameter );
+            cameraRefs.controls.current.maxZoom = zoom * 4;
+            cameraRefs.controls.current.minZoom = zoom/4;
+          }
+        }
+      } else {
+        camera.near = boundingSphereRadius * 0.01;
+        camera.far = boundingSphereRadius * 200;
         camera.updateProjectionMatrix();
+
+        if (cameraRefs.controls.current) {
+          cameraRefs.controls.current.minDistance = boundingSphereRadius;
+          cameraRefs.controls.current.maxDistance = boundingSphereRadius * 5;
+        }
       }
     }
   }
@@ -175,12 +186,21 @@ function Scene({ onLoad, src }: ViewerProps) {
     return cameraUpChange;
   }
 
+  function getAxesProperties(): [size?: number | undefined] {
+    if (boundsRef.current) {
+      if (!boundingSphereRadius) boundingSphereRadius = getBoundingSphereRadius(boundsRef.current);
+      return [boundingSphereRadius * 2];
+    } else {
+      return [5];
+    }
+  }
+
   function getGridProperties(): [size?: number | undefined, divisions?: number | undefined] {
     if (boundsRef.current) {
       if (!boundingSphereRadius) boundingSphereRadius = getBoundingSphereRadius(boundsRef.current);
 
       const breakPoints = [0.001, 0.01, 0.1, 1.0, 10.0, 100.0];
-      let cellWidth = 100.0; // maximum possible value, reduce to scale with object
+      let cellWidth = 10.0; // maximum possible value, reduce to scale with object
 
       for (const breakPoint of breakPoints) {
         if (boundingSphereRadius! < breakPoint) {
@@ -296,14 +316,14 @@ function Scene({ onLoad, src }: ViewerProps) {
       <Bounds lineVisible={boundsEnabled && mode == 'scene'}>
         <Suspense fallback={<Loader />}>
           {srcs.map((src, index) => {
-            return <GLTF key={index} {...src} />;
+            return <GLTF key={index} {...src} orientation={orientation} />;
           })}
         </Suspense>
       </Bounds>
       <Environment preset={environment} />
       {Tools[mode]}
       { (gridEnabled && mode == 'scene') && <gridHelper args={getGridProperties()} />}
-      { (axesEnabled && mode == 'scene') && <axesHelper args={[5]} />}
+      { (axesEnabled && mode == 'scene') && <axesHelper args={getAxesProperties()} />}
     </>
   );
 }
