@@ -31,10 +31,11 @@ import { useEventListener, useEventTrigger } from '@/lib/hooks/use-event';
 import useTimeout from '@/lib/hooks/use-timeout';
 import { AnnotationTools } from './annotation-tools';
 import MeasurementTools from './measurement-tools';
-import { normalizeSrc } from '@/lib/utils';
+import { getBoundingSphereRadius, normalizeSrc } from '@/lib/utils';
 
 function Scene({ onLoad, src }: ViewerProps) {
   const boundsRef = useRef<Group | null>(null);
+  const boundsLineRef = useRef<Group | null>(null);
 
   const cameraRefs: CameraRefs = {
     controls: useRef<CameraControls | null>(null),
@@ -45,8 +46,9 @@ function Scene({ onLoad, src }: ViewerProps) {
   const cameraPosition = new Vector3();
   const cameraTarget = new Vector3();
   const environment = 'apartment';
-  const minDistance = 0.1;
   const { camera, gl } = useThree();
+
+  let boundingSphereRadius: number | null = null;
 
   const {
     ambientLightIntensity,
@@ -82,9 +84,10 @@ function Scene({ onLoad, src }: ViewerProps) {
   // when loaded or camera type changed, zoom to object(s) instantaneously
   useTimeout(
     () => {
-      if (!loading) {        
+      if (!loading) {
         setCameraUp();
         recenter(true);
+        setCameraNearFar(); 
       }
     },
     1,
@@ -103,7 +106,12 @@ function Scene({ onLoad, src }: ViewerProps) {
 
   useEventListener(CAMERA_CONTROLS_ENABLED, handleCameraEnabledEvent);
 
-  function zoomToObject(object: Object3D, instant?: boolean, padding: number = 0.1) {
+  function zoomToObject(object: Object3D, instant?: boolean, padding: number | undefined = undefined) {
+    if (!padding) {
+      const radius = boundingSphereRadius || getBoundingSphereRadius(object);
+      padding = radius * 0.1;
+    }
+
     cameraRefs.controls.current!.fitToBox(object, !instant, {
       cover: false,
       paddingLeft: padding,
@@ -116,6 +124,37 @@ function Scene({ onLoad, src }: ViewerProps) {
   function recenter(instant?: boolean) {
     if (boundsRef.current) {
       zoomToObject(boundsRef.current, instant);
+    }
+  }
+
+  function setCameraNearFar() {
+    if (boundsRef.current) {
+      if (!boundingSphereRadius) boundingSphereRadius = getBoundingSphereRadius(boundsRef.current);
+
+      const backoffDistanceFactor = 3.0; // multipled by bounding radius to measure back off distance
+      const nearDistanceRatio = 0.1; // fraction of back off distance to use as near frustrum distance
+      const farDistanceFactor = 100.0; // multipled by back off distance to get far frustum distance
+
+      const backoffDistance = boundingSphereRadius * backoffDistanceFactor;
+
+      if (orthographicEnabled) {
+        const cameraObjectDistance = cameraRefs.controls.current?.distance;
+        if (cameraObjectDistance) {
+          const near = cameraObjectDistance - (backoffDistance * (1.0 - nearDistanceRatio));
+          const far = near + (backoffDistance * farDistanceFactor);
+
+          camera.near = near;
+          camera.far = far;
+          camera.updateProjectionMatrix();
+        }
+      } else {
+        const near = backoffDistance * nearDistanceRatio;
+        const far = backoffDistance * farDistanceFactor;
+
+        camera.near = near;
+        camera.far = far;
+        camera.updateProjectionMatrix();
+      }
     }
   }
 
@@ -136,9 +175,27 @@ function Scene({ onLoad, src }: ViewerProps) {
     return cameraUpChange;
   }
 
-  function Bounds({ lineVisible, children }: { lineVisible?: boolean; children: React.ReactNode }) {
-    const boundsLineRef = useRef<Group | null>(null);
+  function getGridProperties(): [size?: number | undefined, divisions?: number | undefined] {
+    if (boundsRef.current) {
+      if (!boundingSphereRadius) boundingSphereRadius = getBoundingSphereRadius(boundsRef.current);
 
+      const breakPoints = [0.001, 0.01, 0.1, 1.0, 10.0, 100.0];
+      let cellWidth = 100.0; // maximum possible value, reduce to scale with object
+
+      for (const breakPoint of breakPoints) {
+        if (boundingSphereRadius! < breakPoint) {
+          cellWidth = breakPoint/10.0;
+          break;
+        } 
+      }
+      
+      return [cellWidth * 100.0, 100]
+    } else {
+      return [100, 100];
+    }
+  }
+
+  function Bounds({ lineVisible, children }: { lineVisible?: boolean; children: React.ReactNode }) {
     // @ts-ignore
     useHelper(boundsLineRef, BoxHelper, 'white');
 
@@ -233,8 +290,8 @@ function Scene({ onLoad, src }: ViewerProps) {
 
   return (
     <>
-      {orthographicEnabled ? <OrthographicCamera makeDefault position={[0, 0, 2]} /> : <PerspectiveCamera />}
-      <CameraControls ref={cameraRefs.controls} minDistance={minDistance} onChange={onCameraChange} />
+      {orthographicEnabled ? <OrthographicCamera makeDefault position={[0, 0, 2]} /> : <PerspectiveCamera makeDefault position={[0, 0, 2]} />}
+      <CameraControls ref={cameraRefs.controls} onChange={onCameraChange} />
       <ambientLight intensity={ambientLightIntensity} />
       <Bounds lineVisible={boundsEnabled && mode == 'scene'}>
         <Suspense fallback={<Loader />}>
@@ -245,7 +302,7 @@ function Scene({ onLoad, src }: ViewerProps) {
       </Bounds>
       <Environment preset={environment} />
       {Tools[mode]}
-      { (gridEnabled && mode == 'scene') && <gridHelper args={[100, 100]} />}
+      { (gridEnabled && mode == 'scene') && <gridHelper args={getGridProperties()} />}
       { (axesEnabled && mode == 'scene') && <axesHelper args={[5]} />}
     </>
   );
